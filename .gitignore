@@ -5,6 +5,9 @@ node_modules/
 node_modules_old/
 package-lock-old.json
 
+# 数据管线构建输入（ECDICT CSV，离线跑一次，不进版本库）
+tools/cache/
+
 # Expo
 .expo/
 dist/

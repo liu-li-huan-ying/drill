@@ -33,7 +33,18 @@
 
 ## 状态
 
-> 开发中，当前处于 **M0（环境与设计基线）**。完整设计见 [docs/开发计划.md](docs/开发计划.md) 与 [docs/对抗式审查.md](docs/对抗式审查.md)。
+> 开发中，当前 **M1（数据管线 v1）已完成**：ECDICT → SQLite 管线跑通，产出 500 词样本 `assets/db/dictionary.db`。下一步进入 **M2（最小闭环）**。完整设计见 [docs/开发计划.md](docs/开发计划.md) 与 [docs/对抗式审查.md](docs/对抗式审查.md)。
+
+## 数据管线（离线跑一次）
+
+词库是离线预处理产物，不进运行时。当前 `assets/db/dictionary.db` 是 500 词样本包（348KB），供 M2 端到端验证；全量 3 万词为 M3 目标。重跑流程：
+
+```bash
+bash tools/fetch_ecdict.sh   # 下载 ECDICT 主词典（MIT）到 tools/cache/（不进版本库）
+python3 tools/build_dict.py  # 筛选高频词，构建 assets/db/dictionary.db
+```
+
+`dictionary.db` 一次建好全部表——`words`/`tags`/`word_tags` 为只读词库，`cards` 等用户表留空——App 首次启动将其拷贝到用户目录后直接在其上写进度，可跨表 JOIN，无需 M2 再建表。
 
 ## 本地开发
 
