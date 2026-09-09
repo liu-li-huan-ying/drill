@@ -44,6 +44,8 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="review" />
           <Stack.Screen name="calibration" />
+          <Stack.Screen name="wordlist" />
+          <Stack.Screen name="word" />
         </Stack>
       ) : (
         <BootScreen />

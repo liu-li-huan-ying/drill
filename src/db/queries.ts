@@ -169,6 +169,70 @@ export function getWord(wordId: number): QueueItem | null {
   return r ? rowToItem(r, r.state === 'new') : null;
 }
 
+// 词行（词库浏览 / 搜索 / 详情通用）。definition_en 仅详情页使用，列表/搜索可不返回。
+export interface WordRow {
+  word_id: number;
+  word: string;
+  phonetic_uk: string | null;
+  phonetic_us: string | null;
+  definition_zh: string | null;
+  definition_en?: string | null;
+  pos: string | null;
+  root_affix: string | null;
+  exam_tags: string | null;
+}
+
+// 某标签下的词列表（按词频升序分页）。
+export function getTagWords(tagId: number, limit = 200, offset = 0): WordRow[] {
+  return getDb().getAllSync<WordRow>(
+    `SELECT w.id AS word_id, w.word, w.phonetic_uk, w.phonetic_us,
+            w.definition_zh, w.pos, w.root_affix, w.exam_tags
+     FROM words w JOIN word_tags wt ON wt.word_id = w.id
+     WHERE wt.tag_id = ?
+     ORDER BY w.frq ASC LIMIT ? OFFSET ?`,
+    [tagId, limit, offset]
+  );
+}
+
+// 某标签的词数（用于页头展示）。
+export function getTagWordCount(tagId: number): number {
+  const r = getDb().getFirstSync<{ c: number }>(
+    'SELECT COUNT(*) AS c FROM word_tags WHERE tag_id = ?',
+    [tagId]
+  );
+  return r?.c ?? 0;
+}
+
+// 全局搜词：子串匹配（已 lower），按词频升序。
+export function searchWords(q: string, limit = 60): WordRow[] {
+  const like = `%${q.trim().toLowerCase()}%`;
+  if (!q.trim()) return [];
+  return getDb().getAllSync<WordRow>(
+    `SELECT w.id AS word_id, w.word, w.phonetic_uk, w.phonetic_us,
+            w.definition_zh, w.pos, w.root_affix, w.exam_tags
+     FROM words w
+     WHERE lower(w.word) LIKE ?
+     ORDER BY w.frq ASC LIMIT ?`,
+    [like, limit]
+  );
+}
+
+// 单词详情（含掌握态），用于详情页。
+export function getWordDetail(
+  wordId: number
+): (WordRow & { mastered: boolean; state: string }) | null {
+  const r = getDb().getFirstSync<any>(
+    `SELECT w.id AS word_id, w.word, w.phonetic_uk, w.phonetic_us,
+            w.definition_zh, w.definition_en, w.pos, w.root_affix, w.exam_tags,
+            c.mastered AS mastered, c.state AS state
+     FROM words w LEFT JOIN cards c ON c.word_id = w.id
+     WHERE w.id = ?`,
+    [wordId]
+  );
+  if (!r) return null;
+  return { ...r, mastered: (r.mastered ?? 0) === 1 };
+}
+
 // 今日首页摘要：新词配额 / 已完成新词 / 待复习数 / 可用新词数。
 export function getHomeSummary(): {
   dailyNewLimit: number;
