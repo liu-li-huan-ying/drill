@@ -46,6 +46,8 @@ export default function RootLayout() {
           <Stack.Screen name="calibration" />
           <Stack.Screen name="wordlist" />
           <Stack.Screen name="word" />
+          <Stack.Screen name="import" />
+          <Stack.Screen name="vocabtest" />
         </Stack>
       ) : (
         <BootScreen />

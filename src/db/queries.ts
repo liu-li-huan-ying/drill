@@ -271,3 +271,110 @@ export function getCalibrationSample(n: number): QueueItem[] {
   );
   return rows.map((r) => rowToItem(r, true));
 }
+
+// ── 设置：保存部分配置 / 重置已掌握 ──────────────────────────────────────
+export function saveSettings(p: Partial<Settings>): void {
+  for (const [k, v] of Object.entries(p)) {
+    if (v === undefined) continue;
+    getDb().runSync('UPDATE settings SET value=? WHERE key=?', [String(v), k]);
+  }
+}
+
+// 重置「已掌握」：把所有 mastered=1 的词放回学习池（保留原有 FSRS 状态）。
+export function resetMastered(): void {
+  getDb().runSync('UPDATE cards SET mastered=0 WHERE mastered=1');
+}
+
+// ── 自定义词库导入 ───────────────────────────────────────────────────────
+// 解析纯文本（换行/空格/逗号/顿号/分号分隔、小写归一）为单词集合，
+// 在 words 表精确匹配；匹配到的建（或复用）自定义 tag 并关联、补建 cards。
+// 返回命中数、未收录词、tag 信息，供页面反馈。
+export function importCustomList(
+  name: string,
+  raw: string
+): { found: number; missing: string[]; tagId: number; tagName: string } {
+  const words = Array.from(
+    new Set(
+      raw
+        .split(/[\s,，、;；]+/)
+        .map((w) => w.trim().toLowerCase())
+        .filter((w) => /^[a-z][a-z'’\-]*$/.test(w))
+    )
+  );
+  const tagName = name.trim() || '自定义词库';
+  const exist = getDb().getFirstSync<{ id: number }>(
+    'SELECT id FROM tags WHERE name=? AND kind=?',
+    [tagName, 'custom']
+  );
+  let tagId: number;
+  if (exist) {
+    tagId = exist.id;
+  } else {
+    getDb().runSync('INSERT INTO tags(name,kind,color,sort) VALUES(?,?,?,?)', [
+      tagName,
+      'custom',
+      '#C0452F',
+      90,
+    ]);
+    tagId = getDb().getFirstSync<{ id: number }>(
+      'SELECT id FROM tags WHERE name=? AND kind=? ORDER BY id DESC LIMIT 1',
+      [tagName, 'custom']
+    )!.id;
+  }
+
+  let found = 0;
+  const missing: string[] = [];
+  for (const w of words) {
+    const row = getDb().getFirstSync<{ id: number }>('SELECT id FROM words WHERE word=?', [w]);
+    if (!row) {
+      missing.push(w);
+      continue;
+    }
+    found++;
+    getDb().runSync('INSERT OR IGNORE INTO word_tags(word_id,tag_id) VALUES(?,?)', [row.id, tagId]);
+    getDb().runSync(
+      `INSERT OR IGNORE INTO cards
+        (word_id,state,due,stability,difficulty,retrievability,reps,lapses,elapsed_days,scheduled_days,last_review_at,mastered)
+       VALUES (?, 'new', 0, 0,0,0, 0,0,0,0, NULL, 0)`,
+      [row.id]
+    );
+  }
+  return { found, missing, tagId, tagName };
+}
+
+// ── 全局词汇量测试（分层抽样 + 估算）─────────────────────────────────────
+export interface VocabTestItem extends QueueItem {
+  band: number; // 频率分层编号（0=最高频）
+}
+function shuffle<T>(arr: T[]): T[] {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+// 按词频排名等分 bands 段，每段随机取 perBand 个，得到分层抽样样本 + 各段词数（用于外推估算）。
+export function getVocabTestSample(perBand = 3, bands = 12): {
+  items: VocabTestItem[];
+  bandSizes: number[];
+} {
+  const rows = getDb().getAllSync<any>(
+    `SELECT w.id AS word_id, w.word, w.phonetic_uk, w.phonetic_us,
+            w.definition_zh, w.definition_en, w.pos, w.root_affix, 'new' AS state
+     FROM words w ORDER BY w.frq ASC`
+  );
+  const total = rows.length;
+  const bandSize = Math.ceil(total / bands);
+  const bandSizes: number[] = [];
+  const items: VocabTestItem[] = [];
+  for (let i = 0; i < bands; i++) {
+    const start = i * bandSize;
+    const end = Math.min(total, start + bandSize);
+    const seg = rows.slice(start, end);
+    bandSizes.push(seg.length);
+    const picked = shuffle(seg).slice(0, perBand);
+    for (const r of picked) items.push({ ...rowToItem(r, true), band: i });
+  }
+  return { items, bandSizes };
+}
