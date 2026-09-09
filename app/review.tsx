@@ -70,7 +70,7 @@ export default function ReviewScreen() {
       </View>
 
       <View style={styles.cardArea}>
-        {current ? <ReviewCard item={current} flipped={flipped} onFlip={() => setFlipped(true)} /> : null}
+        {current ? <ReviewCard item={current} flipped={flipped} onFlip={() => setFlipped((f) => !f)} /> : null}
       </View>
 
       {flipped ? (

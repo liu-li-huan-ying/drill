@@ -5,8 +5,12 @@ import { serif, FONT, mono } from '../../theme/tokens';
 import { speak } from '../../lib/speak';
 import type { QueueItem } from '../../db/queries';
 
-// 3D 翻转卡：正面单词 + 音标 + 发音；背面释义 + 词根。
-// 翻转用 rotateY + backfaceVisibility 实现。
+// 3D 翻转卡：正面单词 + 音标；背面释义 + 词根。翻转用 rotateY + backfaceVisibility 实现。
+//
+// 关键坑（Android 真机）：两个面都是 absolute 叠放，背面写在 DOM 后面 → 在视图层级上盖在正面之上。
+// 即便 backfaceVisibility:'hidden' 让它「看不见」，它在命中测试层仍然挡在最上面，会吞掉所有点击，
+// 导致正面的 TouchableOpacity 永远收不到 tap，卡片「怎么点都不翻」。
+// 修法：面上不再放任何 touchable；改为最上层铺一个透明翻转层统一接手势，发音按钮再浮到翻转层之上。
 export function ReviewCard({
   item,
   flipped,
@@ -36,35 +40,23 @@ export function ReviewCard({
 
   return (
     <View style={styles.wrap}>
+      {/* 正面（纯展示，不含 touchable） */}
       <Animated.View
         style={[styles.face, { transform: [{ rotateY: frontRotate }], backfaceVisibility: 'hidden' }]}
       >
-        <TouchableOpacity style={styles.faceInner} activeOpacity={0.92} onPress={onFlip}>
-          <View style={styles.body}>
-            <Text style={[styles.ul, { color: c.tx3 }]}>
-              {item.isNew ? '首 次 接 触' : '复 习'}
-            </Text>
-            <Text style={[styles.word, { color: c.tx1 }]}>{item.word}</Text>
-            {phonetic ? (
-              <Text style={[styles.ipa, { color: c.tx3 }]}>{phonetic}</Text>
-            ) : null}
-            <TouchableOpacity
-              style={styles.sound}
-              activeOpacity={0.6}
-              onPress={(e) => {
-                e.stopPropagation();
-                speak(item.word);
-              }}
-            >
-              <SoundIcon color={c.tx1} />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.footer}>
-            <Text style={[styles.footerText, { color: c.tx2 }]}>显 示 释 义</Text>
-          </View>
-        </TouchableOpacity>
+        <View style={styles.body}>
+          <Text style={[styles.ul, { color: c.tx3 }]}>
+            {item.isNew ? '首 次 接 触' : '复 习'}
+          </Text>
+          <Text style={[styles.word, { color: c.tx1 }]}>{item.word}</Text>
+          {phonetic ? <Text style={[styles.ipa, { color: c.tx3 }]}>{phonetic}</Text> : null}
+        </View>
+        <View style={styles.footer}>
+          <Text style={[styles.footerText, { color: c.tx2 }]}>显 示 释 义</Text>
+        </View>
       </Animated.View>
 
+      {/* 背面（纯展示，不含 touchable） */}
       <Animated.View
         style={[
           styles.face,
@@ -86,6 +78,18 @@ export function ReviewCard({
           ) : null}
         </View>
       </Animated.View>
+
+      {/* 翻转触发层：覆盖整卡，统一接手势，避免背面（层级在上）吞掉点击 */}
+      <TouchableOpacity style={styles.tap} activeOpacity={1} onPress={onFlip} />
+
+      {/* 发音按钮：浮在翻转层之上，单独接手势（RN 命中测试取最上层，不会误触翻转） */}
+      <TouchableOpacity
+        style={styles.sound}
+        activeOpacity={0.6}
+        onPress={() => speak(item.word)}
+      >
+        <SoundIcon color={c.tx1} />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -119,7 +123,6 @@ const styles = StyleSheet.create({
     inset: 0,
     backgroundColor: 'transparent',
   },
-  faceInner: { flex: 1 },
   back: {},
   body: {
     flex: 1,
@@ -127,16 +130,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 24,
   },
+  // 透明翻转层：盖住整张卡，承接所有点击。
+  tap: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
   ul: { fontSize: 10.5, letterSpacing: 2, textTransform: 'uppercase', fontWeight: '500' },
   word: { fontFamily: serif, fontSize: FONT.word, marginTop: 18, letterSpacing: -0.8 },
   ipa: { fontFamily: mono, fontSize: FONT.ipa, marginTop: 12, letterSpacing: 0.8 },
+  // 发音按钮浮在翻转层之上（写在 tap 之后 = 层级更高）。
   sound: {
+    position: 'absolute',
+    bottom: 86,
+    alignSelf: 'center',
     width: 44,
     height: 44,
     borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 26,
   },
   footer: {
     height: 50,
