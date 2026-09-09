@@ -1,6 +1,6 @@
 // 业务查询：构建今日队列、记录评分、读写设置、取词库/单词。
 // 复习候选池 = 拥有标签且 mastered=0 的词（见 对抗式审查 C1 结论）。
-import { db } from './Database';
+import { getDb } from './Database';
 import { dateKey } from '../lib/date';
 import { gradeCard, gradeNewCard, schedToDb, type DbCard } from '../srs/fsrs';
 import type { Grade } from 'ts-fsrs';
@@ -48,7 +48,7 @@ function rowToItem(r: any, isNew: boolean): QueueItem {
 
 // 为所有「有标签」的单词补齐 cards 行（state='new'），随后今日队列只从 cards 取。
 export function ensureCards(): void {
-  db.execSync(`
+  getDb().execSync(`
     INSERT INTO cards (word_id, state, due, stability, difficulty, retrievability,
                        reps, lapses, elapsed_days, scheduled_days, last_review_at, mastered)
     SELECT w.id, 'new', 0, 0, 0, 0, 0, 0, 0, 0, NULL, 0
@@ -59,7 +59,7 @@ export function ensureCards(): void {
 }
 
 export function getSettings(): Settings {
-  const rows = db.getAllSync<{ key: string; value: string }>(
+  const rows = getDb().getAllSync<{ key: string; value: string }>(
     'SELECT key, value FROM settings'
   );
   const map: Record<string, string> = {};
@@ -74,7 +74,7 @@ export function getSettings(): Settings {
 
 export function getTodayCounts(): { newDone: number; reviewDone: number } {
   const k = dateKey(Date.now(), getSettings().day_cutoff_hour);
-  const row = db.getFirstSync<{ new_count: number; review_count: number }>(
+  const row = getDb().getFirstSync<{ new_count: number; review_count: number }>(
     'SELECT new_count, review_count FROM daily_stats WHERE date = ?',
     [k]
   );
@@ -88,11 +88,11 @@ export function planSession(): { reviews: QueueItem[]; news: QueueItem[] } {
   const { newDone } = getTodayCounts();
   const newBudget = Math.max(0, s.daily_new_limit - newDone);
 
-  const revRows = db.getAllSync<any>(
+  const revRows = getDb().getAllSync<any>(
     BASE_SELECT + ` AND c.state <> 'new' AND c.due <= ? ORDER BY c.due ASC LIMIT ?`,
     [now, s.daily_review_limit]
   );
-  const newRows = db.getAllSync<any>(
+  const newRows = getDb().getAllSync<any>(
     BASE_SELECT + ` AND c.state = 'new' ORDER BY w.frq ASC LIMIT ?`,
     [newBudget]
   );
@@ -106,7 +106,7 @@ export function planSession(): { reviews: QueueItem[]; news: QueueItem[] } {
 // 新卡首次评分从空卡开始（首评决定首次 due）。
 export function recordGrade(item: QueueItem, rating: Grade): void {
   const now = Date.now();
-  const prev = db.getFirstSync<DbCard>(
+  const prev = getDb().getFirstSync<DbCard>(
     'SELECT * FROM cards WHERE word_id = ?',
     [item.word_id]
   );
@@ -118,7 +118,7 @@ export function recordGrade(item: QueueItem, rating: Grade): void {
     : gradeCard(prev, rating, now);
   const next = schedToDb(sched, item.word_id, prev.mastered, now);
 
-  db.runSync(
+  getDb().runSync(
     `UPDATE cards SET state=?, due=?, stability=?, difficulty=?, retrievability=?,
        reps=?, lapses=?, elapsed_days=?, scheduled_days=?, last_review_at=?
      WHERE word_id=?`,
@@ -128,13 +128,13 @@ export function recordGrade(item: QueueItem, rating: Grade): void {
       next.last_review_at, item.word_id,
     ]
   );
-  db.runSync(
+  getDb().runSync(
     'INSERT INTO review_logs (card_id, reviewed_at, rating, state) VALUES (?,?,?,?)',
     [item.word_id, now, rating, next.state]
   );
 
   const k = dateKey(now, getSettings().day_cutoff_hour);
-  db.runSync(
+  getDb().runSync(
     `INSERT INTO daily_stats (date, new_count, review_count, correct_count, elapsed_ms)
      VALUES (?, ?, ?, 0, 0)
      ON CONFLICT(date) DO UPDATE SET
@@ -145,7 +145,7 @@ export function recordGrade(item: QueueItem, rating: Grade): void {
 
 // 标记一个词为「已掌握」：从学习计划中移除（mastered=1）。用于熟词校准与详情页。
 export function markMastered(wordId: number): void {
-  db.runSync('UPDATE cards SET mastered = 1 WHERE word_id = ?', [wordId]);
+  getDb().runSync('UPDATE cards SET mastered = 1 WHERE word_id = ?', [wordId]);
 }
 
 // 词库（标签）列表，含词数。
@@ -157,7 +157,7 @@ export interface TagRow {
   count: number;
 }
 export function getTags(): TagRow[] {
-  return db.getAllSync<TagRow>(
+  return getDb().getAllSync<TagRow>(
     `SELECT t.id, t.name, t.kind, t.color, COUNT(wt.word_id) AS count
      FROM tags t LEFT JOIN word_tags wt ON wt.tag_id = t.id
      GROUP BY t.id, t.name, t.kind, t.color ORDER BY t.sort, t.id`
@@ -165,7 +165,7 @@ export function getTags(): TagRow[] {
 }
 
 export function getWord(wordId: number): QueueItem | null {
-  const r = db.getFirstSync<any>(BASE_SELECT + ' AND w.id = ?', [wordId]);
+  const r = getDb().getFirstSync<any>(BASE_SELECT + ' AND w.id = ?', [wordId]);
   return r ? rowToItem(r, r.state === 'new') : null;
 }
 
@@ -189,7 +189,7 @@ export function getHomeSummary(): {
 
 // 累计已掌握词数（mastered=1）。
 export function getMasteredCount(): number {
-  const r = db.getFirstSync<{ c: number }>(
+  const r = getDb().getFirstSync<{ c: number }>(
     'SELECT COUNT(*) AS c FROM cards WHERE mastered = 1'
   );
   return r?.c ?? 0;
@@ -197,7 +197,7 @@ export function getMasteredCount(): number {
 
 // 校准样本：从有标签的词里抽 n 个，分层抽样（按词频大致分层）。
 export function getCalibrationSample(n: number): QueueItem[] {
-  const rows = db.getAllSync<any>(
+  const rows = getDb().getAllSync<any>(
     `SELECT w.id AS word_id, w.word, w.phonetic_uk, w.phonetic_us,
             w.definition_zh, w.definition_en, w.pos, w.root_affix, 'new' AS state
      FROM words w
