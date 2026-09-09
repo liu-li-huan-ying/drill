@@ -41,19 +41,22 @@
 > - M3：全量词库 **30,565 词**（核心高频 3 万 ∪ 考纲词并集，GRE 7,026 词 100% 覆盖），按考纲分 8 类标签 + 默认「核心词库」学习池；`user_version=2`，`Database.ts` 加版本门控——本地库版本更低时自动重新拷贝资产（整库换词库语义）。`assets/db/dictionary.db` 约 10.2MB
 > - M4：词库页可**搜索**（子串直达详情）+ **按标签浏览**（分页词列表）；`word` 详情页（释义 / 词性 / 词根词缀 / 考纲标签 + **标为已掌握**开关）；**设置页**可调每日新词/复习上限并持久化 + **重置已掌握**；**自定义词库导入**（粘贴单词→匹配内置词典→建专属 tag+card，回报未收录词）；**全局词汇量测试**（按词频分层抽样 ~36 词，结束按频段认识比例估算词汇量）。全部离线、基于 M3 词库
 > - **按标签过滤学习池（只背某考纲）**：`settings.study_tag` 持久化学习范围；`planSession()` 在查询时加 `IN (SELECT word_id FROM word_tags WHERE tag_id=?)` 子查询，不动 `cards` 表即可只练某纲；首页显示当前范围 + 「✕ 背全部」清除；`wordlist` 页「只背这一纲 →」一键设范围并 `dismissAll` 回首页
+> - **M3.2 例句索引（Tatoeba 英中句对）**：`build_examples.py` 在 Tatoeba 周更导出上构建 `examples(word_id, sentence_en, sentence_zh, ord)` 表，`word` 详情页接入「例句」区（衬线斜体英文 + 中文译文），`user_version=3`。当前为**英文例句先行版**——`links.tar.bz2`（EN→ZH 配对，149MB）受代理网络限制未下全，中文句对待补全；构建器在缺 links/cmn 时自动退化为纯英文，不阻塞交付
+> - **UI 规范对齐（朱批）**：按 [docs/设计系统.md](docs/设计系统.md) 修了一批细节——分割线统一 hairline `--bd`（移除临时 `rgba` 灰、刻度环未完格由 `--bd2` 改 `--bd`）、英文例句改衬线斜体、评分条三档去灰度梯度（统一中性、仅「重来」用朱砂）、导入框占位符修正换行实体、数字补 `tabular-nums`
 >
-> 下一步 **M3.2（例句索引：Tatoeba 英中句对）** 进行中（已联网拉取 Tatoeba 英/中句 + links，构建 `examples` 表并接入 `word` 详情）。完整设计见 [docs/开发计划.md](docs/开发计划.md)、[docs/对抗式审查.md](docs/对抗式审查.md)、[docs/设计系统.md](docs/设计系统.md)。
+> 下一步：补全 `links.tar.bz2`（断点续传中，按完整 149551113 字节判定）后重建 `examples` 表补 EN→ZH 译文；并接入复习卡背面 / 词列表的例句微展示。完整设计见 [docs/开发计划.md](docs/开发计划.md)、[docs/对抗式审查.md](docs/对抗式审查.md)、[docs/设计系统.md](docs/设计系统.md)。
 
 ## 数据管线（离线跑一次）
 
-词库是离线预处理产物，不进运行时。当前 `assets/db/dictionary.db` 是 500 词样本包（348KB），供 M2 端到端验证；全量 3 万词为 M3 目标。重跑流程：
+词库是离线预处理产物，不进运行时。`assets/db/dictionary.db` 即随包词库（全量 30,565 词 + 例句），App 首次启动（或本地版本低于 `EXPECTED_DB_VERSION`）将其拷贝到用户目录后直接在其上写进度。重跑流程：
 
 ```bash
-bash tools/fetch_ecdict.sh   # 下载 ECDICT 主词典（MIT）到 tools/cache/（不进版本库）
-python3 tools/build_dict.py  # 筛选高频词，构建 assets/db/dictionary.db
+bash tools/fetch_ecdict.sh       # 下载 ECDICT 主词典（MIT）到 tools/cache/（不进版本库）
+python3 tools/build_dict.py      # 筛选高频词 + 考纲标签，构建 assets/db/dictionary.db（user_version=2，M3）
+python3 tools/build_examples.py  # 拉取 Tatoeba 英/中句 + links，构建 examples 表（user_version=3，M3.2）
 ```
 
-`dictionary.db` 一次建好全部表——`words`/`tags`/`word_tags` 为只读词库，`cards` 等用户表留空——App 首次启动将其拷贝到用户目录后直接在其上写进度，可跨表 JOIN，无需 M2 再建表。
+`dictionary.db` 一次建好全部表——`words`/`tags`/`word_tags`/`examples` 为只读词库，`cards` 等用户表留空——App 首次启动将其拷贝到用户目录后直接在其上写进度，可跨表 JOIN，无需运行时再建表。`examples` 表由 `build_examples.py` 在 Tatoeba 周更导出上离线构建（`word_id, sentence_en, sentence_zh, ord`）：词→句通过词典词集合命中、句间翻译经 `links` 配对，纯字符串处理、可重跑；缺 links/cmn 时退化为纯英文例句。
 
 ## 本地开发
 

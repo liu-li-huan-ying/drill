@@ -262,6 +262,24 @@ export function getWordDetail(
   return { ...r, mastered: (r.mastered ?? 0) === 1 };
 }
 
+export interface ExampleRow {
+  sentence_en: string;
+  sentence_zh: string | null;
+}
+
+// 单词例句（Tatoeba 英中句对，M3.2 离线打包）。按 ord 升序。
+// 防御性 try/catch：若本地库尚未换到 v3（缺 examples 表），返回空数组而非崩溃。
+export function getExamples(wordId: number, limit = 8): ExampleRow[] {
+  try {
+    return getDb().getAllSync<ExampleRow>(
+      `SELECT sentence_en, sentence_zh FROM examples WHERE word_id = ? ORDER BY ord ASC LIMIT ?`,
+      [wordId, limit]
+    );
+  } catch {
+    return [];
+  }
+}
+
 // 今日首页摘要：新词配额 / 已完成新词 / 待复习数 / 可用新词数 / 当前学习范围。
 export function getHomeSummary(): {
   dailyNewLimit: number;
