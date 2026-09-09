@@ -37,6 +37,7 @@
 > - M1：ECDICT → SQLite 管线跑通，产出 500 词样本 `assets/db/dictionary.db`
 > - UI：9 屏「朱批」安卓真机原型 [`docs/ui-prototype.html`](docs/ui-prototype.html)（360×752dp，1px=1dp，亮暗双套，刻度环 / 可翻转卡片 / 条长编码间隔）
 > - M2：Expo Router 路由 + 朱批设计令牌 + FSRS 调度 + 复习闭环（今日 → 复习 → 四档评分 → 写回 → 进度），含熟词校准、词库 / 统计 / 设置页骨架，全量 `tsc --noEmit` 通过
+> - 真机验证修复：`rotateY` 翻转在 Android 上须用 JS 驱动（`useNativeDriver:false`），否则卡片不翻转；`app.json` 补 `scheme:drill` 消除 Linking 警告
 >
 > 下一步 **M3（全量 3 万词 + 例句索引）**。完整设计见 [docs/开发计划.md](docs/开发计划.md)、[docs/对抗式审查.md](docs/对抗式审查.md)、[docs/设计系统.md](docs/设计系统.md)。
 
