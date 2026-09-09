@@ -337,6 +337,236 @@ export function getMasteredCount(): number {
   return r?.c ?? 0;
 }
 
+// ── M5 统计看板 ────────────────────────────────────────────────────────────
+// 把 'YYYY-MM-DD' 日期键整体平移 deltaDays 天（本地日历语义，与 dateKey 一致）。
+function shiftDateKey(key: string, deltaDays: number): string {
+  const [y, m, d] = key.split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  dt.setDate(dt.getDate() + deltaDays);
+  const yy = dt.getFullYear();
+  const mm = String(dt.getMonth() + 1).padStart(2, '0');
+  const dd = String(dt.getDate()).padStart(2, '0');
+  return `${yy}-${mm}-${dd}`;
+}
+
+// 连续打卡：从今天（或昨天，若今天尚未学习）往前数连续有 daily_stats 记录的天数。
+export function getStreak(): number {
+  const cutoff = getSettings().day_cutoff_hour;
+  const rows = getDb().getAllSync<{ date: string }>(
+    'SELECT date FROM daily_stats ORDER BY date DESC'
+  );
+  const dates = new Set(rows.map((r) => r.date));
+  if (dates.size === 0) return 0;
+  const todayKey = dateKey(Date.now(), cutoff);
+  // 今天没学则允许从昨天起算（仍视为连续），但今天若学了则必须包含今天。
+  let cursor = dates.has(todayKey) ? todayKey : shiftDateKey(todayKey, -1);
+  let streak = 0;
+  while (dates.has(cursor)) {
+    streak++;
+    cursor = shiftDateKey(cursor, -1);
+  }
+  return streak;
+}
+
+// 近 N 日每日新学/复习量（含未学习日的 0 值），用于趋势条。
+export function getDailyHistory(days = 7): { date: string; new_count: number; review_count: number }[] {
+  const cutoff = getSettings().day_cutoff_hour;
+  const todayKey = dateKey(Date.now(), cutoff);
+  const byDate = new Map<string, { new_count: number; review_count: number }>();
+  getDb()
+    .getAllSync<{ date: string; new_count: number; review_count: number }>(
+      'SELECT date, new_count, review_count FROM daily_stats ORDER BY date ASC'
+    )
+    .forEach((r) => byDate.set(r.date, { new_count: r.new_count, review_count: r.review_count }));
+  const out: { date: string; new_count: number; review_count: number }[] = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const k = shiftDateKey(todayKey, -i);
+    const v = byDate.get(k);
+    out.push({ date: k, new_count: v?.new_count ?? 0, review_count: v?.review_count ?? 0 });
+  }
+  return out;
+}
+
+// 留存率：基于复习日志的四档评分，rating>=3 视为「正确」（Good/Easy），否则未掌握。
+export function getRetention(): { total: number; correct: number; rate: number } {
+  const row = getDb().getFirstSync<{ total: number; correct: number }>(
+    "SELECT COUNT(*) AS total, SUM(CASE WHEN rating >= 3 THEN 1 ELSE 0 END) AS correct FROM review_logs"
+  );
+  const total = row?.total ?? 0;
+  const correct = row?.correct ?? 0;
+  return { total, correct, rate: total > 0 ? correct / total : 0 };
+}
+
+// 卡片状态分布（new/learning/review/relearning），用于记忆持久度概览。
+export function getStateDistribution(): { state: string; count: number }[] {
+  return getDb().getAllSync<{ state: string; count: number }>(
+    'SELECT state, COUNT(*) AS count FROM cards GROUP BY state ORDER BY count DESC'
+  );
+}
+
+// 学习总览：总卡片数、已学习卡数（reps>0）、已掌握数。
+export function getLearningStats(): { totalCards: number; learned: number; mastered: number } {
+  const r = getDb().getFirstSync<{ total: number; learned: number }>(
+    "SELECT COUNT(*) AS total, SUM(CASE WHEN reps > 0 THEN 1 ELSE 0 END) AS learned FROM cards"
+  );
+  return {
+    totalCards: r?.total ?? 0,
+    learned: r?.learned ?? 0,
+    mastered: getMasteredCount(),
+  };
+}
+
+// ── M5 备份导出 / 导入 ──────────────────────────────────────────────────────
+// 备份数据结构（与 backup.tsx 导出一致）。导入侧只认这些字段，缺字段按可选处理。
+export interface BackupCard {
+  word_id: number;
+  state: string;
+  due: number;
+  stability: number;
+  difficulty: number;
+  retrievability: number;
+  reps: number;
+  lapses: number;
+  elapsed_days: number;
+  scheduled_days: number;
+  last_review_at: number | null;
+  mastered: number;
+}
+export interface BackupLog {
+  id?: number;
+  card_id: number;
+  reviewed_at: number;
+  rating: number;
+  state: string;
+  taken_ms?: number | null;
+  prev_stability?: number | null;
+  prev_difficulty?: number | null;
+}
+export interface BackupDay {
+  date: string;
+  new_count: number;
+  review_count: number;
+  correct_count?: number;
+  elapsed_ms?: number;
+}
+export interface BackupNote {
+  word_id: number;
+  mnemonic: string | null;
+  note: string | null;
+  updated_at: number | null;
+}
+export interface BackupData {
+  cards: BackupCard[];
+  review_logs: BackupLog[];
+  daily_stats: BackupDay[];
+  user_notes: BackupNote[];
+  settings: { key: string; value: string }[];
+}
+
+// 读取全部进度为纯数据对象，供 UI 序列化成 JSON 备份文件。
+export function exportBackupData(): BackupData {
+  const db = getDb();
+  const cards = db.getAllSync<BackupCard>(
+    'SELECT word_id, state, due, stability, difficulty, retrievability, reps, lapses, elapsed_days, scheduled_days, last_review_at, mastered FROM cards'
+  );
+  const review_logs = db.getAllSync<BackupLog>(
+    'SELECT id, card_id, reviewed_at, rating, state, taken_ms, prev_stability, prev_difficulty FROM review_logs'
+  );
+  const daily_stats = db.getAllSync<BackupDay>(
+    'SELECT date, new_count, review_count, correct_count, elapsed_ms FROM daily_stats'
+  );
+  const user_notes = db.getAllSync<BackupNote>(
+    'SELECT word_id, mnemonic, note, updated_at FROM user_notes'
+  );
+  const settings = db.getAllSync<{ key: string; value: string }>('SELECT key, value FROM settings');
+  return { cards, review_logs, daily_stats, user_notes, settings };
+}
+
+// 合并备份到本地库：cards 按 last_review_at 取新（null 视为旧）、review_logs 追加（主键冲突跳过）、
+// daily_stats 按日期累加、user_notes 按 updated_at 取新、settings 覆盖。整批包在事务里，失败回滚。
+// 仅导入 words 中存在的词（避免不同词库版本产生的孤儿卡）。
+export function restoreBackup(data: BackupData): { cards: number; logs: number; days: number; notes: number } {
+  const db = getDb();
+  const out = { cards: 0, logs: 0, days: 0, notes: 0 };
+  db.execSync('BEGIN');
+  try {
+    for (const bc of data.cards ?? []) {
+      const w = db.getFirstSync<{ id: number }>('SELECT id FROM words WHERE id = ?', [bc.word_id]);
+      if (!w) continue;
+      const local = db.getFirstSync<{ last_review_at: number | null }>(
+        'SELECT last_review_at FROM cards WHERE word_id = ?',
+        [bc.word_id]
+      );
+      if (!local) {
+        db.runSync(
+          'INSERT INTO cards (word_id,state,due,stability,difficulty,retrievability,reps,lapses,elapsed_days,scheduled_days,last_review_at,mastered) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)',
+          [bc.word_id, bc.state, bc.due, bc.stability, bc.difficulty, bc.retrievability, bc.reps, bc.lapses, bc.elapsed_days, bc.scheduled_days, bc.last_review_at, bc.mastered]
+        );
+        out.cards++;
+      } else if ((bc.last_review_at ?? 0) > (local.last_review_at ?? 0)) {
+        db.runSync(
+          'UPDATE cards SET state=?,due=?,stability=?,difficulty=?,retrievability=?,reps=?,lapses=?,elapsed_days=?,scheduled_days=?,last_review_at=?,mastered=? WHERE word_id=?',
+          [bc.state, bc.due, bc.stability, bc.difficulty, bc.retrievability, bc.reps, bc.lapses, bc.elapsed_days, bc.scheduled_days, bc.last_review_at, bc.mastered, bc.word_id]
+        );
+        out.cards++;
+      }
+    }
+    for (const rl of data.review_logs ?? []) {
+      db.runSync(
+        'INSERT OR IGNORE INTO review_logs (id,card_id,reviewed_at,rating,state,taken_ms,prev_stability,prev_difficulty) VALUES (?,?,?,?,?,?,?,?)',
+        [rl.id ?? null, rl.card_id, rl.reviewed_at, rl.rating, rl.state, rl.taken_ms ?? null, rl.prev_stability ?? null, rl.prev_difficulty ?? null]
+      );
+      out.logs++;
+    }
+    for (const ds of data.daily_stats ?? []) {
+      db.runSync(
+        `INSERT INTO daily_stats (date,new_count,review_count,correct_count,elapsed_ms) VALUES (?,?,?,?,?)
+         ON CONFLICT(date) DO UPDATE SET
+           new_count = new_count + excluded.new_count,
+           review_count = review_count + excluded.review_count,
+           correct_count = correct_count + COALESCE(excluded.correct_count, 0),
+           elapsed_ms = elapsed_ms + COALESCE(excluded.elapsed_ms, 0)`,
+        [ds.date, ds.new_count, ds.review_count, ds.correct_count ?? 0, ds.elapsed_ms ?? 0]
+      );
+      out.days++;
+    }
+    for (const n of data.user_notes ?? []) {
+      const local = db.getFirstSync<{ updated_at: number | null }>(
+        'SELECT updated_at FROM user_notes WHERE word_id = ?',
+        [n.word_id]
+      );
+      if (!local) {
+        db.runSync('INSERT INTO user_notes (word_id,mnemonic,note,updated_at) VALUES (?,?,?,?)', [
+          n.word_id,
+          n.mnemonic ?? null,
+          n.note ?? null,
+          n.updated_at ?? null,
+        ]);
+        out.notes++;
+      } else if ((n.updated_at ?? 0) > (local.updated_at ?? 0)) {
+        db.runSync('UPDATE user_notes SET mnemonic=?, note=?, updated_at=? WHERE word_id=?', [
+          n.mnemonic ?? null,
+          n.note ?? null,
+          n.updated_at ?? null,
+          n.word_id,
+        ]);
+        out.notes++;
+      }
+    }
+    for (const s of data.settings ?? []) {
+      db.runSync("INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value", [
+        s.key,
+        s.value,
+      ]);
+    }
+    db.execSync('COMMIT');
+  } catch (e) {
+    db.execSync('ROLLBACK');
+    throw e;
+  }
+  return out;
+}
+
 // 校准样本：从有标签的词里抽 n 个，分层抽样（按词频大致分层）。
 export function getCalibrationSample(n: number): QueueItem[] {
   const rows = getDb().getAllSync<any>(

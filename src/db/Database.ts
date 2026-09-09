@@ -11,7 +11,8 @@ const DB_NAME = 'drill.db';
 
 // 资产词库的版本号（与 tools/build_dict.py 里的 PRAGMA user_version 对齐）。
 // 每次重建随包词库、需要用户端重新拉取时 +1；initDatabase 发现本地库版本更低即重新拷贝。
-const EXPECTED_DB_VERSION = 4; // M3.2 例句索引补中文译文 (with_zh) + 整库换词库版本
+// 导出为只读常量，供备份文件记录 schema 版本（导入时可提示跨版本差异）。
+export const EXPECTED_DB_VERSION = 4; // M3.2 例句索引补中文译文 (with_zh) + 整库换词库版本
 
 let db: SQLiteDatabase | null = null;
 

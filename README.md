@@ -49,7 +49,11 @@
 > - **统计页不随学习更新（用户反馈：首页已记录、统计页没及时记录）**：根因 `stats.tsx` 在渲染时一次性取值、无 `useFocusEffect` 重读；Expo Router 切 tab 不重挂载，故停在初始旧值。已加 `useFocusEffect` 每次聚焦重读 `getTodayCounts`/`getMasteredCount`，与首页一致
 > - **复习卡发音按钮压字（用户反馈：翻到背面仍有发音键、与中英文释义重叠）**：根因 `styles.sound` 用 `position:absolute; bottom:86; alignSelf:'center'`，浮在卡面中下方正压住背面居中的释义。已将发音键移到**右上角**（`top:14; right:14`，带 `acsf` 浅底强调），正反面都可重听且不再压字；背面滚动容器 `backContent` 顶部预留 60dp 内边距，长释义滚动时首行也不会被角标遮住。⚠️ 例句（含中文译文）显示在**单词详情页**「例句」区（`app/word.tsx`），不在复习卡背面（背面只放释义+词根用于专注回忆）；新装的中文例句需**彻底重启 App** 才会随 `EXPECTED_DB_VERSION=4` 的整库换库生效（热更新不触发 `initDatabase` 的拷贝）
 >
-> M3.2 已收尾：`links.tar.bz2`（149,551,113 字节，EN→ZH 配对）下全并重建 `examples` 表，8,779 行带中文译文已随 `dictionary.db`（`user_version=4`，22.0MB）进包；运行时经 `EXPECTED_DB_VERSION=4` 整库换库把中文例句带进 `drill.db`。例句当前在单词详情页展示；复习卡背面 / 词列表的例句微展示为后续可选项。完整设计见 [docs/开发计划.md](docs/开发计划.md)、[docs/对抗式审查.md](docs/对抗式审查.md)、[docs/设计系统.md](docs/设计系统.md)。
+> M3.2 已收尾：`links.tar.bz2`（149,551,113 字节，EN→ZH 配对）下全并重建 `examples` 表，8,779 行带中文译文已随 `dictionary.db`（`user_version=4`，22.0MB）进包；运行时经 `EXPECTED_DB_VERSION=4` 整库换库把中文例句带进 `drill.db`。例句当前在单词详情页展示；复习卡背面 / 词列表的例句微展示为后续可选项。
+> - **M5 统计看板（里程碑下一步）**：`stats.tsx` 从「今日新词 / 今日复习 / 已掌握」三项扩展为完整看板——连续打卡（按本地 04:00 分界连续有记录的天数）、学习总览（累计学习 / 词库总量）、近 7 日趋势（自绘条形，每日新词 + 复习）、留存率（基于 `review_logs` 四档评分，Good/Easy 计正确）、记忆状态分布（新词 / 学习中 / 复习中 / 重新学习 占比）。数据全来自本地库，纯 RN View 自绘、不引图表库。新增 `queries.ts`：`getStreak` / `getDailyHistory` / `getRetention` / `getStateDistribution` / `getLearningStats` + 日期偏移辅助 `shiftDateKey`。`tsc` 通过。
+> - **M5 备份导出 / 导入（代码中，待真机验证）**：新增 `app/backup.tsx` + `queries.ts` 的 `exportBackupData` / `restoreBackup`。导出 = 收集 cards/review_logs/daily_stats/user_notes/settings + 元信息（app/schema/version/exportedAt）→ JSON → 写入 `FileSystem.documentDirectory` → `expo-sharing` 分享；导入 = `expo-document-picker` 选 JSON → 解析 → 合并本地（cards 按 `last_review_at` 取新、review_logs 追加、daily_stats 按日累加、user_notes 按 `updated_at` 取新、settings 覆盖），整批事务、失败回滚。设置页「工具」新增「备份与恢复」入口。依赖 `expo-file-system` / `expo-sharing` / `expo-document-picker`，需在本机执行 `npm install expo-file-system expo-sharing expo-document-picker --legacy-peer-deps`（开发沙箱的 safe-delete 拦截了 npm 安装，未能在此环境装好）。⚠️ 真机未验证，需 Android 真机跑一次导出 / 导入确认 API 行为。
+>
+> 完整设计见 [docs/开发计划.md](docs/开发计划.md)、[docs/对抗式审查.md](docs/对抗式审查.md)、[docs/设计系统.md](docs/设计系统.md)。
 
 ## 数据管线（离线跑一次）
 
