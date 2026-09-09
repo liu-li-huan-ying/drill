@@ -9,6 +9,10 @@ import { openDatabaseSync, importDatabaseFromAssetAsync, type SQLiteDatabase } f
 
 const DB_NAME = 'drill.db';
 
+// 资产词库的版本号（与 tools/build_dict.py 里的 PRAGMA user_version 对齐）。
+// 每次重建随包词库、需要用户端重新拉取时 +1；initDatabase 发现本地库版本更低即重新拷贝。
+const EXPECTED_DB_VERSION = 2;
+
 let db: SQLiteDatabase | null = null;
 
 // 懒打开 + 缓存。任何时刻都返回当前有效连接（首启拷贝后会重新打开）。
@@ -25,7 +29,14 @@ export async function initDatabase(): Promise<void> {
   const row = conn.getFirstSync<{ c: number }>(
     "SELECT count(*) AS c FROM sqlite_master WHERE type='table' AND name='cards'"
   );
-  if (!row || row.c === 0) {
+  // 本地库缺表，或版本低于随包资产版本 → 重新从资产拷贝（forceOverwrite 覆盖旧文件）。
+  // 注意：这会清空本地进度（cards/review_logs 等），属「整库换词库」语义；MVP 阶段可接受。
+  let needCopy = !row || row.c === 0;
+  if (!needCopy) {
+    const ver = conn.getFirstSync<{ v: number }>('PRAGMA user_version');
+    if ((ver?.v ?? 0) < EXPECTED_DB_VERSION) needCopy = true;
+  }
+  if (needCopy) {
     await importDatabaseFromAssetAsync(DB_NAME, {
       assetId: require('../../assets/db/dictionary.db'),
       forceOverwrite: true,

@@ -33,13 +33,14 @@
 
 ## 状态
 
-> 开发中，当前 **M1（数据管线 v1）+ UI 原型（v2.1）+ M2（最小闭环）已完成**：
+> 开发中，当前 **M1（数据管线 v1）+ UI 原型（v2.1）+ M2（最小闭环）+ M3（全量词库 v1）已完成**：
 > - M1：ECDICT → SQLite 管线跑通，产出 500 词样本 `assets/db/dictionary.db`
 > - UI：9 屏「朱批」安卓真机原型 [`docs/ui-prototype.html`](docs/ui-prototype.html)（360×752dp，1px=1dp，亮暗双套，刻度环 / 可翻转卡片 / 条长编码间隔）
 > - M2：Expo Router 路由 + 朱批设计令牌 + FSRS 调度 + 复习闭环（今日 → 复习 → 四档评分 → 写回 → 进度），含熟词校准、词库 / 统计 / 设置页骨架，全量 `tsc --noEmit` 通过
-> - 真机验证修复：`rotateY` 翻转在 Android 上须用 JS 驱动（`useNativeDriver:false`），否则卡片不翻转；`app.json` 补 `scheme:drill` 消除 Linking 警告
+> - 真机验证修复：`rotateY` 翻转在 Android 上须用 JS 驱动（`useNativeDriver:false`）+ 顶层透明翻转层接管手势，否则卡片不响应点击；`app.json` 补 `scheme:drill` 消除 Linking 警告
+> - M3：全量词库 **30,565 词**（核心高频 3 万 ∪ 考纲词并集，GRE 7,026 词 100% 覆盖），按考纲分 8 类标签 + 默认「核心词库」学习池；`user_version=2`，`Database.ts` 加版本门控——本地库版本更低时自动重新拷贝资产（整库换词库语义）。`assets/db/dictionary.db` 约 10.2MB
 >
-> 下一步 **M3（全量 3 万词 + 例句索引）**。完整设计见 [docs/开发计划.md](docs/开发计划.md)、[docs/对抗式审查.md](docs/对抗式审查.md)、[docs/设计系统.md](docs/设计系统.md)。
+> 下一步 **M3.2（例句索引：Tatoeba 英中句对 + 词→句倒排）**。完整设计见 [docs/开发计划.md](docs/开发计划.md)、[docs/对抗式审查.md](docs/对抗式审查.md)、[docs/设计系统.md](docs/设计系统.md)。
 
 ## 数据管线（离线跑一次）
 
