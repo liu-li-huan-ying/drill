@@ -3,423 +3,493 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>背呗 (drill) · Android UI 原型 · 360dp 真机比例</title>
+<title>背呗 (drill) · UI 原型 v2 · 朱批 · 360dp 真机比例</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body.light{
-  --docbg:#EEF0F4;--doctx:#1A1D21;--docsub:#5A6270;--panel:#FFFFFF;--panelbd:#E2E5EA;
-  --bg:#FFFFFF;--surface:#F7F8FA;--page:#F2F4F7;--phonebd:#D8DCE3;
-  --tx1:#1A1D21;--tx2:#5A6270;--tx3:#8B94A3;--bd:#E8EBF0;
-  --brand:#5B67CA;--brandtint:#EEF0FB;--brandtx:#3D4A9E;--brandon:#FFFFFF;
-  --r1:#FCEDEC;--r1t:#C04A4A;--r2:#FDF3E7;--r2t:#B26A1A;--r3:#EDF5EC;--r3t:#4A7C46;--r4:#ECF3FA;--r4t:#3D6FA8;
-  --st0:#F0F2F7;--st0t:#8B94A3;--track:#E8EBF0;
-}
-body.dark{
-  --docbg:#0B0D11;--doctx:#E8EAED;--docsub:#A8AFBB;--panel:#171A20;--panelbd:#262B33;
-  --bg:#14171C;--surface:#1D2128;--page:#0F1216;--phonebd:#2E333B;
-  --tx1:#E8EAED;--tx2:#A8AFBB;--tx3:#747C8A;--bd:#2A2F37;
-  --brand:#6B76D6;--brandtint:#232A3D;--brandtx:#A8B4F0;--brandon:#FFFFFF;
-  --r1:#3A2226;--r1t:#E79A9A;--r2:#3A2E20;--r2t:#E0B273;--r3:#243526;--r3t:#9CCB96;--r4:#1F2C3A;--r4t:#93B8E0;
-  --st0:#22272F;--st0t:#747C8A;--track:#2A2F37;
-}
-body{background:var(--docbg);color:var(--doctx);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;padding:30px 18px 70px;-webkit-font-smoothing:antialiased;transition:background .2s,color .2s}
-.wrap{max-width:1180px;margin:0 auto}
-header{margin-bottom:26px}
-h1{font-size:25px;font-weight:600;letter-spacing:-.3px}
-.sub{font-size:14px;color:var(--docsub);margin-top:6px;line-height:1.6}
-.tog{display:inline-flex;gap:4px;margin-top:14px;background:var(--panel);border:1px solid var(--panelbd);border-radius:10px;padding:4px}
-.tog button{font:inherit;font-size:13px;padding:7px 16px;border:none;background:transparent;color:var(--docsub);border-radius:7px;cursor:pointer}
-.tog button.on{background:var(--brand);color:#fff;font-weight:500}
-section{margin-top:34px}
-h2{font-size:16px;font-weight:600;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--panelbd)}
-.tok{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
-.tk{background:var(--panel);border:1px solid var(--panelbd);border-radius:12px;padding:16px}
-.tk h4{font-size:12px;font-weight:600;color:var(--docsub);margin-bottom:11px;text-transform:none}
-.sw{display:flex;flex-wrap:wrap;gap:7px}
-.sw div{width:52px;font-size:10px;color:var(--docsub);text-align:center;line-height:1.3}
-.sw i{display:block;height:30px;border-radius:6px;border:1px solid rgba(128,128,128,.18);margin-bottom:4px}
-.ty div{display:flex;align-items:baseline;gap:10px;padding:5px 0;font-size:12px;color:var(--docsub)}
-.ty b{font-weight:500;color:var(--doctx);min-width:42px}
-.ty .px{min-width:52px;font-variant-numeric:tabular-nums}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,360px);gap:30px;justify-content:center}
+
+/* ══ 工作台（不随主题切换，衬托手机屏） ══ */
+body{background:#111110;color:#E8E4DC;font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;padding:34px 18px 80px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1200px;margin:0 auto}
+header{margin-bottom:30px}
+h1{font-size:26px;font-weight:500;letter-spacing:-.4px}
+h1 em{font-style:normal;color:#C0452F}
+.sub{font-size:13.5px;color:#8A8479;margin-top:8px;line-height:1.75;max-width:760px}
+.sub b{color:#C8C2B8;font-weight:500}
+.tog{display:inline-flex;gap:3px;margin-top:16px;background:#1C1B19;border:1px solid #2C2A26;border-radius:9px;padding:3px}
+.tog button{font:inherit;font-size:12.5px;padding:6px 15px;border:none;background:transparent;color:#8A8479;border-radius:6px;cursor:pointer;letter-spacing:.2px}
+.tog button.on{background:#E8E4DC;color:#1B1917;font-weight:500}
+section{margin-top:40px}
+h2{font-size:11px;font-weight:500;color:#8A8479;letter-spacing:1.4px;text-transform:uppercase;margin-bottom:16px;padding-bottom:9px;border-bottom:1px solid #26241F}
+h2 b{color:#E8E4DC;font-weight:500;letter-spacing:0;text-transform:none;font-size:14px;margin-right:8px}
+
+.note{background:#161514;border:1px solid #26241F;border-left:2px solid #C0452F;border-radius:4px;padding:16px 18px;margin-bottom:26px;font-size:13px;line-height:1.85;color:#A8A199}
+.note b{color:#E8E4DC;font-weight:500}
+.note code{font-family:"SF Mono",Consolas,monospace;font-size:12px;color:#C0452F}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit,360px);gap:34px 30px;justify-content:center}
 .shot{text-align:center}
-.shot .lb{font-size:13px;font-weight:500;color:var(--docsub);margin-bottom:9px}
-.phone{width:360px;height:752px;background:var(--page);border:1px solid var(--phonebd);border-radius:34px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 3px 22px rgba(0,0,0,.13);margin:0 auto}
-.sb{flex:0 0 44px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-size:13px;color:var(--tx3);font-variant-numeric:tabular-nums}
-.sb span{display:flex;align-items:center;gap:6px}
-.sc{flex:1;display:flex;flex-direction:column;overflow:hidden}
-.gb{flex:0 0 22px;display:flex;align-items:center;justify-content:center}
-.gb i{width:118px;height:4px;border-radius:2px;background:var(--tx3);opacity:.38;display:block}
+.shot .lb{font-size:12.5px;color:#8A8479;margin-bottom:10px;letter-spacing:.3px}
+.shot .lb i{font-style:normal;color:#5F5A52;margin-left:6px}
+
+/* ══ 手机屏 360 × 752 dp，1px = 1dp ══ */
+body.light .phone{--bg:#FBF9F5;--sf:#FFFFFF;--pg:#F2EFE8;
+  --tx1:#1B1917;--tx2:#6E6862;--tx3:#A89F94;--bd:#E7E2D8;--bd2:#D8D2C6;
+  --ac:#C0452F;--acsf:#F7EBE6;--acon:#FFFFFF;
+  --b1:#F7EBE6;--b1t:#C0452F;--b2:#F2EEE5;--b3:#F5F3EC;--b4:#EAEDE4;}
+body.dark .phone{--bg:#141311;--sf:#1C1A17;--pg:#0E0D0C;
+  --tx1:#EDE8DE;--tx2:#A79F94;--tx3:#6F685E;--bd:#2C2925;--bd2:#3A362F;
+  --ac:#E0705A;--acsf:#2E211C;--acon:#141311;
+  --b1:#2E211C;--b1t:#E0705A;--b2:#262320;--b3:#242720;--b4:#212420;}
+
+.phone{width:360px;height:752px;background:var(--pg);border:1px solid #33302B;border-radius:30px;overflow:hidden;display:flex;flex-direction:column;margin:0 auto;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+.phone{font-family:"Inter",-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;font-size:15px;color:var(--tx1)}
+
+.ser{font-family:"Iowan Old Style","Palatino Linotype",Georgia,"Times New Roman","Noto Serif","Source Serif 4",serif}
+.tnum{font-variant-numeric:tabular-nums}
+.ul{font-size:10.5px;letter-spacing:1.1px;text-transform:uppercase;color:var(--tx3);font-weight:500}
+
+.sb{flex:0 0 44px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-size:12.5px;color:var(--tx2);font-variant-numeric:tabular-nums;background:var(--bg)}
+.sb .r{display:flex;align-items:center;gap:5px}
+.gb{flex:0 0 22px;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.gb i{width:112px;height:3.5px;border-radius:2px;background:var(--tx1);opacity:.32;display:block}
+.sc{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
 .pd{padding:0 20px}
-.tbar{display:flex;align-items:center;justify-content:space-between;height:48px;padding:0 18px}
-.tbar .t{font-size:14px;font-weight:500;color:var(--tx1)}
-.card{background:var(--surface);border-radius:16px;padding:16px}
-.mt{margin-top:14px}
-.btnp{display:flex;align-items:center;justify-content:center;height:50px;background:var(--brand);border-radius:12px;color:var(--brandon);font-size:16px;font-weight:500}
-.btnl{display:flex;align-items:center;justify-content:center;height:48px;border:1px solid var(--bd);border-radius:12px;color:var(--tx2);font-size:15px;font-weight:500}
-.chip{display:inline-block;background:var(--brandtint);color:var(--brandtx);font-size:12px;padding:4px 10px;border-radius:8px}
-.st{display:inline-block;font-size:12px;padding:3px 8px;border-radius:6px;background:var(--st0);color:var(--st0t)}
-.row{display:flex;align-items:center;justify-content:space-between;height:50px;font-size:15px;color:var(--tx1)}
-.row .v{color:var(--brand);font-weight:500}
-.tab{flex:0 0 auto;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--bd);padding:9px 0 7px;background:var(--bg)}
-.tab div{text-align:center;color:var(--tx3);font-size:11px;line-height:1.4}
-.tab div.on{color:var(--brand);font-weight:500}
-.tab svg{display:block;margin:0 auto 3px}
-.rate{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.rate div{border-radius:12px;padding:9px 2px;text-align:center;height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.rate .n{font-size:14px;font-weight:500}
-.rate .i{font-size:11px;margin-top:2px;opacity:.85}
+
+.tb{flex:0 0 48px;display:flex;align-items:center;justify-content:space-between;padding:0 8px;background:var(--bg)}
+.tb .t{font-size:13px;color:var(--tx2);letter-spacing:.2px;font-variant-numeric:tabular-nums}
+.ic{width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--tx2)}
+
+.hair{height:1px;background:var(--bd)}
+.mk{width:7px;height:7px;background:var(--ac);border-radius:1px;flex:0 0 auto}
+.mk.o{background:none;border:1px solid var(--bd2)}
+.bt{display:flex;align-items:center;justify-content:center;height:52px;border-radius:10px;font-size:15.5px;font-weight:500;letter-spacing:.3px}
+.bt.a{background:var(--ac);color:var(--acon)}
+.bt.o{background:var(--sf);border:1px solid var(--bd2);color:var(--tx1)}
+.txbt{display:flex;align-items:center;justify-content:center;height:50px;font-size:14px;color:var(--tx2);letter-spacing:.2px}
+.pgb{flex:0 0 2px;background:var(--bd);margin:0 20px}
+.pgb i{display:block;height:2px;background:var(--ac)}
+
+.tab{flex:0 0 auto;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--bd);padding:8px 0 6px;background:var(--bg)}
+.tab div{text-align:center;color:var(--tx3);font-size:10.5px;letter-spacing:.4px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.tab div.on{color:var(--tx1);font-weight:500}
+.tab div.on .td{background:var(--ac)}
+.td{width:5px;height:5px;border-radius:1px;background:transparent}
+.tab svg{display:block}
+
+.rw{display:flex;align-items:center;gap:12px;height:54px;font-size:15px;color:var(--tx1)}
+.rw .n{flex:1}
+.rw .v{font-size:12px;color:var(--tx3);font-variant-numeric:tabular-nums}
+.rws{display:flex;align-items:center;justify-content:space-between;height:50px;font-size:14.5px;color:var(--tx1)}
+.rws .v{color:var(--tx2);font-size:13.5px;font-variant-numeric:tabular-nums}
+.rws .v.ac{color:var(--ac)}
+
+/* 评分区：条长即间隔 */
+.rt{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.rb{position:relative;height:60px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:9px}
+.rb .bar{position:absolute;left:9px;top:13px;height:2px;border-radius:1px}
+.rb .n{font-size:13px;font-weight:500;letter-spacing:.2px}
+.rb .i{font-size:10.5px;margin-top:3px;color:var(--tx2);font-variant-numeric:tabular-nums}
+.rb.r1{background:var(--b1)} .rb.r1 .n{color:var(--b1t)} .rb.r1 .bar{background:var(--b1t)}
+.rb.r2{background:var(--b2)} .rb.r2 .n{color:var(--tx1)}  .rb.r2 .bar{background:var(--tx3)}
+.rb.r3{background:var(--b3)} .rb.r3 .n{color:var(--tx1)}  .rb.r3 .bar{background:var(--tx2)}
+.rb.r4{background:var(--b4)} .rb.r4 .n{color:var(--tx1)}  .rb.r4 .bar{background:var(--tx1)}
+
+.tok{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+.tk{background:#161514;border:1px solid #26241F;border-radius:5px;padding:15px 16px}
+.tk h4{font-size:11px;font-weight:500;color:#8A8479;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px}
+.sw{display:flex;flex-wrap:wrap;gap:6px}
+.sw div{width:52px;font-size:9.5px;color:#8A8479;text-align:center;line-height:1.35}
+.sw i{display:block;height:28px;border-radius:3px;border:1px solid rgba(255,255,255,.07);margin-bottom:4px}
+.ty div{display:flex;align-items:baseline;gap:10px;padding:4px 0;font-size:12px;color:#8A8479}
+.ty b{font-weight:400;color:#E8E4DC;min-width:44px;font-size:12.5px}
+.ty .px{min-width:62px;font-variant-numeric:tabular-nums;color:#C0452F;font-size:11.5px;font-family:"SF Mono",Consolas,monospace}
 </style>
 </head>
 <body class="light">
 <div class="wrap">
+
 <header>
-  <h1>背呗 (drill) · UI 原型</h1>
-  <div class="sub">Android 真机比例 · 360 × 752 dp（1px = 1dp，字号即 sp）· 亮暗双套由同一套令牌驱动，跟随系统</div>
+  <h1>背呗 <em>drill</em> · UI 原型</h1>
+  <div class="sub">Android 真机比例 <b>360 × 752 dp</b>（1px = 1dp，字号即 sp）· 设计语言「<b>朱批</b>」· 亮暗双套由同一组令牌驱动</div>
   <div class="tog">
-    <button class="on" onclick="document.body.className='light';[...document.querySelectorAll('.tog button')].forEach((b,i)=>b.classList.toggle('on',i===0))">亮色</button>
-    <button onclick="document.body.className='dark';[...document.querySelectorAll('.tog button')].forEach((b,i)=>b.classList.toggle('on',i===1))">深色</button>
+    <button class="on" onclick="setT('light',this)">亮色 · 纸</button>
+    <button onclick="setT('dark',this)">暗色 · 墨</button>
   </div>
 </header>
 
+<div class="note">
+  <b>设计语言「朱批」——三个记忆点</b><br>
+  ① <b>单词用衬线大字</b>（Iowan / Georgia / Noto Serif），UI 其余用无衬线。市面上背单词 App 全是无衬线圆卡片，单词只是内容；这里单词是主角，读起来像一页印刷品。<br>
+  ② <b>朱砂红 <code>#C0452F</code></b> 只出现在极少数位置：主按钮、选中标记、进度、「重来」档。旧书批注的那支笔。大面积留给纸白与墨黑。<br>
+  ③ <b>评分按钮顶部的横条 = 间隔长度</b>。重来条最短、简单条最长，不用读数字就知道四个档位的量级差异——把抽象档位翻译成可见的长度。<br>
+  <span style="color:#6F685E">细节：分割线统一 hairline 1px 且极淡；小标签 uppercase + 1.1px 字距；所有数字 tabular-nums 对齐；圆角收到 6–10dp（印刷感，不用 16dp 气泡）；标记一律 5–7px 方块而非圆点。</span>
+</div>
+
 <section>
-  <h2>设计令牌</h2>
-  <div class="tok">
-    <div class="tk">
-      <h4>品牌与文本</h4>
-      <div class="sw">
-        <div><i style="background:var(--brand)"></i>brand</div>
-        <div><i style="background:var(--brandtint)"></i>tint</div>
-        <div><i style="background:var(--tx1)"></i>text-1</div>
-        <div><i style="background:var(--tx2)"></i>text-2</div>
-        <div><i style="background:var(--tx3)"></i>text-3</div>
-        <div><i style="background:var(--bd)"></i>border</div>
+<h2><b>核心流程</b>学习</h2>
+<div class="grid">
+
+<!-- 1 今日 -->
+<div class="shot"><div class="lb">01 今日<i>打开即见今日量</i></div>
+<div class="phone"><div class="sb" data-sb></div><div class="sc">
+  <div class="tb"><div class="ic"></div><div class="t">9月9日 星期三</div><div class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg></div></div>
+  <div style="flex:1;display:flex;flex-direction:column;padding:6px 20px 0">
+    <div class="ser" style="font-size:25px;letter-spacing:-.4px">今日</div>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center">
+      <svg width="168" height="168" viewBox="0 0 168 168">
+        <circle cx="84" cy="84" r="70" fill="none" stroke="var(--bd)" stroke-width="5"/>
+        <circle cx="84" cy="84" r="70" fill="none" stroke="var(--ac)" stroke-width="5" stroke-linecap="round"
+          stroke-dasharray="439.8" stroke-dashoffset="263.9" transform="rotate(-90 84 84)"/>
+        <text x="84" y="80" text-anchor="middle" class="ser tnum" font-size="42" fill="var(--tx1)">12</text>
+        <text x="84" y="102" text-anchor="middle" font-size="11" fill="var(--tx3)" letter-spacing="1.4">待学</text>
+      </svg>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:16px">
+      <div style="flex:1;background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:12px 14px">
+        <div class="ser tnum" style="font-size:26px;line-height:1">47</div>
+        <div class="ul" style="margin-top:6px">待复习</div>
+      </div>
+      <div style="flex:1;background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:12px 14px">
+        <div class="ser tnum" style="font-size:26px;line-height:1;color:var(--ac)">8</div>
+        <div class="ul" style="margin-top:6px">已学</div>
       </div>
     </div>
-    <div class="tk">
-      <h4>四档评分语义色</h4>
-      <div class="sw">
-        <div><i style="background:var(--r1)"></i>重来</div>
-        <div><i style="background:var(--r2)"></i>困难</div>
-        <div><i style="background:var(--r3)"></i>良好</div>
-        <div><i style="background:var(--r4)"></i>简单</div>
-      </div>
-    </div>
-    <div class="tk">
-      <h4>字体阶梯（sp）</h4>
-      <div class="ty">
-        <div><b>32</b><span class="px">单词主展示</span></div>
-        <div><b>22</b><span class="px">页面标题</span></div>
-        <div><b>16</b><span class="px">正文 / 按钮</span></div>
-        <div><b>14</b><span class="px">次要正文</span></div>
-        <div><b>12</b><span class="px">说明 / 标签</span></div>
-      </div>
-    </div>
-    <div class="tk">
-      <h4>间距与圆角（dp）</h4>
-      <div class="ty">
-        <div><b>间距</b><span class="px">4 / 8 / 12 / 16 / 20 / 24</span></div>
-        <div><b>圆角</b><span class="px">卡片 16 · 按钮 12 · 标签 8</span></div>
-        <div><b>触控</b><span class="px">最小 48 高</span></div>
-        <div><b>栅格</b><span class="px">左右边距 20</span></div>
-      </div>
+    <div class="bt a" style="margin-bottom:10px">开 始 学 习</div>
+    <div class="txbt" style="height:44px">词汇量测试 <span style="color:var(--ac)">· 未测</span></div>
+  </div>
+</div><div class="gb"><i></i></div><div class="tab" data-tab="home"></div></div>
+</div>
+
+<!-- 2 新词正面 -->
+<div class="shot"><div class="lb">02 新词·正面<i>首次接触，只给发音线索</i></div>
+<div class="phone"><div class="sb" data-sb></div><div class="sc">
+  <div class="tb"><div class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 6l12 12M18 6L6 18"/></svg></div><div class="t">新词 3 / 20</div><div class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg></div></div>
+  <div class="pgb"><i style="width:15%"></i></div>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 24px">
+    <div class="ul">首 次 接 触</div>
+    <div class="ser" style="font-size:42px;margin-top:18px;letter-spacing:-.8px">abandon</div>
+    <div style="font-size:13px;color:var(--tx3);margin-top:12px;letter-spacing:.9px;font-family:'SF Mono',Consolas,monospace">/əˈbændən/</div>
+    <div style="width:44px;height:44px;border:1px solid var(--bd2);border-radius:22px;display:flex;align-items:center;justify-content:center;margin-top:26px">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--tx1)" stroke-width="1.5" stroke-linecap="round"><path d="M4 12h1.5M8 8.5v7M12 5.5v13M16 8.5v7M20 11h0"/></svg>
     </div>
   </div>
+  <div style="border-top:1px solid var(--bd)"><div class="txbt">显 示 释 义</div></div>
+</div><div class="gb"><i></i></div></div>
+</div>
+
+<!-- 3 新词背面 -->
+<div class="shot"><div class="lb">03 新词·背面<i>认知判断，不是记忆评分</i></div>
+<div class="phone"><div class="sb" data-sb></div><div class="sc">
+  <div class="tb"><div class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 6l12 12M18 6L6 18"/></svg></div><div class="t">新词 3 / 20</div><div class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg></div></div>
+  <div class="pgb"><i style="width:15%"></i></div>
+  <div style="flex:1;overflow:hidden;padding:18px 20px 0">
+    <div class="ser" style="font-size:27px;letter-spacing:-.4px">abandon</div>
+    <div style="font-size:12px;color:var(--tx3);margin-top:5px;letter-spacing:.8px;font-family:'SF Mono',Consolas,monospace">/əˈbændən/</div>
+    <div class="hair" style="margin:16px 0"></div>
+    <div style="display:flex;align-items:baseline;gap:9px">
+      <span style="font-size:11px;letter-spacing:.8px;color:var(--ac);font-weight:600;text-transform:uppercase">v.</span>
+      <span style="font-size:16.5px">抛弃；放弃；遗弃</span>
+    </div>
+    <div style="font-size:13px;color:var(--tx2);margin-top:6px;line-height:1.6">to leave somebody permanently; to stop doing something before it is finished</div>
+    <div class="hair" style="margin:16px 0"></div>
+    <div class="ser" style="font-size:14px;font-style:italic;line-height:1.7;color:var(--tx2)">The crew had to <span style="font-style:normal;color:var(--tx1);border-bottom:1px solid var(--ac);padding-bottom:1px">abandon</span> the sinking ship.</div>
+    <div style="font-size:12.5px;color:var(--tx3);margin-top:6px;line-height:1.6">船员们不得不弃船。</div>
+    <div class="hair" style="margin:16px 0"></div>
+    <div style="display:flex;gap:8px;align-items:flex-start">
+      <span class="mk" style="margin-top:5px"></span>
+      <span style="font-size:12.5px;color:var(--tx2);line-height:1.7">ad-（去）+ bandon（管辖权）→ 交出控制权 → 抛弃</span>
+    </div>
+  </div>
+  <div style="padding:14px 20px 12px;border-top:1px solid var(--bd)">
+    <div class="ul" style="margin-bottom:9px">这 个 词 你 认 识 吗</div>
+    <div style="display:flex;gap:10px">
+      <div class="bt o" style="flex:1;height:50px;background:var(--b1);border-color:transparent;color:var(--b1t)">不认识</div>
+      <div class="bt o" style="flex:1;height:50px">认识</div>
+    </div>
+  </div>
+</div><div class="gb"><i></i></div></div>
+</div>
+
+<!-- 4 复习背面 -->
+<div class="shot"><div class="lb">04 复习·背面<i>条长 = 下次间隔</i></div>
+<div class="phone"><div class="sb" data-sb></div><div class="sc">
+  <div class="tb"><div class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 6l12 12M18 6L6 18"/></svg></div><div class="t">复习 12 / 47</div><div class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg></div></div>
+  <div class="pgb"><i style="width:26%"></i></div>
+  <div style="flex:1;overflow:hidden;padding:18px 20px 0">
+    <div class="ser" style="font-size:27px;letter-spacing:-.4px">abandon</div>
+    <div style="font-size:12px;color:var(--tx3);margin-top:5px;letter-spacing:.8px;font-family:'SF Mono',Consolas,monospace">/əˈbændən/</div>
+    <div class="hair" style="margin:16px 0"></div>
+    <div style="display:flex;align-items:baseline;gap:9px">
+      <span style="font-size:11px;letter-spacing:.8px;color:var(--ac);font-weight:600;text-transform:uppercase">v.</span>
+      <span style="font-size:16.5px">抛弃；放弃；遗弃</span>
+    </div>
+    <div class="ser" style="font-size:14px;font-style:italic;line-height:1.7;color:var(--tx2);margin-top:12px;border-left:2px solid var(--bd2);padding-left:12px">The crew had to <span style="font-style:normal;color:var(--tx1)">abandon</span> the sinking ship.</div>
+    <div style="font-size:12.5px;color:var(--tx3);margin-top:6px;padding-left:14px">船员们不得不弃船。</div>
+  </div>
+  <div style="padding:12px 20px 14px;border-top:1px solid var(--bd)">
+    <div class="ul" style="margin-bottom:10px">想不起来 → 按「重来」，不是「困难」</div>
+    <div class="rt">
+      <div class="rb r1"><div class="bar" style="width:14px"></div><div class="n">重来</div><div class="i">10 分钟</div></div>
+      <div class="rb r2"><div class="bar" style="width:26px"></div><div class="n">困难</div><div class="i">1 天</div></div>
+      <div class="rb r3"><div class="bar" style="width:42px"></div><div class="n">良好</div><div class="i">4 天</div></div>
+      <div class="rb r4"><div class="bar" style="width:66px"></div><div class="n">简单</div><div class="i">12 天</div></div>
+    </div>
+  </div>
+</div><div class="gb"><i></i></div></div>
+</div>
+
+<!-- 5 词汇量测试 -->
+<div class="shot"><div class="lb">05 词汇量测试<i>分层抽样，先筛熟词</i></div>
+<div class="phone"><div class="sb" data-sb></div><div class="sc">
+  <div class="tb"><div class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 6l12 12M18 6L6 18"/></svg></div><div class="t">第 18 / 60 题</div><div class="ic"></div></div>
+  <div class="pgb"><i style="width:30%"></i></div>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 24px">
+    <div class="ul">这 个 词 你 认 识 吗</div>
+    <div class="ser" style="font-size:36px;margin-top:22px;letter-spacing:-.6px;text-align:center">meticulous</div>
+    <div style="display:flex;gap:10px;margin-top:34px;width:100%">
+      <div class="bt o" style="flex:1">认识</div>
+      <div class="bt o" style="flex:1;background:var(--b1);border-color:transparent;color:var(--b1t)">不认识</div>
+    </div>
+    <div style="font-size:11.5px;color:var(--tx3);margin-top:16px;text-align:center;line-height:1.6">不确定就选「不认识」，宁可多学一遍</div>
+  </div>
+</div><div class="gb"><i></i></div></div>
+</div>
+
+</div>
 </section>
 
 <section>
-  <h2>界面原型</h2>
-  <div class="grid">
+<h2><b>其余屏幕</b>词库 · 统计 · 详情 · 设置</h2>
+<div class="grid">
 
-    <div class="shot"><div class="lb">今日学习</div>
-    <div class="phone"><div class="sb" data-sb></div><div class="sc">
-      <div class="pd" style="padding-top:6px">
-        <div style="font-size:12px;color:var(--tx3)">9月9日 · 星期三</div>
-        <div class="chip" style="margin-top:8px">连续学习 12 天</div>
-      </div>
-      <div class="pd mt">
-        <div class="card">
-          <div style="font-size:12px;color:var(--tx3)">今日剩余</div>
-          <div style="font-size:44px;font-weight:500;color:var(--tx1);line-height:1.1;margin-top:4px">45</div>
-          <div style="font-size:13px;color:var(--tx2);margin-top:6px">新学 12 · 复习 33</div>
-          <div style="height:6px;background:var(--track);border-radius:3px;margin-top:14px"><div style="width:32%;height:6px;background:var(--brand);border-radius:3px"></div></div>
-        </div>
-      </div>
-      <div class="pd" style="margin-top:16px"><div class="btnp">开始学习</div></div>
-      <div class="pd" style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div class="card" style="padding:13px;text-align:center"><div style="font-size:14px;font-weight:500;color:var(--tx1)">词汇量测试</div><div style="font-size:12px;color:var(--tx3);margin-top:3px">筛掉熟词</div></div>
-        <div class="card" style="padding:13px;text-align:center"><div style="font-size:14px;font-weight:500;color:var(--tx1)">错词重练</div><div style="font-size:12px;color:var(--tx3);margin-top:3px">18 个</div></div>
-      </div>
-      <div class="pd" style="margin-top:16px">
-        <div style="font-size:12px;color:var(--tx3);margin-bottom:9px">本周打卡</div>
-        <div style="display:flex;gap:9px">
-          <div style="flex:1;height:18px;border-radius:9px;background:var(--brand)"></div>
-          <div style="flex:1;height:18px;border-radius:9px;background:var(--brand)"></div>
-          <div style="flex:1;height:18px;border-radius:9px;background:var(--brand)"></div>
-          <div style="flex:1;height:18px;border-radius:9px;background:var(--brand)"></div>
-          <div style="flex:1;height:18px;border-radius:9px;background:var(--track)"></div>
-          <div style="flex:1;height:18px;border-radius:9px;background:var(--track)"></div>
-          <div style="flex:1;height:18px;border-radius:9px;background:var(--track)"></div>
-        </div>
-      </div>
-      <div style="flex:1"></div>
-      <div class="tab" data-tab="home"></div>
-    </div><div class="gb"><i></i></div></div>
-    </div>
-
-    <div class="shot"><div class="lb">复习 · 正面（回忆态）</div>
-    <div class="phone"><div class="sb" data-sb></div><div class="sc">
-      <div class="tbar">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
-        <span class="t">今日 12 / 50</span>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="var(--tx3)"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
-      </div>
-      <div style="height:4px;background:var(--track);margin:0 20px;border-radius:2px"><div style="width:24%;height:4px;background:var(--brand);border-radius:2px"></div></div>
-      <div class="pd" style="margin-top:20px">
-        <div style="background:var(--bg);border:1px solid var(--bd);border-radius:16px;padding:44px 20px 40px;text-align:center">
-          <div style="font-size:32px;font-weight:500;color:var(--tx1);letter-spacing:-.4px">obfuscate</div>
-          <div style="margin-top:12px;display:flex;align-items:center;justify-content:center;gap:8px">
-            <span style="font-size:14px;color:var(--tx2)">/ˈɒbfʌskeɪt/</span>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 010 7"/></svg>
-          </div>
-        </div>
-      </div>
-      <div style="flex:1"></div>
-      <div class="pd" style="padding-bottom:16px">
-        <div class="btnl">显示释义</div>
-        <div style="text-align:center;font-size:12px;color:var(--tx3);margin-top:14px">轻点卡片也可翻转</div>
-      </div>
-    </div><div class="gb"><i></i></div></div>
-    </div>
-
-    <div class="shot"><div class="lb">复习 · 背面（四档评分带下次间隔）</div>
-    <div class="phone"><div class="sb" data-sb></div><div class="sc">
-      <div class="tbar">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
-        <span class="t">今日 12 / 50</span>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="var(--tx3)"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
-      </div>
-      <div style="height:4px;background:var(--track);margin:0 20px;border-radius:2px"><div style="width:24%;height:4px;background:var(--brand);border-radius:2px"></div></div>
-      <div class="pd" style="margin-top:16px">
-        <div style="background:var(--bg);border:1px solid var(--bd);border-radius:16px;padding:18px 16px">
-          <div style="font-size:22px;font-weight:500;color:var(--tx1)">obfuscate</div>
-          <div style="font-size:13px;color:var(--tx2);margin-top:2px">/ˈɒbfʌskeɪt/</div>
-          <div style="margin-top:14px;padding-top:13px;border-top:1px solid var(--bd)">
-            <div style="font-size:16px;color:var(--tx1);line-height:1.6">vt. 使模糊不清；混淆</div>
-          </div>
-          <div style="margin-top:13px;background:var(--surface);border-radius:12px;padding:12px">
-            <div style="font-size:13px;color:var(--tx1);line-height:1.55">The code was deliberately obfuscated to prevent reverse engineering.</div>
-            <div style="font-size:12px;color:var(--tx3);margin-top:6px;line-height:1.55">代码被故意混淆以阻止逆向工程。</div>
-          </div>
-          <div class="chip" style="margin-top:12px">ob- 加强 + fusc 黑</div>
-        </div>
-      </div>
-      <div style="flex:1"></div>
-      <div class="pd" style="padding-bottom:14px">
-        <div style="text-align:center;font-size:12px;color:var(--tx3);margin-bottom:10px">想不起来按「重来」，别按「困难」</div>
-        <div class="rate">
-          <div style="background:var(--r1);color:var(--r1t)"><div class="n">重来</div><div class="i">&lt;1 分钟</div></div>
-          <div style="background:var(--r2);color:var(--r2t)"><div class="n">困难</div><div class="i">2 天</div></div>
-          <div style="background:var(--r3);color:var(--r3t)"><div class="n">良好</div><div class="i">5 天</div></div>
-          <div style="background:var(--r4);color:var(--r4t)"><div class="n">简单</div><div class="i">12 天</div></div>
-        </div>
-      </div>
-    </div><div class="gb"><i></i></div></div>
-    </div>
-
-    <div class="shot"><div class="lb">词汇量测试（分层抽样）</div>
-    <div class="phone"><div class="sb" data-sb></div><div class="sc">
-      <div class="tbar">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
-        <span class="t">第 23 / 100</span>
-        <span style="font-size:13px;color:var(--tx3)">跳过</span>
-      </div>
-      <div style="height:4px;background:var(--track);margin:0 20px;border-radius:2px"><div style="width:23%;height:4px;background:var(--brand);border-radius:2px"></div></div>
-      <div class="pd" style="margin-top:18px">
-        <div style="font-size:13px;color:var(--tx3);text-align:center">认识这个词就点「认识」，不认识就点「不认识」</div>
-      </div>
-      <div class="pd" style="margin-top:18px">
-        <div style="background:var(--bg);border:1px solid var(--bd);border-radius:16px;padding:40px 20px;text-align:center">
-          <div style="font-size:32px;font-weight:500;color:var(--tx1);letter-spacing:-.4px">candid</div>
-          <div style="margin-top:12px;font-size:14px;color:var(--tx2)">/ˈkændɪd/</div>
-        </div>
-      </div>
-      <div style="flex:1"></div>
-      <div class="pd" style="padding-bottom:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div style="height:50px;display:flex;align-items:center;justify-content:center;border:1px solid var(--bd);border-radius:12px;color:var(--tx2);font-size:16px;font-weight:500">不认识</div>
-        <div style="height:50px;display:flex;align-items:center;justify-content:center;background:var(--brand);border-radius:12px;color:var(--brandon);font-size:16px;font-weight:500">认识</div>
-      </div>
-    </div><div class="gb"><i></i></div></div>
-    </div>
-
-    <div class="shot"><div class="lb">词库（标签筛选）</div>
-    <div class="phone"><div class="sb" data-sb></div><div class="sc">
-      <div class="pd" style="padding-top:4px;font-size:22px;font-weight:500;color:var(--tx1)">词库</div>
-      <div class="pd" style="margin-top:14px">
-        <div style="background:var(--surface);border-radius:12px;padding:11px 14px;display:flex;align-items:center;gap:9px">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></svg>
-          <span style="font-size:14px;color:var(--tx3)">搜索单词</span>
-        </div>
-      </div>
-      <div class="pd" style="margin-top:13px;display:flex;gap:8px">
-        <div style="background:var(--brand);color:#fff;font-size:13px;padding:6px 14px;border-radius:16px">全部</div>
-        <div style="background:var(--surface);color:var(--tx2);font-size:13px;padding:6px 14px;border-radius:16px">高频样本</div>
-        <div style="background:var(--surface);color:var(--tx2);font-size:13px;padding:6px 14px;border-radius:16px">CET-4</div>
-        <div style="background:var(--surface);color:var(--tx2);font-size:13px;padding:6px 14px;border-radius:16px">GRE</div>
-      </div>
-      <div class="pd" style="margin-top:8px">
-        <div style="padding:13px 0;border-bottom:1px solid var(--bd)">
-          <div style="font-size:16px;font-weight:500;color:var(--tx1)">obfuscate</div>
-          <div style="font-size:13px;color:var(--tx2);margin-top:3px">/ˈɒbfʌskeɪt/ · vt. 使模糊不清</div>
-          <div class="st" style="margin-top:7px;background:var(--r3);color:var(--r3t)">学习中</div>
-        </div>
-        <div style="padding:13px 0;border-bottom:1px solid var(--bd)">
-          <div style="font-size:16px;font-weight:500;color:var(--tx1)">benevolent</div>
-          <div style="font-size:13px;color:var(--tx2);margin-top:3px">/bəˈnevələnt/ · adj. 仁慈的</div>
-          <div class="st" style="margin-top:7px;background:var(--r4);color:var(--r4t)">已掌握</div>
-        </div>
-        <div style="padding:13px 0;border-bottom:1px solid var(--bd)">
-          <div style="font-size:16px;font-weight:500;color:var(--tx1)">candid</div>
-          <div style="font-size:13px;color:var(--tx2);margin-top:3px">/ˈkændɪd/ · adj. 坦率的</div>
-          <div class="st" style="margin-top:7px">未学</div>
-        </div>
-        <div style="padding:13px 0">
-          <div style="font-size:16px;font-weight:500;color:var(--tx1)">zealous</div>
-          <div style="font-size:13px;color:var(--tx2);margin-top:3px">/ˈzeləs/ · adj. 热忱的</div>
-          <div class="st" style="margin-top:7px">未学</div>
-        </div>
-      </div>
-      <div style="flex:1"></div>
-      <div class="tab" data-tab="lib"></div>
-    </div><div class="gb"><i></i></div></div>
-    </div>
-
-    <div class="shot"><div class="lb">统计</div>
-    <div class="phone"><div class="sb" data-sb></div><div class="sc">
-      <div class="pd" style="padding-top:4px;font-size:22px;font-weight:500;color:var(--tx1)">统计</div>
-      <div class="pd mt" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div class="card"><div style="font-size:12px;color:var(--tx3)">连续学习</div><div style="font-size:26px;font-weight:500;color:var(--tx1);margin-top:5px">12 天</div></div>
-        <div class="card"><div style="font-size:12px;color:var(--tx3)">已掌握</div><div style="font-size:26px;font-weight:500;color:var(--tx1);margin-top:5px">1,240</div></div>
-      </div>
-      <div class="pd mt">
-        <div class="card">
-          <div style="font-size:12px;color:var(--tx3);margin-bottom:14px">近 7 日复习量</div>
-          <div style="display:flex;align-items:flex-end;gap:9px;height:96px">
-            <div style="flex:1;background:var(--brand);opacity:.35;border-radius:4px;height:38%"></div>
-            <div style="flex:1;background:var(--brand);opacity:.35;border-radius:4px;height:62%"></div>
-            <div style="flex:1;background:var(--brand);opacity:.35;border-radius:4px;height:45%"></div>
-            <div style="flex:1;background:var(--brand);border-radius:4px;height:82%"></div>
-            <div style="flex:1;background:var(--brand);opacity:.35;border-radius:4px;height:56%"></div>
-            <div style="flex:1;background:var(--track);border-radius:4px;height:22%"></div>
-            <div style="flex:1;background:var(--track);border-radius:4px;height:12%"></div>
-          </div>
-        </div>
-      </div>
-      <div class="pd mt">
-        <div class="card">
-          <div style="font-size:12px;color:var(--tx3);margin-bottom:12px">记忆持久度分布</div>
-          <div style="display:flex;height:12px;border-radius:6px;overflow:hidden">
-            <div style="width:22%;background:#E8908C"></div>
-            <div style="width:28%;background:#EFC489"></div>
-            <div style="width:26%;background:#9CCB96"></div>
-            <div style="width:24%;background:var(--brand)"></div>
-          </div>
-          <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:12px;color:var(--tx3)">
-            <span>&lt;1天 22%</span><span>1-7天 28%</span><span>7-30天 26%</span><span>&gt;30天 24%</span>
-          </div>
-        </div>
-      </div>
-      <div style="flex:1"></div>
-      <div class="tab" data-tab="st"></div>
-    </div><div class="gb"><i></i></div></div>
-    </div>
-
-    <div class="shot"><div class="lb">单词详情</div>
-    <div class="phone"><div class="sb" data-sb></div><div class="sc">
-      <div class="tbar">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
-        <span class="t">单词详情</span>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="var(--tx3)"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
-      </div>
-      <div class="pd">
-        <div style="display:flex;align-items:baseline;gap:10px">
-          <span style="font-size:32px;font-weight:500;color:var(--tx1);letter-spacing:-.4px">obfuscate</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 010 7"/></svg>
-        </div>
-        <div style="font-size:14px;color:var(--tx2);margin-top:6px">/ˈɒbfʌskeɪt/</div>
-        <div class="st" style="margin-top:11px;background:var(--r3);color:var(--r3t)">学习中 · 下次 5 天后</div>
-      </div>
-      <div class="pd mt">
-        <div style="font-size:12px;color:var(--tx3);margin-bottom:8px">释义</div>
-        <div style="font-size:16px;color:var(--tx1);line-height:1.65">vt. 使模糊不清；使混乱；混淆</div>
-      </div>
-      <div class="pd mt">
-        <div style="font-size:12px;color:var(--tx3);margin-bottom:8px">例句</div>
-        <div class="card" style="padding:13px">
-          <div style="font-size:14px;color:var(--tx1);line-height:1.55">The code was deliberately obfuscated to prevent reverse engineering.</div>
-          <div style="font-size:13px;color:var(--tx3);margin-top:6px;line-height:1.55">代码被故意混淆以阻止逆向工程。</div>
-        </div>
-      </div>
-      <div class="pd mt">
-        <div style="font-size:12px;color:var(--tx3);margin-bottom:8px">词根词缀</div>
-        <div class="chip">ob- 加强 + fusc(黑) + -ate(动词)</div>
-      </div>
-      <div class="pd mt">
-        <div style="font-size:12px;color:var(--tx3);margin-bottom:8px">我的助记</div>
-        <div class="card" style="padding:13px;font-size:14px;color:var(--tx3);line-height:1.55">点此添加你的助记…</div>
-      </div>
-      <div style="flex:1"></div>
-    </div><div class="gb"><i></i></div></div>
-    </div>
-
-    <div class="shot"><div class="lb">设置</div>
-    <div class="phone"><div class="sb" data-sb></div><div class="sc">
-      <div class="pd" style="padding-top:4px;font-size:22px;font-weight:500;color:var(--tx1)">设置</div>
-      <div class="pd" style="margin-top:16px;font-size:12px;color:var(--tx3)">学习节奏</div>
-      <div class="pd" style="margin-top:8px">
-        <div class="card" style="padding:0 16px">
-          <div class="row" style="border-bottom:1px solid var(--bd)"><span>每日新词</span><span class="v">20</span></div>
-          <div class="row" style="border-bottom:1px solid var(--bd)"><span>复习上限</span><span class="v">200</span></div>
-          <div class="row" style="border-bottom:1px solid var(--bd)"><span>目标记忆率</span><span class="v">90%</span></div>
-          <div class="row"><span>每日分界</span><span class="v">04:00</span></div>
-        </div>
-      </div>
-      <div class="pd" style="margin-top:16px;font-size:12px;color:var(--tx3)">外观</div>
-      <div class="pd" style="margin-top:8px">
-        <div class="card" style="padding:0 16px"><div class="row"><span>主题</span><span style="color:var(--tx2)">跟随系统</span></div></div>
-      </div>
-      <div class="pd" style="margin-top:16px;font-size:12px;color:var(--tx3)">数据</div>
-      <div class="pd" style="margin-top:8px">
-        <div class="card" style="padding:0 16px">
-          <div class="row" style="border-bottom:1px solid var(--bd)"><span>导出备份</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div>
-          <div class="row" style="border-bottom:1px solid var(--bd)"><span>导入备份</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--tx3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div>
-          <div class="row"><span style="color:var(--r1t)">重置已掌握词</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--r1t)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div>
-        </div>
-      </div>
-      <div style="flex:1"></div>
-      <div class="tab" data-tab="se"></div>
-    </div><div class="gb"><i></i></div></div>
-    </div>
-
+<!-- 6 词库 -->
+<div class="shot"><div class="lb">06 词库<i>标签即词库</i></div>
+<div class="phone"><div class="sb" data-sb></div><div class="sc">
+  <div class="tb"><div class="ic"></div><div class="t"></div><div class="ic" style="width:auto;padding:0 12px;font-size:13px;color:var(--ac)">导入</div></div>
+  <div class="pd" style="padding-bottom:4px">
+    <div class="ser" style="font-size:25px;letter-spacing:-.4px">词库</div>
+    <div class="ul" style="margin-top:7px">3 个已选 · 共 12,480 词</div>
   </div>
+  <div class="hair" style="margin:14px 20px"></div>
+  <div class="pd" style="flex:1;overflow:hidden">
+    <div class="rw"><span class="mk"></span><span class="n">四级核心</span><span class="v">4,512</span></div>
+    <div class="hair"></div>
+    <div class="rw"><span class="mk"></span><span class="n">GRE 核心</span><span class="v">6,203</span></div>
+    <div class="hair"></div>
+    <div class="rw"><span class="mk"></span><span class="n">高频短语</span><span class="v">1,765</span></div>
+    <div class="hair"></div>
+    <div class="rw"><span class="mk o"></span><span class="n" style="color:var(--tx2)">六级核心</span><span class="v">5,890</span></div>
+    <div class="hair"></div>
+    <div class="rw"><span class="mk o"></span><span class="n" style="color:var(--tx2)">考研核心</span><span class="v">5,431</span></div>
+    <div class="hair"></div>
+    <div class="rw"><span class="mk o"></span><span class="n" style="color:var(--tx2)">托福核心</span><span class="v">4,908</span></div>
+    <div class="hair"></div>
+    <div class="rw"><span class="mk o"></span><span class="n" style="color:var(--tx2)">雅思核心</span><span class="v">3,672</span></div>
+    <div class="hair"></div>
+    <div class="rw"><span class="mk o" style="border-style:dashed"></span><span class="n" style="color:var(--tx2)">我的词表 · 经济学人</span><span class="v">328</span></div>
+  </div>
+</div><div class="gb"><i></i></div><div class="tab" data-tab="lib"></div></div>
+</div>
+
+<!-- 7 统计 -->
+<div class="shot"><div class="lb">07 统计<i>不打卡、不排名</i></div>
+<div class="phone"><div class="sb" data-sb></div><div class="sc">
+  <div class="tb"><div class="ic"></div><div class="t"></div><div class="ic"></div></div>
+  <div class="pd" style="padding-bottom:2px">
+    <div class="ser" style="font-size:25px;letter-spacing:-.4px">统计</div>
+    <div class="ul" style="margin-top:7px">连 续 学 习 12 天</div>
+  </div>
+  <div class="pd" style="margin-top:16px">
+    <div style="display:flex;gap:10px">
+      <div style="flex:1"><div class="ser tnum" style="font-size:27px">1,284</div><div class="ul" style="margin-top:4px">已学</div></div>
+      <div style="flex:1"><div class="ser tnum" style="font-size:27px">863</div><div class="ul" style="margin-top:4px">复习中</div></div>
+      <div style="flex:1"><div class="ser tnum" style="font-size:27px;color:var(--ac)">421</div><div class="ul" style="margin-top:4px">已掌握</div></div>
+    </div>
+  </div>
+  <div class="hair" style="margin:20px 20px 0"></div>
+  <div class="pd" style="margin-top:16px">
+    <div class="ul">近 7 日 复 习 量</div>
+    <div style="display:flex;align-items:flex-end;gap:11px;height:96px;margin-top:14px">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px"><div style="width:100%;height:38px;background:var(--bd);border-radius:2px"></div><div class="ul" style="letter-spacing:.5px">三</div></div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px"><div style="width:100%;height:62px;background:var(--bd);border-radius:2px"></div><div class="ul" style="letter-spacing:.5px">四</div></div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px"><div style="width:100%;height:29px;background:var(--bd);border-radius:2px"></div><div class="ul" style="letter-spacing:.5px">五</div></div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px"><div style="width:100%;height:74px;background:var(--bd);border-radius:2px"></div><div class="ul" style="letter-spacing:.5px">六</div></div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px"><div style="width:100%;height:51px;background:var(--bd);border-radius:2px"></div><div class="ul" style="letter-spacing:.5px">日</div></div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px"><div style="width:100%;height:83px;background:var(--bd);border-radius:2px"></div><div class="ul" style="letter-spacing:.5px">一</div></div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px"><div style="width:100%;height:47px;background:var(--ac);border-radius:2px"></div><div class="ul" style="letter-spacing:.5px;color:var(--ac)">今</div></div>
+    </div>
+  </div>
+  <div class="hair" style="margin:18px 20px 0"></div>
+  <div class="pd" style="margin-top:14px">
+    <div class="rws"><span>目标留存率</span><span class="v">90%</span></div>
+    <div class="rws"><span>实际留存率</span><span class="v ac">91.3%</span></div>
+    <div class="rws"><span>平均每日</span><span class="v">18.6 分钟</span></div>
+    <div class="rws"><span>累计学习</span><span class="v">42 小时</span></div>
+  </div>
+</div><div class="gb"><i></i></div><div class="tab" data-tab="st"></div></div>
+</div>
+
+<!-- 8 单词详情 -->
+<div class="shot"><div class="lb">08 单词详情<i>词典条目式排版</i></div>
+<div class="phone"><div class="sb" data-sb></div><div class="sc">
+  <div class="tb"><div class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 5l-7 7 7 7"/></svg></div><div class="t">单词详情</div><div class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div></div>
+  <div style="flex:1;overflow:hidden">
+    <div class="pd" style="padding-top:6px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between">
+        <div>
+          <div class="ser" style="font-size:33px;letter-spacing:-.6px">abandon</div>
+          <div style="font-size:12.5px;color:var(--tx3);margin-top:6px;letter-spacing:.8px;font-family:'SF Mono',Consolas,monospace">/əˈbændən/</div>
+        </div>
+        <div style="width:40px;height:40px;border:1px solid var(--bd2);border-radius:20px;display:flex;align-items:center;justify-content:center;margin-top:4px">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--tx1)" stroke-width="1.5" stroke-linecap="round"><path d="M4 12h1.5M8 8.5v7M12 5.5v13M16 8.5v7M20 11h0"/></svg>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:14px">
+        <span style="font-size:11.5px;padding:3px 8px;border:1px solid var(--bd2);border-radius:3px;color:var(--tx2)">四级</span>
+        <span style="font-size:11.5px;padding:3px 8px;border:1px solid var(--bd2);border-radius:3px;color:var(--tx2)">GRE</span>
+        <span style="font-size:11.5px;padding:3px 8px;border:1px solid var(--bd2);border-radius:3px;color:var(--ac)">已掌握</span>
+      </div>
+    </div>
+    <div class="hair" style="margin:16px 20px"></div>
+    <div class="pd">
+      <div class="ul" style="margin-bottom:12px">释 义</div>
+      <div style="display:flex;gap:10px;margin-bottom:10px"><span class="ser" style="font-size:13px;color:var(--tx3);width:14px;flex:0 0 auto">1</span><div><span style="font-size:11px;letter-spacing:.8px;color:var(--ac);font-weight:600;margin-right:7px">v.</span><span style="font-size:15px">抛弃；遗弃；离弃</span></div></div>
+      <div style="display:flex;gap:10px;margin-bottom:10px"><span class="ser" style="font-size:13px;color:var(--tx3);width:14px;flex:0 0 auto">2</span><div><span style="font-size:11px;letter-spacing:.8px;color:var(--ac);font-weight:600;margin-right:7px">v.</span><span style="font-size:15px">放弃；中止</span></div></div>
+      <div style="display:flex;gap:10px"><span class="ser" style="font-size:13px;color:var(--tx3);width:14px;flex:0 0 auto">3</span><div><span style="font-size:11px;letter-spacing:.8px;color:var(--ac);font-weight:600;margin-right:7px">n.</span><span style="font-size:15px">放纵；任性</span></div></div>
+    </div>
+    <div class="hair" style="margin:16px 20px"></div>
+    <div class="pd">
+      <div class="ul" style="margin-bottom:12px">例 句</div>
+      <div class="ser" style="font-size:13.5px;font-style:italic;line-height:1.75">They had to abandon their car in the snow.</div>
+      <div style="font-size:12.5px;color:var(--tx3);margin-top:5px;margin-bottom:12px">他们不得不把车丢在雪地里。</div>
+      <div class="ser" style="font-size:13.5px;font-style:italic;line-height:1.75">The project was abandoned for lack of funds.</div>
+      <div style="font-size:12.5px;color:var(--tx3);margin-top:5px">项目因资金不足被放弃。</div>
+    </div>
+    <div class="hair" style="margin:16px 20px"></div>
+    <div class="pd">
+      <div class="ul" style="margin-bottom:12px">词 根</div>
+      <div style="display:flex;gap:8px;align-items:flex-start"><span class="mk" style="margin-top:5px"></span><span style="font-size:13.5px;color:var(--tx2);line-height:1.7">ad-（去，朝向）+ bandon（管辖权、控制）<br>→ 交出控制权 → 抛弃</span></div>
+    </div>
+    <div class="hair" style="margin:16px 20px"></div>
+    <div class="pd">
+      <div class="ul" style="margin-bottom:12px">我 的 助 记</div>
+      <div style="font-size:13.5px;color:var(--tx3);line-height:1.7;border:1px dashed var(--bd2);border-radius:5px;padding:11px 12px">一个板凳（ban-don）被扔在路边 → 抛弃</div>
+    </div>
+  </div>
+</div><div class="gb"><i></i></div><div class="tab" data-tab="se"></div></div>
+</div>
+
+<!-- 9 设置 -->
+<div class="shot"><div class="lb">09 设置<i>默认值随时可改</i></div>
+<div class="phone"><div class="sb" data-sb></div><div class="sc">
+  <div class="tb"><div class="ic"></div><div class="t"></div><div class="ic"></div></div>
+  <div class="pd" style="padding-bottom:2px"><div class="ser" style="font-size:25px;letter-spacing:-.4px">设置</div></div>
+  <div style="flex:1;overflow:hidden;margin-top:16px">
+    <div class="pd"><div class="ul" style="margin-bottom:6px">学 习</div></div>
+    <div class="pd">
+      <div class="rws"><span>每日新词</span><span class="v">20</span></div>
+      <div class="hair"></div>
+      <div class="rws"><span>每日复习上限</span><span class="v">200</span></div>
+      <div class="hair"></div>
+      <div class="rws"><span>目标留存率</span><span class="v">90%</span></div>
+      <div class="hair"></div>
+      <div class="rws"><span>每日分界</span><span class="v">04:00</span></div>
+      <div class="hair"></div>
+      <div class="rws"><span>新词优先于复习</span><span class="mk"></span></div>
+    </div>
+    <div class="pd" style="margin-top:22px"><div class="ul" style="margin-bottom:6px">词 库</div></div>
+    <div class="pd">
+      <div class="rws"><span>导入自定义词表</span><span style="color:var(--tx3);font-size:13px">txt / csv</span></div>
+      <div class="hair"></div>
+      <div class="rws"><span>重置「已掌握」标记</span><span style="color:var(--tx3);font-size:13px">421 词</span></div>
+    </div>
+    <div class="pd" style="margin-top:22px"><div class="ul" style="margin-bottom:6px">数 据</div></div>
+    <div class="pd">
+      <div class="rws"><span>导出进度备份</span><span style="color:var(--tx3);font-size:13px">JSON</span></div>
+      <div class="hair"></div>
+      <div class="rws"><span>导入进度备份</span><span style="color:var(--tx3);font-size:13px"></span></div>
+    </div>
+    <div class="pd" style="margin-top:22px"><div class="ul" style="margin-bottom:6px">关 于</div></div>
+    <div class="pd">
+      <div class="rws"><span>版本</span><span class="v">0.1.0</span></div>
+      <div class="hair"></div>
+      <div class="rws"><span>许可</span><span class="v">MIT</span></div>
+      <div class="hair"></div>
+      <div class="rws"><span>词库来源</span><span class="v">ECDICT · MIT</span></div>
+    </div>
+  </div>
+</div><div class="gb"><i></i></div><div class="tab" data-tab="se"></div></div>
+</div>
+
+</div>
 </section>
+
+<section>
+<h2><b>设计令牌</b>朱批</h2>
+<div class="tok">
+  <div class="tk"><h4>纸 · 墨 · 朱（上行亮 / 下行暗）</h4><div class="sw">
+    <div><i style="background:#FBF9F5"></i>bg 纸白<br>#FBF9F5<br><span style="color:#5F5A52">#141311</span></div>
+    <div><i style="background:#FFFFFF"></i>surface<br>#FFFFFF<br><span style="color:#5F5A52">#1C1A17</span></div>
+    <div><i style="background:#1B1917"></i>tx1 墨<br>#1B1917<br><span style="color:#5F5A52">#EDE8DE</span></div>
+    <div><i style="background:#6E6862"></i>tx2<br>#6E6862<br><span style="color:#5F5A52">#A79F94</span></div>
+    <div><i style="background:#A89F94"></i>tx3<br>#A89F94<br><span style="color:#5F5A52">#6F685E</span></div>
+    <div><i style="background:#E7E2D8"></i>bd 细线<br>#E7E2D8<br><span style="color:#5F5A52">#2C2925</span></div>
+    <div><i style="background:#C0452F"></i>ac 朱砂<br>#C0452F<br><span style="color:#5F5A52">#E0705A</span></div>
+    <div><i style="background:#F7EBE6"></i>朱砂浅底<br>#F7EBE6<br><span style="color:#5F5A52">#2E211C</span></div>
+  </div></div>
+
+  <div class="tk"><h4>四档评分（条长即间隔）</h4><div class="sw">
+    <div><i style="background:#F7EBE6;border-bottom:2px solid #C0452F"></i>重来<br>10 分钟</div>
+    <div><i style="background:#F2EEE5;border-bottom:2px solid #A89F94"></i>困难<br>1 天</div>
+    <div><i style="background:#F5F3EC;border-bottom:2px solid #6E6862"></i>良好<br>4 天</div>
+    <div><i style="background:#EAEDE4;border-bottom:2px solid #1B1917"></i>简单<br>12 天</div>
+  </div>
+  <div style="font-size:11.5px;color:#8A8479;line-height:1.7;margin-top:12px">只有「重来」用朱砂；其余三档靠底的冷暖微差 + 条长递进区分。底部横条长度按间隔量级给（14 / 26 / 42 / 66 dp），不读数字也能看出量级。</div></div>
+
+  <div class="tk"><h4>字体</h4><div class="ty">
+    <div><b>衬线</b><span class="px">42 sp</span>复习卡单词</div>
+    <div><b>衬线</b><span class="px">36 sp</span>测试词</div>
+    <div><b>衬线</b><span class="px">27 sp</span>背面单词</div>
+    <div><b>衬线</b><span class="px">25 sp</span>页面标题</div>
+    <div><b>衬线斜</b><span class="px">14 sp</span>例句</div>
+    <div><b>无衬线</b><span class="px">15 sp</span>释义、列表</div>
+    <div><b>无衬线</b><span class="px">10.5 sp</span>标签 +1.1 字距</div>
+    <div><b>等宽</b><span class="px">13 sp</span>音标 +0.8 字距</div>
+  </div></div>
+
+  <div class="tk"><h4>尺寸与节奏</h4><div class="ty">
+    <div><b>画布</b><span class="px">360 × 752</span>dp</div>
+    <div><b>边距</b><span class="px">20 dp</span>左右安全边距</div>
+    <div><b>圆角</b><span class="px">6 / 10</span>卡片 / 按钮</div>
+    <div><b>分割线</b><span class="px">hairline</span>1px，极淡</div>
+    <div><b>标记块</b><span class="px">5 – 7 dp</span>朱砂方块，非圆点</div>
+    <div><b>触摸目标</b><span class="px">≥ 48 dp</span>最小点击区</div>
+    <div><b>数字</b><span class="px">tabular</span>全部等宽对齐</div>
+  </div></div>
+</div>
+</section>
+
 </div>
 
 <script>
-var BATT='<span><svg width="17" height="12" viewBox="0 0 24 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 5.5a14 14 0 0120 0" stroke-linecap="round"/><path d="M6 9a8.5 8.5 0 0112 0" stroke-linecap="round"/><circle cx="12" cy="13" r="1.4" fill="currentColor" stroke="none"/></svg><svg width="24" height="12" viewBox="0 0 26 12" fill="none"><rect x=".6" y=".6" width="21" height="10.8" rx="3" stroke="currentColor" stroke-width="1.3" opacity=".55"/><rect x="2.2" y="2.2" width="16" height="7.6" rx="2" fill="currentColor"/><path d="M23.4 4v4a2.6 2.6 0 000-4z" fill="currentColor" opacity=".55"/></svg></span>';
-document.querySelectorAll('[data-sb]').forEach(function(e){e.innerHTML='<span>9:41</span>'+BATT});
+function setT(t,el){document.body.className=t;[...document.querySelectorAll('.tog button')].forEach(b=>b.classList.toggle('on',b===el))}
 
-var IC={
- home:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v9h14v-9"/></svg>',
- lib:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg>',
- st:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 20v-6M12 20V8M18 20v-9"/></svg>',
- se:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg>'},
- NM={home:'学习',lib:'词库',st:'统计',se:'设置'};
-document.querySelectorAll('[data-tab]').forEach(function(e){
-  var a=e.dataset.tab;
-  e.innerHTML=['home','lib','st','se'].map(function(k){
-    return '<div class="'+(k===a?'on':'')+'">'+IC[k]+'<span>'+NM[k]+'</span></div>';
-  }).join('');
+const SBSVG='<svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><rect x="0" y="7" width="2.6" height="4" rx=".6"/><rect x="4" y="4.5" width="2.6" height="6.5" rx=".6"/><rect x="8" y="2" width="2.6" height="9" rx=".6"/><rect x="12" y="0" width="2.6" height="11" rx=".6"/></svg>'
++'<svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor"><path d="M7.5 9.2L5.3 6.8a3.1 3.1 0 014.4 0L7.5 9.2z"/><path d="M3.4 4.6a6 6 0 018.2 0" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M1.3 2.3a9 9 0 0112.4 0" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>'
++'<svg width="23" height="11" viewBox="0 0 23 11" fill="none"><rect x=".5" y="1" width="18" height="9" rx="2.2" stroke="currentColor" stroke-width="1"/><rect x="2" y="2.6" width="11.4" height="5.8" rx="1.2" fill="currentColor"/><path d="M20.2 4.2v2.6c.9-.3 1.5-1 1.5-1.3s-.6-1-1.5-1.3z" fill="currentColor" opacity=".55"/></svg>';
+document.querySelectorAll('[data-sb]').forEach(e=>e.innerHTML='<span>'+SBSVG+'</span><span style="font-weight:500">9:41</span>');
+
+const IC={
+  home:'<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 5.5h5.5v13H4zM14.5 5.5H20v13h-5.5z"/><path d="M12 5.5v13"/></svg>',
+  lib:'<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h9"/></svg>',
+  st:'<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5 19V10M12 19V5M19 19v-6"/></svg>',
+  se:'<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 8h16M4 16h16"/><circle cx="9" cy="8" r="2.2"/><circle cx="15.5" cy="16" r="2.2"/></svg>'
+};
+const NM={home:'学习',lib:'词库',st:'统计',se:'设置'};
+document.querySelectorAll('[data-tab]').forEach(e=>{
+  const cur=e.dataset.tab;
+  e.innerHTML=['home','lib','st','se'].map(k=>
+    '<div class="'+(k===cur?'on':'')+'">'+IC[k]+'<span class="td"></span>'+NM[k]+'</div>').join('');
 });
 </script>
 </body>
