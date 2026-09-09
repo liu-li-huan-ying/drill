@@ -116,9 +116,9 @@ export function ReviewCard({
         </ScrollView>
       </Animated.View>
 
-      {/* 发音按钮：浮在翻转层之上，单独接手势（RN 命中测试取最上层，不会误触翻转） */}
+      {/* 发音按钮：浮在翻转层之上，停靠右上角，正反面都可重听；不挡居中释义。 */}
       <TouchableOpacity
-        style={styles.sound}
+        style={[styles.sound, { backgroundColor: c.acsf }]}
         activeOpacity={0.6}
         onPress={() => speak(item.word)}
       >
@@ -172,7 +172,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24,
-    paddingVertical: 28,
+    // 顶部预留发音按钮空间（top:14 + 高 42 ≈ 56），避免长释义滚动时文字被角标压住。
+    paddingTop: 60,
+    paddingBottom: 28,
   },
   // 透明翻转层：盖住整张卡，承接所有点击。
   tap: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },

@@ -47,8 +47,9 @@
 > - **复习进度持久化修复（用户反馈：学了几个退出去又得从头学）**：根因在 `src/srs/fsrs.ts` 的 `State` 枚举映射——旧代码按 1 起始（`New=1`）做 `-1/+1` 偏移，但 ts-fsrs v5 实际是 **0 起始**（`New=0, Learning=1, Review=2, Relearning=3`）。于是新卡首次评分（FSRS 置为 `Learning=1`）经 `stateName` 被错写成 `'new'`，卡永远留在本日新词池，下次进仍从同一批最低频词（the/be/and…）开始；且因 `wasNew` 恒为 true，`daily_stats.new_count` 还会重复累加。已改为直接下标映射（`STATE_NAMES[s]` / `indexOf(n)`），评分后新卡正确转为 `learning`/`review` 离开新词池，本日新词进度（`newDone`）与「下一次从第 N+1 个开始」恢复正常。⚠️ 旧版跑出的运行时库 `drill.db` 可能已有被错标为 `new` 的卡，清一次 App 数据 / 重装即可拿到干净库；已交互过的卡在下次评分时会自愈（重新走 `gradeNewCard` 写回正确状态）
 > - **复习卡背面长释义滚动（用户反馈：of/be 这类词一屏装不下；首版仍划不动）**：根因是 JSX 层级顺序——`tap` 翻转层渲染在背面**之后**压在背面上方，滑动手势被翻转层当成「轻点翻面」截走，`ScrollView` 收不到触摸。修法：把背面移到翻转层**之后**（层级更高），`pointerEvents` 随翻转切 `auto/none`——未翻面时 none 让点按穿透到翻转层触发翻面、翻面后 auto 由 ScrollView 接管滚动，轻点（位移<10px、<300ms，区别于滚动）仍翻转回正面
 > - **统计页不随学习更新（用户反馈：首页已记录、统计页没及时记录）**：根因 `stats.tsx` 在渲染时一次性取值、无 `useFocusEffect` 重读；Expo Router 切 tab 不重挂载，故停在初始旧值。已加 `useFocusEffect` 每次聚焦重读 `getTodayCounts`/`getMasteredCount`，与首页一致
+> - **复习卡发音按钮压字（用户反馈：翻到背面仍有发音键、与中英文释义重叠）**：根因 `styles.sound` 用 `position:absolute; bottom:86; alignSelf:'center'`，浮在卡面中下方正压住背面居中的释义。已将发音键移到**右上角**（`top:14; right:14`，带 `acsf` 浅底强调），正反面都可重听且不再压字；背面滚动容器 `backContent` 顶部预留 60dp 内边距，长释义滚动时首行也不会被角标遮住。⚠️ 例句（含中文译文）显示在**单词详情页**「例句」区（`app/word.tsx`），不在复习卡背面（背面只放释义+词根用于专注回忆）；新装的中文例句需**彻底重启 App** 才会随 `EXPECTED_DB_VERSION=4` 的整库换库生效（热更新不触发 `initDatabase` 的拷贝）
 >
-> 下一步：补全 `links.tar.bz2`（断点续传中，按完整 149551113 字节判定）后重建 `examples` 表补 EN→ZH 译文；并接入复习卡背面 / 词列表的例句微展示。完整设计见 [docs/开发计划.md](docs/开发计划.md)、[docs/对抗式审查.md](docs/对抗式审查.md)、[docs/设计系统.md](docs/设计系统.md)。
+> M3.2 已收尾：`links.tar.bz2`（149,551,113 字节，EN→ZH 配对）下全并重建 `examples` 表，8,779 行带中文译文已随 `dictionary.db`（`user_version=4`，22.0MB）进包；运行时经 `EXPECTED_DB_VERSION=4` 整库换库把中文例句带进 `drill.db`。例句当前在单词详情页展示；复习卡背面 / 词列表的例句微展示为后续可选项。完整设计见 [docs/开发计划.md](docs/开发计划.md)、[docs/对抗式审查.md](docs/对抗式审查.md)、[docs/设计系统.md](docs/设计系统.md)。
 
 ## 数据管线（离线跑一次）
 
@@ -57,7 +58,7 @@
 ```bash
 bash tools/fetch_ecdict.sh       # 下载 ECDICT 主词典（MIT）到 tools/cache/（不进版本库）
 python3 tools/build_dict.py      # 筛选高频词 + 考纲标签，构建 assets/db/dictionary.db（user_version=2，M3）
-python3 tools/build_examples.py  # 拉取 Tatoeba 英/中句 + links，构建 examples 表（user_version=3，M3.2）
+python3 tools/build_examples.py  # 拉取 Tatoeba 英/中句 + links，构建 examples 表（user_version=4，M3.2）
 ```
 
 `dictionary.db` 一次建好全部表——`words`/`tags`/`word_tags`/`examples` 为只读词库，`cards` 等用户表留空——App 首次启动将其拷贝到用户目录后直接在其上写进度，可跨表 JOIN，无需运行时再建表。`examples` 表由 `build_examples.py` 在 Tatoeba 周更导出上离线构建（`word_id, sentence_en, sentence_zh, ord`）：词→句通过词典词集合命中、句间翻译经 `links` 配对，纯字符串处理、可重跑；缺 links/cmn 时退化为纯英文例句。
