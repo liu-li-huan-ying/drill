@@ -5,7 +5,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useTheme } from '../../src/theme/ThemeProvider';
 import { serif, type Tokens } from '../../src/theme/tokens';
 import { ScaleRing } from '../../src/features/home/ScaleRing';
-import { getHomeSummary } from '../../src/db/queries';
+import { getHomeSummary, setStudyScope } from '../../src/db/queries';
 
 export default function TodayScreen() {
   const { colors: c } = useTheme();
@@ -34,13 +34,29 @@ export default function TodayScreen() {
         <Stat label="新词可用" value={String(s.newAvailable)} colors={c} />
       </View>
 
+      {s.isScoped ? (
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => {
+            setStudyScope(null);
+            setS(getHomeSummary());
+          }}
+          style={[styles.scope, { borderColor: c.bd }]}
+        >
+          <Text style={[styles.scopeText, { color: c.tx2 }]}>学习范围：{s.scopeName}</Text>
+          <Text style={[styles.scopeClear, { color: c.ac }]}>✕ 背全部</Text>
+        </TouchableOpacity>
+      ) : (
+        <Text style={[styles.scopeHint, { color: c.tx3 }]}>学习范围：全部词库 · 可在「词库」选某纲只背它</Text>
+      )}
+
       <TouchableOpacity
         activeOpacity={0.85}
         disabled={nothing}
         onPress={() => router.push('/review')}
         style={[styles.cta, { backgroundColor: c.ac, opacity: nothing ? 0.4 : 1 }]}
       >
-        <Text style={[styles.ctaText, { color: c.acon }]}>{nothing ? '今 日 已 清 空' : '开 始 学 习'}</Text>
+        <Text style={[styles.ctaText, { color: c.acon }]}>{nothing ? '今 日 已 清 空' : `开 始 学 习 · ${s.scopeName}`}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -73,7 +89,11 @@ const styles = StyleSheet.create({
   statValue: { fontSize: 30, lineHeight: 34 },
   statLabel: { fontSize: 12, marginTop: 4, letterSpacing: 1 },
   div: { width: 1, height: 28 },
-  cta: { marginTop: 36, width: '100%', height: 54, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  scope: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 20, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 10, borderWidth: 1, width: '100%' },
+  scopeText: { fontSize: 13, letterSpacing: 0.5 },
+  scopeClear: { fontSize: 13, letterSpacing: 1, fontWeight: '600' },
+  scopeHint: { marginTop: 20, fontSize: 12, lineHeight: 17, letterSpacing: 0.3, textAlign: 'center' },
+  cta: { marginTop: 18, width: '100%', height: 54, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   ctaText: { fontSize: 16, letterSpacing: 4, fontWeight: '600' },
   calib: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 22 },
   calibText: { fontSize: 14, letterSpacing: 1 },

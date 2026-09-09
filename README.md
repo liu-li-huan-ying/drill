@@ -40,8 +40,9 @@
 > - 真机验证修复：`rotateY` 翻转在 Android 上须用 JS 驱动（`useNativeDriver:false`）+ 顶层透明翻转层接管手势，否则卡片不响应点击；`app.json` 补 `scheme:drill` 消除 Linking 警告
 > - M3：全量词库 **30,565 词**（核心高频 3 万 ∪ 考纲词并集，GRE 7,026 词 100% 覆盖），按考纲分 8 类标签 + 默认「核心词库」学习池；`user_version=2`，`Database.ts` 加版本门控——本地库版本更低时自动重新拷贝资产（整库换词库语义）。`assets/db/dictionary.db` 约 10.2MB
 > - M4：词库页可**搜索**（子串直达详情）+ **按标签浏览**（分页词列表）；`word` 详情页（释义 / 词性 / 词根词缀 / 考纲标签 + **标为已掌握**开关）；**设置页**可调每日新词/复习上限并持久化 + **重置已掌握**；**自定义词库导入**（粘贴单词→匹配内置词典→建专属 tag+card，回报未收录词）；**全局词汇量测试**（按词频分层抽样 ~36 词，结束按频段认识比例估算词汇量）。全部离线、基于 M3 词库
+> - **按标签过滤学习池（只背某考纲）**：`settings.study_tag` 持久化学习范围；`planSession()` 在查询时加 `IN (SELECT word_id FROM word_tags WHERE tag_id=?)` 子查询，不动 `cards` 表即可只练某纲；首页显示当前范围 + 「✕ 背全部」清除；`wordlist` 页「只背这一纲 →」一键设范围并 `dismissAll` 回首页
 >
-> 下一步 **M4 续（待做）**：按标签过滤学习池（只背某考纲，需动核心复习队列）；**M3.2（例句索引：Tatoeba 英中句对）** 待联网下载。完整设计见 [docs/开发计划.md](docs/开发计划.md)、[docs/对抗式审查.md](docs/对抗式审查.md)、[docs/设计系统.md](docs/设计系统.md)。
+> 下一步 **M3.2（例句索引：Tatoeba 英中句对）** 进行中（已联网拉取 Tatoeba 英/中句 + links，构建 `examples` 表并接入 `word` 详情）。完整设计见 [docs/开发计划.md](docs/开发计划.md)、[docs/对抗式审查.md](docs/对抗式审查.md)、[docs/设计系统.md](docs/设计系统.md)。
 
 ## 数据管线（离线跑一次）
 

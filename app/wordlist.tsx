@@ -4,7 +4,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-nati
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '../src/theme/ThemeProvider';
 import { serif, FONT, mono } from '../src/theme/tokens';
-import { getTagWords, getTagWordCount, type WordRow } from '../src/db/queries';
+import { getTagWords, getTagWordCount, setStudyScope, getStudyScope, type WordRow } from '../src/db/queries';
 
 const PAGE = 150;
 
@@ -19,6 +19,7 @@ export default function WordListScreen() {
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [total, setTotal] = useState(0);
+  const [scoped, setScoped] = useState(getStudyScope().tagId === tagId);
 
   useEffect(() => {
     setWords([]);
@@ -55,6 +56,27 @@ export default function WordListScreen() {
         </Text>
         <Text style={[styles.total, { color: c.tx3 }]}>{total}</Text>
       </View>
+
+      {scoped ? (
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => router.dismissAll()}
+          style={[styles.scopeBtn, { backgroundColor: c.acsf, borderColor: c.bd }]}
+        >
+          <Text style={[styles.scopeBtnText, { color: c.ac }]}>✓ 已设为学习范围 · 去首页 ›</Text>
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={() => {
+            setStudyScope(tagId);
+            setScoped(true);
+          }}
+          style={[styles.scopeBtn, { backgroundColor: c.ac }]}
+        >
+          <Text style={[styles.scopeBtnText, { color: c.acon }]}>只 背 这 一 纲 →</Text>
+        </TouchableOpacity>
+      )}
 
       <ScrollView contentContainerStyle={styles.list}>
         {words.map((w) => (
@@ -99,6 +121,8 @@ const styles = StyleSheet.create({
   word: { fontSize: 17, fontFamily: serif },
   ipa: { fontSize: FONT.ipa, fontFamily: mono, marginTop: 3 },
   def: { fontSize: 13, flex: 1, textAlign: 'right' },
+  scopeBtn: { marginTop: 12, height: 46, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  scopeBtnText: { fontSize: 14, letterSpacing: 2, fontWeight: '600' },
   more: {
     marginTop: 18, height: 44, borderRadius: 10, borderWidth: 1,
     alignItems: 'center', justifyContent: 'center',

@@ -23,6 +23,7 @@ export interface Settings {
   daily_review_limit: number;
   desired_retention: number;
   day_cutoff_hour: number;
+  study_tag: number | null; // 学习范围：限定只背某标签；null = 全部词库
 }
 
 const BASE_SELECT = `
@@ -69,6 +70,10 @@ export function getSettings(): Settings {
     daily_review_limit: parseInt(map.daily_review_limit ?? '200', 10),
     desired_retention: parseFloat(map.desired_retention ?? '0.9'),
     day_cutoff_hour: parseInt(map.day_cutoff_hour ?? '4', 10),
+    study_tag:
+      map.study_tag !== undefined && map.study_tag !== '' && !Number.isNaN(Number(map.study_tag))
+        ? Number(map.study_tag)
+        : null,
   };
 }
 
@@ -82,24 +87,48 @@ export function getTodayCounts(): { newDone: number; reviewDone: number } {
 }
 
 // 构建今日会话：先到期的复习 + 当日新词预算（受 daily_new_limit 约束）。
+// 若设置了 study_tag，则只在该标签范围内选词（只背某一纲）。
 export function planSession(): { reviews: QueueItem[]; news: QueueItem[] } {
   const s = getSettings();
+  const scope = getStudyScope();
   const now = Date.now();
   const { newDone } = getTodayCounts();
   const newBudget = Math.max(0, s.daily_new_limit - newDone);
+  const tagFilter = scope.tagId != null ? ' AND w.id IN (SELECT word_id FROM word_tags WHERE tag_id = ?)' : '';
+  const tagArgs: number[] = scope.tagId != null ? [scope.tagId] : [];
 
   const revRows = getDb().getAllSync<any>(
-    BASE_SELECT + ` AND c.state <> 'new' AND c.due <= ? ORDER BY c.due ASC LIMIT ?`,
-    [now, s.daily_review_limit]
+    BASE_SELECT + ` AND c.state <> 'new' AND c.due <= ? ${tagFilter} ORDER BY c.due ASC LIMIT ?`,
+    [now, ...tagArgs, s.daily_review_limit]
   );
   const newRows = getDb().getAllSync<any>(
-    BASE_SELECT + ` AND c.state = 'new' ORDER BY w.frq ASC LIMIT ?`,
-    [newBudget]
+    BASE_SELECT + ` AND c.state = 'new' ${tagFilter} ORDER BY w.frq ASC LIMIT ?`,
+    [...tagArgs, newBudget]
   );
   return {
     reviews: revRows.map((r) => rowToItem(r, false)),
     news: newRows.map((r) => rowToItem(r, true)),
   };
+}
+
+// 当前学习范围：返回限定标签 id（null=全部）及展示名。
+export function getStudyScope(): { tagId: number | null; name: string } {
+  const s = getSettings();
+  if (s.study_tag == null) return { tagId: null, name: '全部词库' };
+  const t = getDb().getFirstSync<{ name: string }>('SELECT name FROM tags WHERE id = ?', [s.study_tag]);
+  return { tagId: s.study_tag, name: t?.name ?? '自定义词库' };
+}
+
+// 设置学习范围：tagId=null 表示背全部词库。
+export function setStudyScope(tagId: number | null): void {
+  if (tagId == null) {
+    getDb().runSync('DELETE FROM settings WHERE key = ?', ['study_tag']);
+  } else {
+    getDb().runSync(
+      'INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=?',
+      ['study_tag', String(tagId), String(tagId)]
+    );
+  }
 }
 
 // 记录一次评分：更新 cards、写入 review_logs、累计 daily_stats。
@@ -233,21 +262,26 @@ export function getWordDetail(
   return { ...r, mastered: (r.mastered ?? 0) === 1 };
 }
 
-// 今日首页摘要：新词配额 / 已完成新词 / 待复习数 / 可用新词数。
+// 今日首页摘要：新词配额 / 已完成新词 / 待复习数 / 可用新词数 / 当前学习范围。
 export function getHomeSummary(): {
   dailyNewLimit: number;
   newDone: number;
   reviewDue: number;
   newAvailable: number;
+  scopeName: string;
+  isScoped: boolean;
 } {
   const s = getSettings();
   const { newDone } = getTodayCounts();
   const { reviews, news } = planSession();
+  const scope = getStudyScope();
   return {
     dailyNewLimit: s.daily_new_limit,
     newDone,
     reviewDue: reviews.length,
     newAvailable: news.length,
+    scopeName: scope.name,
+    isScoped: scope.tagId != null,
   };
 }
 
