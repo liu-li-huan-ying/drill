@@ -29,11 +29,15 @@
 | 本地库 | expo-sqlite + Drizzle ORM |
 | 调度算法 | ts-fsrs |
 | 发音 | expo-speech（系统 TTS，零成本离线） |
-| 样式 | StyleSheet + 统一 theme |
+| 样式 | StyleSheet + 统一 theme（见 [docs/设计系统.md](docs/设计系统.md)） |
 
 ## 状态
 
-> 开发中，当前 **M1（数据管线 v1）已完成**：ECDICT → SQLite 管线跑通，产出 500 词样本 `assets/db/dictionary.db`。下一步进入 **M2（最小闭环）**。完整设计见 [docs/开发计划.md](docs/开发计划.md) 与 [docs/对抗式审查.md](docs/对抗式审查.md)。
+> 开发中，当前 **M1（数据管线 v1）+ UI 原型（v1）已完成**：
+> - M1：ECDICT → SQLite 管线跑通，产出 500 词样本 `assets/db/dictionary.db`
+> - UI：8 屏安卓真机比例原型 [`docs/ui-prototype.html`](docs/ui-prototype.html)（360×752dp，1px=1dp，亮暗双套）
+>
+> 下一步进入 **M2（最小闭环）**。完整设计见 [docs/开发计划.md](docs/开发计划.md)、[docs/对抗式审查.md](docs/对抗式审查.md)、[docs/设计系统.md](docs/设计系统.md)。
 
 ## 数据管线（离线跑一次）
 
