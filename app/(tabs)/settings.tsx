@@ -135,6 +135,7 @@ export default function SettingsScreen() {
       <Entry title="自定义词库导入" sub="粘贴单词，建专属词单" onPress={() => router.push('/import')} />
       <Entry title="词汇量测试" sub="估算你的词汇量并筛熟词" onPress={() => router.push('/vocabtest')} />
       <Entry title="熟词校准" sub="快速筛除已掌握的词" onPress={() => router.push('/calibration')} />
+      <Entry title="备份与恢复" sub="导出 / 导入进度 JSON" onPress={() => router.push('/backup')} />
 
       <Text style={[styles.note, { color: c.tx3 }]}>
         设置即时写入本地库；重置已掌握会把所有「已掌握」放回学习池。
