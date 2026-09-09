@@ -213,7 +213,7 @@ def build(db_path, eng_examples, eng_to_chi, chi_text):
         "INSERT INTO examples (word_id, sentence_en, sentence_zh, ord) VALUES (?,?,?,?)",
         rows,
     )
-    con.execute("PRAGMA user_version=3")
+    con.execute("PRAGMA user_version=4")  # 与 src/db/Database.ts 的 EXPECTED_DB_VERSION 对齐：换库后触发 App 整体重拷
     con.commit()
     # stats
     total = con.execute("SELECT COUNT(*) FROM examples").fetchone()[0]

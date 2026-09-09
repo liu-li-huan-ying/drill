@@ -1,22 +1,33 @@
 // 统计：今日新词 / 今日复习 / 已掌握。M2 仅当日与累计两项，持久化在本地库。
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 import { useTheme } from '../../src/theme/ThemeProvider';
 import { serif, type Tokens } from '../../src/theme/tokens';
 import { getTodayCounts, getMasteredCount } from '../../src/db/queries';
 
 export default function StatsScreen() {
   const { colors: c } = useTheme();
-  const { newDone, reviewDone } = getTodayCounts();
-  const mastered = getMasteredCount();
+  const [s, setS] = useState(() => {
+    const t = getTodayCounts();
+    return { newDone: t.newDone, reviewDone: t.reviewDone, mastered: getMasteredCount() };
+  });
+
+  // 与首页一致：每次聚焦重新读取，否则 tab 切换不会重渲染、停在初始旧值。
+  useFocusEffect(
+    React.useCallback(() => {
+      const t = getTodayCounts();
+      setS({ newDone: t.newDone, reviewDone: t.reviewDone, mastered: getMasteredCount() });
+    }, [])
+  );
 
   return (
     <ScrollView contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}>
       <Text style={[styles.kicker, { color: c.tx3 }]}>统 计 · STATS</Text>
 
-      <Block label="今日新词" value={String(newDone)} colors={c} />
-      <Block label="今日复习" value={String(reviewDone)} colors={c} />
-      <Block label="已掌握" value={String(mastered)} colors={c} accent />
+      <Block label="今日新词" value={String(s.newDone)} colors={c} />
+      <Block label="今日复习" value={String(s.reviewDone)} colors={c} />
+      <Block label="已掌握" value={String(s.mastered)} colors={c} accent />
 
       <Text style={[styles.note, { color: c.tx3 }]}>
         进度写入本地数据库，关闭应用与跨日统计均持久保存。

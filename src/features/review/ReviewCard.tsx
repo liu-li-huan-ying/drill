@@ -59,9 +59,13 @@ export function ReviewCard({
         </View>
       </Animated.View>
 
-      {/* 背面：长释义可滚动。pointerEvents 随翻转切换——
-          未翻面时设为 none，点按穿透到最上层的翻转层（避免安卓上被隐藏背面吞掉命中）；
-          翻面后设为 auto，由本 ScrollView 接管滚动与轻点翻转回正面。 */}
+      {/* 翻转触发层：覆盖整卡，统一接手势（正面翻转触发）。
+          必须渲染在背面之前——翻面后背面（JSX 顺序在后 = 层级更高）才能盖住它、接管滚动。 */}
+      <TouchableOpacity style={styles.tap} activeOpacity={1} onPress={onFlip} />
+
+      {/* 背面：长释义可滚动。渲染在翻转层之后（层级更高），pointerEvents 随翻转切换——
+          未翻面时设为 none，点按穿透到下方翻转层触发翻面；
+          翻面后设为 auto，由本 ScrollView 接管滚动，轻点（非滚动）翻转回正面。 */}
       <Animated.View
         style={[
           styles.face,
@@ -111,9 +115,6 @@ export function ReviewCard({
           ) : null}
         </ScrollView>
       </Animated.View>
-
-      {/* 翻转触发层：覆盖整卡，统一接手势，避免背面（层级在上）吞掉点击 */}
-      <TouchableOpacity style={styles.tap} activeOpacity={1} onPress={onFlip} />
 
       {/* 发音按钮：浮在翻转层之上，单独接手势（RN 命中测试取最上层，不会误触翻转） */}
       <TouchableOpacity
