@@ -42,7 +42,7 @@ export default function ImportScreen() {
         </Text>
         <TextInput
           style={[styles.textInput, { backgroundColor: c.pg, borderColor: c.bd, color: c.tx1 }]}
-          placeholder="apple&#10;banana&#10;abandon ..."
+          placeholder="apple，banana，abandon …"
           placeholderTextColor={c.tx3}
           value={raw}
           onChangeText={setRaw}
@@ -107,8 +107,8 @@ const styles = StyleSheet.create({
   btn: { marginTop: 18, height: 50, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   btnText: { fontSize: 15, letterSpacing: 3, fontWeight: '600' },
   result: { marginTop: 22, borderRadius: 10, borderWidth: 1, padding: 16 },
-  resultLine: { fontSize: 14, fontWeight: '600' },
-  miss: { fontSize: 12, lineHeight: 18, marginTop: 8 },
+  resultLine: { fontSize: 14, fontWeight: '600', fontVariant: ['tabular-nums'] },
+  miss: { fontSize: 12, lineHeight: 18, marginTop: 8, fontVariant: ['tabular-nums'] },
   viewBtn: { marginTop: 14, height: 42, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   viewText: { fontSize: 14, letterSpacing: 1 },
 });

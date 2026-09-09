@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
   hint: { fontSize: 12, letterSpacing: 1 },
   doneWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
   doneTitle: { fontSize: 32, letterSpacing: -0.5 },
-  doneSub: { fontSize: 14, marginTop: 12, letterSpacing: 1 },
+  doneSub: { fontSize: 14, marginTop: 12, letterSpacing: 1, fontVariant: ['tabular-nums'] },
   doneBtn: { marginTop: 32, height: 50, width: 200, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   doneBtnText: { fontSize: 15, letterSpacing: 3, fontWeight: '600' },
 });

@@ -9,7 +9,8 @@ import { RATING_BARS, RATING_LABELS, RATING_INTERVALS } from '../../theme/tokens
 export function RatingBar({ onRate }: { onRate: (rating: number) => void }) {
   const { colors: c } = useTheme();
   const bg = [c.b1, c.b2, c.b3, c.b4];
-  const bar = [c.b1t, c.tx3, c.tx2, c.tx1];
+  // 只有「重来」用朱砂；困难/良好/简单靠底色冷暖微差 + 条长递进区分，条色统一中性，避免引入多余的灰度梯度信号。
+  const bar = [c.b1t, c.tx2, c.tx2, c.tx2];
   const txt = [c.b1t, c.tx1, c.tx1, c.tx1];
 
   return (
@@ -42,5 +43,5 @@ const styles = StyleSheet.create({
   },
   bar: { position: 'absolute', left: 9, top: 13, height: 2, borderRadius: 1 },
   label: { fontSize: 13, fontWeight: '500' },
-  interval: { fontSize: 10.5, marginTop: 3 },
+  interval: { fontSize: 10.5, marginTop: 3, fontVariant: ['tabular-nums'] },
 });

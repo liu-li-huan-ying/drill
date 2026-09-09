@@ -151,7 +151,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderTopWidth: 1,
-    borderColor: 'rgba(128,128,128,0.18)',
   },
   footerText: { fontSize: 14, letterSpacing: 1 },
   pos: { fontSize: 11, letterSpacing: 1, fontWeight: '600', textTransform: 'uppercase', marginBottom: 8 },

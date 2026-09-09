@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
   save: { marginTop: 16, height: 48, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   saveText: { fontSize: 15, letterSpacing: 3, fontWeight: '600' },
   reset: { marginTop: 12, height: 44, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  resetText: { fontSize: 14, letterSpacing: 1 },
+  resetText: { fontSize: 14, letterSpacing: 1, fontVariant: ['tabular-nums'] },
   group: { fontSize: 10.5, letterSpacing: 3, textTransform: 'uppercase', fontWeight: '600', marginTop: 28, marginBottom: 10 },
   entry: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, paddingHorizontal: 16, paddingVertical: 16, borderRadius: 10, borderWidth: 1 },
   entryTitle: { fontSize: 15 },

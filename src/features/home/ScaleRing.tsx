@@ -27,7 +27,7 @@ export function ScaleRing({ total, done, size = 220 }: { total: number; done: nu
                 width: tickW,
                 height: tickLen,
                 borderRadius: tickW / 2,
-                backgroundColor: filled ? c.ac : c.bd2,
+                backgroundColor: filled ? c.ac : c.bd,
               }}
             />
           </View>
