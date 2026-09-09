@@ -1,19 +1,18 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="zh-CN" data-page-node-id="QyJxIhlCwny9IenZ3V0hJc">
+<head data-page-node-id="sz3LLU5jqfl7OkBTm3kvGn">
+<meta charset="utf-8" data-page-node-id="5drbp4AjdFCj3zJVVR9HL5">
+<meta name="viewport" content="width=device-width,initial-scale=1" data-page-node-id="rpEzQWHt4y6cGg5w9u78FH">
 <title>背呗 (drill) · UI 原型 v2 · 朱批 · 360dp 真机比例</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 
-/* ══ 工作台（不随主题切换，衬托手机屏） ══ */
 body{background:#111110;color:#E8E4DC;font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;padding:34px 18px 80px;-webkit-font-smoothing:antialiased}
 .wrap{max-width:1200px;margin:0 auto}
 header{margin-bottom:30px}
 h1{font-size:26px;font-weight:500;letter-spacing:-.4px}
 h1 em{font-style:normal;color:#C0452F}
-.sub{font-size:13.5px;color:#8A8479;margin-top:8px;line-height:1.75;max-width:760px}
+.sub{font-size:13.5px;color:#8A8479;margin-top:8px;line-height:1.75;max-width:780px}
 .sub b{color:#C8C2B8;font-weight:500}
 .tog{display:inline-flex;gap:3px;margin-top:16px;background:#1C1B19;border:1px solid #2C2A26;border-radius:9px;padding:3px}
 .tog button{font:inherit;font-size:12.5px;padding:6px 15px;border:none;background:transparent;color:#8A8479;border-radius:6px;cursor:pointer;letter-spacing:.2px}
@@ -25,11 +24,13 @@ h2 b{color:#E8E4DC;font-weight:500;letter-spacing:0;text-transform:none;font-siz
 .note{background:#161514;border:1px solid #26241F;border-left:2px solid #C0452F;border-radius:4px;padding:16px 18px;margin-bottom:26px;font-size:13px;line-height:1.85;color:#A8A199}
 .note b{color:#E8E4DC;font-weight:500}
 .note code{font-family:"SF Mono",Consolas,monospace;font-size:12px;color:#C0452F}
+.note hr{border:none;border-top:1px solid #26241F;margin:12px 0}
 
 .grid{display:grid;grid-template-columns:repeat(auto-fit,360px);gap:34px 30px;justify-content:center}
 .shot{text-align:center}
 .shot .lb{font-size:12.5px;color:#8A8479;margin-bottom:10px;letter-spacing:.3px}
 .shot .lb i{font-style:normal;color:#5F5A52;margin-left:6px}
+.shot .lb u{text-decoration:none;color:#C0452F;margin-left:6px;font-size:11.5px}
 
 /* ══ 手机屏 360 × 752 dp，1px = 1dp ══ */
 body.light .phone{--bg:#FBF9F5;--sf:#FFFFFF;--pg:#F2EFE8;
@@ -41,15 +42,14 @@ body.dark .phone{--bg:#141311;--sf:#1C1A17;--pg:#0E0D0C;
   --ac:#E0705A;--acsf:#2E211C;--acon:#141311;
   --b1:#2E211C;--b1t:#E0705A;--b2:#262320;--b3:#242720;--b4:#212420;}
 
-.phone{width:360px;height:752px;background:var(--pg);border:1px solid #33302B;border-radius:30px;overflow:hidden;display:flex;flex-direction:column;margin:0 auto;box-shadow:0 10px 40px rgba(0,0,0,.5)}
-.phone{font-family:"Inter",-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;font-size:15px;color:var(--tx1)}
+.phone{width:360px;height:752px;background:var(--pg);border:1px solid #33302B;border-radius:30px;overflow:hidden;display:flex;flex-direction:column;margin:0 auto;box-shadow:0 10px 40px rgba(0,0,0,.5);
+  font-family:"Inter",-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;font-size:15px;color:var(--tx1)}
 
-.ser{font-family:"Iowan Old Style","Palatino Linotype",Georgia,"Times New Roman","Noto Serif","Source Serif 4",serif}
+.ser{font-family:"Iowan Old Style","Palatino Linotype",Georgia,"Times New Roman","Noto Serif","Source Han Serif SC","Noto Serif CJK SC","Songti SC","SimSun",serif}
 .tnum{font-variant-numeric:tabular-nums}
 .ul{font-size:10.5px;letter-spacing:1.1px;text-transform:uppercase;color:var(--tx3);font-weight:500}
 
 .sb{flex:0 0 44px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-size:12.5px;color:var(--tx2);font-variant-numeric:tabular-nums;background:var(--bg)}
-.sb .r{display:flex;align-items:center;gap:5px}
 .gb{flex:0 0 22px;display:flex;align-items:center;justify-content:center;background:var(--bg)}
 .gb i{width:112px;height:3.5px;border-radius:2px;background:var(--tx1);opacity:.32;display:block}
 .sc{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
@@ -58,11 +58,12 @@ body.dark .phone{--bg:#141311;--sf:#1C1A17;--pg:#0E0D0C;
 .tb{flex:0 0 48px;display:flex;align-items:center;justify-content:space-between;padding:0 8px;background:var(--bg)}
 .tb .t{font-size:13px;color:var(--tx2);letter-spacing:.2px;font-variant-numeric:tabular-nums}
 .ic{width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:var(--tx2)}
+.ic.tx{width:auto;padding:0 12px;font-size:13px;color:var(--ac)}
 
 .hair{height:1px;background:var(--bd)}
 .mk{width:7px;height:7px;background:var(--ac);border-radius:1px;flex:0 0 auto}
 .mk.o{background:none;border:1px solid var(--bd2)}
-.bt{display:flex;align-items:center;justify-content:center;height:52px;border-radius:10px;font-size:15.5px;font-weight:500;letter-spacing:.3px}
+.bt{display:flex;align-items:center;justify-content:center;height:52px;border-radius:10px;font-size:15.5px;font-weight:500;letter-spacing:.5px}
 .bt.a{background:var(--ac);color:var(--acon)}
 .bt.o{background:var(--sf);border:1px solid var(--bd2);color:var(--tx1)}
 .txbt{display:flex;align-items:center;justify-content:center;height:50px;font-size:14px;color:var(--tx2);letter-spacing:.2px}
@@ -76,16 +77,24 @@ body.dark .phone{--bg:#141311;--sf:#1C1A17;--pg:#0E0D0C;
 .td{width:5px;height:5px;border-radius:1px;background:transparent}
 .tab svg{display:block}
 
-.rw{display:flex;align-items:center;gap:12px;height:54px;font-size:15px;color:var(--tx1)}
-.rw .n{flex:1}
-.rw .v{font-size:12px;color:var(--tx3);font-variant-numeric:tabular-nums}
+.rw{display:flex;align-items:center;gap:12px;height:56px;font-size:15px;color:var(--tx1)}
+.rw .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rw .v{font-size:12px;color:var(--tx3);font-variant-numeric:tabular-nums;flex:0 0 auto;width:44px;text-align:right}
+.rw .bar{width:40px;height:2px;background:var(--bd2);border-radius:1px;flex:0 0 auto}
+.rw .bar i{display:block;height:2px;background:var(--ac);border-radius:1px}
 .rws{display:flex;align-items:center;justify-content:space-between;height:50px;font-size:14.5px;color:var(--tx1)}
 .rws .v{color:var(--tx2);font-size:13.5px;font-variant-numeric:tabular-nums}
 .rws .v.ac{color:var(--ac)}
 
+/* 开关 */
+.sw2{width:36px;height:20px;border-radius:10px;background:var(--bd2);display:inline-flex;align-items:center;padding:0 3px;justify-content:flex-start;flex:0 0 auto}
+.sw2.on{background:var(--ac);justify-content:flex-end}
+.sw2 i{width:14px;height:14px;border-radius:7px;background:#FFFFFF;display:block}
+.sw2:not(.on) i{background:var(--sf)}
+
 /* 评分区：条长即间隔 */
 .rt{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.rb{position:relative;height:60px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:9px}
+.rb{position:relative;height:60px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:9px;transition:opacity .15s}
 .rb .bar{position:absolute;left:9px;top:13px;height:2px;border-radius:1px}
 .rb .n{font-size:13px;font-weight:500;letter-spacing:.2px}
 .rb .i{font-size:10.5px;margin-top:3px;color:var(--tx2);font-variant-numeric:tabular-nums}
@@ -93,6 +102,12 @@ body.dark .phone{--bg:#141311;--sf:#1C1A17;--pg:#0E0D0C;
 .rb.r2{background:var(--b2)} .rb.r2 .n{color:var(--tx1)}  .rb.r2 .bar{background:var(--tx3)}
 .rb.r3{background:var(--b3)} .rb.r3 .n{color:var(--tx1)}  .rb.r3 .bar{background:var(--tx2)}
 .rb.r4{background:var(--b4)} .rb.r4 .n{color:var(--tx1)}  .rb.r4 .bar{background:var(--tx1)}
+
+/* 可翻转卡 */
+.fl{flex:1;position:relative;transform-style:preserve-3d;transform:perspective(1400px) rotateY(0deg);transition:transform .5s cubic-bezier(.32,.72,.28,1);cursor:pointer}
+.fl.d{transform:perspective(1400px) rotateY(180deg)}
+.fce{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;background:var(--bg);overflow:hidden}
+.fce.b{transform:rotateY(180deg)}
 
 .tok{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
 .tk{background:#161514;border:1px solid #26241F;border-radius:5px;padding:15px 16px}
@@ -105,366 +120,428 @@ body.dark .phone{--bg:#141311;--sf:#1C1A17;--pg:#0E0D0C;
 .ty .px{min-width:62px;font-variant-numeric:tabular-nums;color:#C0452F;font-size:11.5px;font-family:"SF Mono",Consolas,monospace}
 </style>
 </head>
-<body class="light">
-<div class="wrap">
+<body class="light" data-page-node-id="eePXhHZnnLcEKyxSjTeTVG">
+<div class="wrap" data-page-node-id="AMNIeYqT3xsxLUYUSV4KT9">
 
-<header>
-  <h1>背呗 <em>drill</em> · UI 原型</h1>
-  <div class="sub">Android 真机比例 <b>360 × 752 dp</b>（1px = 1dp，字号即 sp）· 设计语言「<b>朱批</b>」· 亮暗双套由同一组令牌驱动</div>
-  <div class="tog">
-    <button class="on" onclick="setT('light',this)">亮色 · 纸</button>
-    <button onclick="setT('dark',this)">暗色 · 墨</button>
+<header data-page-node-id="XkshJJSDC77HrkzFWauBoj">
+  <h1 data-page-node-id="DWC6j5Zcu3dmF0sA9htLEd">背呗 <em data-page-node-id="YTqt49y2HOmbOrV8Cj4Im5">drill</em> · UI 原型</h1>
+  <div class="sub" data-page-node-id="kQQQmAylOlBm2IkbPYSxrP">Android 真机比例 <b data-page-node-id="amNOSKScne2D9AD2rIt2j8">360 × 752 dp</b>（1px = 1dp，字号即 sp）· 设计语言「<b data-page-node-id="JdrdgmcfL1fcE2Fonq7TU7">朱批</b>」· 亮暗双套由同一组令牌驱动</div>
+  <div class="tog" data-page-node-id="jvUT97ecvdqMXcBO047WNs">
+    <button class="on" onclick="setT('light',this)" data-page-node-id="MweJiMjwILOruYuok0Q65A">亮色 · 纸</button>
+    <button onclick="setT('dark',this)" data-page-node-id="bC8wyGogNRr11fAQqvzmDV">暗色 · 墨</button>
   </div>
 </header>
 
-<div class="note">
-  <b>设计语言「朱批」——三个记忆点</b><br>
-  ① <b>单词用衬线大字</b>（Iowan / Georgia / Noto Serif），UI 其余用无衬线。市面上背单词 App 全是无衬线圆卡片，单词只是内容；这里单词是主角，读起来像一页印刷品。<br>
-  ② <b>朱砂红 <code>#C0452F</code></b> 只出现在极少数位置：主按钮、选中标记、进度、「重来」档。旧书批注的那支笔。大面积留给纸白与墨黑。<br>
-  ③ <b>评分按钮顶部的横条 = 间隔长度</b>。重来条最短、简单条最长，不用读数字就知道四个档位的量级差异——把抽象档位翻译成可见的长度。<br>
-  <span style="color:#6F685E">细节：分割线统一 hairline 1px 且极淡；小标签 uppercase + 1.1px 字距；所有数字 tabular-nums 对齐；圆角收到 6–10dp（印刷感，不用 16dp 气泡）；标记一律 5–7px 方块而非圆点。</span>
+<div class="note" data-page-node-id="2u25wXZhVPuew0sYWdSt6e">
+  <b data-page-node-id="K2jb7AOCq8zdGijS8r0JFe">设计语言「朱批」——三个记忆点</b><br data-page-node-id="Ybw6VF53vgvDCOOqlfizWG">
+  ① <b data-page-node-id="Y0KR2y1vD3PgBcuz4GbN3B">单词用衬线大字</b>（Iowan / Georgia / Noto Serif），UI 其余用无衬线；页面标题的中文也走衬线（宋体）。市面上背单词 App 全是无衬线圆卡片，单词只是内容；这里单词是主角，读起来像一页印刷品。<br data-page-node-id="b3BFkTYtSL5RjVYzmZh6Sj">
+  ② <b data-page-node-id="w3ycaxD2QVElR7KIqT53ID">朱砂红 <code data-page-node-id="rSzD1n25fLjhG7jS0krk4w">#C0452F</code></b> 只出现在极少数位置：主按钮、选中标记、进度、「重来」档、词性标签。旧书批注的那支笔。大面积留给纸白与墨黑。<br data-page-node-id="RLc4oPNtXZwi9x7IMqspDa">
+  ③ <b data-page-node-id="JG2fIL6y64t2hlX3JowAQp">评分按钮顶部的横条 = 下次间隔</b>。重来条最短、简单条最长，不用读数字就知道量级差异——把抽象档位翻译成可见的长度。<br data-page-node-id="434nKfIg4YKtVLOJe2vEko">
+  <hr data-page-node-id="UbNoujixUy2fRu6qRFysvm">
+  <b data-page-node-id="hpEjjbq9aZpePUCTMnJ3l5">v2.1 改动：</b>首页进度环改为 <b data-page-node-id="fVe9shDf9iU95qO24dPyCL">20 格刻度环</b>（一格 = 一个新词，完成填朱砂），比连续圆环更可数、更有手感；词库每行加词数条；柱状图加基线；开关补 track。<br data-page-node-id="2hlUGba0Apv4M2GwWT7bum">
+  <b data-page-node-id="AsIHAcWjxgImRO4nAozv4t">「词汇量测试」重构为「熟词校准」</b>——它本质是冷启动校准而非学习功能，拆成两处：首次点「开始学习」时若未校准，先走 20 题（30 秒，可跳过）再接今日新词；之后作为常驻工具可反复使用。日常「这词我早就会了」由任意位置的「标为已掌握」解决，不靠集中测试。
 </div>
 
-<section>
-<h2><b>核心流程</b>学习</h2>
-<div class="grid">
+<section data-page-node-id="XFjW9eMM5THV78FHvNhikg">
+<h2 data-page-node-id="kLRB2CJJ6otfQdvlg78let"><b data-page-node-id="ZnFugfOKGBK8JD2rOljopY">试一试</b>点击卡片翻转，点击评分有反馈</h2>
+<div class="grid" data-page-node-id="E5hIlXEid3DgTl4EWh3aYX">
 
-<!-- 1 今日 -->
-<div class="shot"><div class="lb">01 今日<i>打开即见今日量</i></div>
-<div class="phone"><div class="sb" data-sb></div><div class="sc">
-  <div class="tb"><div class="ic"></div><div class="t">9月9日 星期三</div><div class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg></div></div>
-  <div style="flex:1;display:flex;flex-direction:column;padding:6px 20px 0">
-    <div class="ser" style="font-size:25px;letter-spacing:-.4px">今日</div>
-    <div style="flex:1;display:flex;align-items:center;justify-content:center">
-      <svg width="168" height="168" viewBox="0 0 168 168">
-        <circle cx="84" cy="84" r="70" fill="none" stroke="var(--bd)" stroke-width="5"/>
-        <circle cx="84" cy="84" r="70" fill="none" stroke="var(--ac)" stroke-width="5" stroke-linecap="round"
-          stroke-dasharray="439.8" stroke-dashoffset="263.9" transform="rotate(-90 84 84)"/>
-        <text x="84" y="80" text-anchor="middle" class="ser tnum" font-size="42" fill="var(--tx1)">12</text>
-        <text x="84" y="102" text-anchor="middle" font-size="11" fill="var(--tx3)" letter-spacing="1.4">待学</text>
+<div class="shot" data-page-node-id="1Rv8TWDxGp0t4jaAcvBG3K"><div class="lb" data-page-node-id="1FxNoJB3lHfGCgpxkSMgnf">复习卡 · 可交互<u data-page-node-id="KP1xGVtlTtgCKU1DfFYmlB">↻ 点卡片</u></div>
+<div class="phone" data-page-node-id="EYUUB251vrbZXU8ZDooMR7"><div class="sb" data-sb data-page-node-id="JKyLTaRD37gh0Ai3SiagDf"></div><div class="sc" data-page-node-id="mXEpbzYhSGscmEGrFPKDAy">
+  <div class="tb" data-page-node-id="sTfTqhA5w0xAwsXv9tEDtB"><div class="ic" data-page-node-id="VHXzNfOEoDJHxNTcu2fUBE"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-page-node-id="N4CB57o8ipc4tYE7sFLtSg"><path d="M6 6l12 12M18 6L6 18" data-page-node-id="WrIe6MY6nTPgIdBfz4ju6b"/></svg></div><div class="t" data-page-node-id="cNrXkd1LthduoQBmGWHLN1">复习 12 / 47</div><div class="ic" data-page-node-id="4rrD3GRqfhwP76LFEldUOe"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-page-node-id="c45OC3w5YI9wzbFaNyZrFa"><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" data-page-node-id="ZqyuNB5mIDXIX9CQkaEXnO"/><circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none" data-page-node-id="lRHQ5HsOfrvVw0ABfkT3bp"/><circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none" data-page-node-id="NEsPAxjRgvDnrvzIwdhO9J"/></svg></div></div>
+  <div class="pgb" data-page-node-id="B9IeU6v9AfpenhccFMDPaq"><i style="width:26%" data-page-node-id="FqS9ARChrRLYnySNKAd5J2"></i></div>
+  <div class="fl" onclick="this.classList.toggle('d')" data-page-node-id="3c7AUTXDDpS3iMZGPoLEca">
+    <div class="fce" data-page-node-id="gEDnmA12nfbiSbAPET4Pco">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 24px" data-page-node-id="PzCaMgg6JVMjDI78nMtJfJ">
+        <div class="ul" data-page-node-id="gbqzZHyIjKmvGNj4wjbaED">第 12 张 · 复 习</div>
+        <div class="ser" style="font-size:42px;margin-top:18px;letter-spacing:-.8px" data-page-node-id="zQRcA5QwMuVWYi8BCB6lmE">abandon</div>
+        <div style="font-size:13px;color:var(--tx3);margin-top:12px;letter-spacing:.9px;font-family:'SF Mono',Consolas,monospace" data-page-node-id="9qYyqJKtDsez8ngq6PO4i7">/əˈbændən/</div>
+        <div style="width:44px;height:44px;border:1px solid var(--bd2);border-radius:22px;display:flex;align-items:center;justify-content:center;margin-top:26px" data-page-node-id="1Gwp0bqgx62ZCBqmqaRmnr">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--tx1)" stroke-width="1.5" stroke-linecap="round" data-page-node-id="fBlSan7x0bA28jLwSzUNR1"><path d="M4 12h1.5M8 8.5v7M12 5.5v13M16 8.5v7M20 11h0" data-page-node-id="rffAV90AIkTH3FvebLf3HM"/></svg>
+        </div>
+      </div>
+      <div style="border-top:1px solid var(--bd)" data-page-node-id="GhIJCYD5dGLUKDgwsvA03B"><div class="txbt" data-page-node-id="Gmo5kuFDu9UViB2jtXG8vu">显 示 释 义</div></div>
+    </div>
+    <div class="fce b" data-page-node-id="4aVrtt4pF4dVTBqaHQaa4n">
+      <div style="flex:1;overflow:hidden;padding:18px 20px 0" data-page-node-id="3Nycje4jVlm1OsS2m8PWR2">
+        <div class="ser" style="font-size:27px;letter-spacing:-.4px" data-page-node-id="DtUrArnRmEgufQaM8syfPB">abandon</div>
+        <div style="font-size:12px;color:var(--tx3);margin-top:5px;letter-spacing:.8px;font-family:'SF Mono',Consolas,monospace" data-page-node-id="3D3nAtGo4HWVSCTwZYmibl">/əˈbændən/</div>
+        <div class="hair" style="margin:16px 0" data-page-node-id="l5Il6UbzC47w1cd3WtJzk6"></div>
+        <div style="display:flex;align-items:baseline;gap:9px" data-page-node-id="pkMAYQHb06nfnMFj62tQoJ">
+          <span style="font-size:11px;letter-spacing:.8px;color:var(--ac);font-weight:600;text-transform:uppercase" data-page-node-id="eNMMnPjuH5symibXP2R1Qi">v.</span>
+          <span style="font-size:16.5px" data-page-node-id="tBYvFlbBPeLBeaqUMfXkuD">抛弃；放弃；遗弃</span>
+        </div>
+        <div class="ser" style="font-size:14px;font-style:italic;line-height:1.7;color:var(--tx2);margin-top:12px;border-left:2px solid var(--bd2);padding-left:12px" data-page-node-id="8JHsNrquywTdO4deoeKHDZ">The crew had to <span style="font-style:normal;color:var(--tx1)" data-page-node-id="6qQ58gYSyzhioLE6JDUuYt">abandon</span> the sinking ship.</div>
+        <div style="font-size:12.5px;color:var(--tx3);margin-top:6px;padding-left:14px" data-page-node-id="GFBRWIQbspnmOSwhNlZGD1">船员们不得不弃船。</div>
+      </div>
+      <div style="padding:12px 20px 14px;border-top:1px solid var(--bd)" data-page-node-id="3pHrNgEzZysYmfFtGsiTgX">
+        <div class="ul" style="margin-bottom:10px" data-page-node-id="8iToySzqxfIEuBwyhHEnG8">想不起来 → 按「重来」，不是「困难」</div>
+        <div class="rt" data-page-node-id="57YtndPLuusFxs6E3kbFz3">
+          <div class="rb r1" onclick="rate(event,this)" data-page-node-id="uoJ6WweTgyt09SefU28i2o"><div class="bar" style="width:14px" data-page-node-id="YvnKaDNNji4TRBHlV51KWy"></div><div class="n" data-page-node-id="uQ98DJBrK9jqUEVC3hhFHF">重来</div><div class="i" data-page-node-id="1JkZZYjsVuE1UH66mAw8qk">10 分钟</div></div>
+          <div class="rb r2" onclick="rate(event,this)" data-page-node-id="cyiGXFZxxFqHXG5T7TfpeJ"><div class="bar" style="width:26px" data-page-node-id="FzAhiZWrdC6TRdE2Cs3fHu"></div><div class="n" data-page-node-id="Z1J6W2uBwrxQslC5ikVMQO">困难</div><div class="i" data-page-node-id="mAlmd5NgJSNjODXfEzBaBR">1 天</div></div>
+          <div class="rb r3" onclick="rate(event,this)" data-page-node-id="V71KFVGBQzF5xQO3fyEHfO"><div class="bar" style="width:42px" data-page-node-id="8JjgteWgNeqMx7UhFaHz72"></div><div class="n" data-page-node-id="kErfn32lMnXgWf1rJ5pMAF">良好</div><div class="i" data-page-node-id="zELlnAoFzY9lTmCfHMVywk">4 天</div></div>
+          <div class="rb r4" onclick="rate(event,this)" data-page-node-id="SuSchrRSCeBBWXAEESKKjI"><div class="bar" style="width:66px" data-page-node-id="IU75UfQuVau9qhDJiijV3e"></div><div class="n" data-page-node-id="nNyDjDaK3bPzJjJzPgHCKk">简单</div><div class="i" data-page-node-id="4hDb0ETtMiOqTm4xlTukFR">12 天</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><div class="gb" data-page-node-id="ckCxDYLusubh8XC7YEZss0"><i data-page-node-id="VRW9FVOiub1l0KxnzbJPdk"></i></div></div>
+</div>
+
+</div>
+</section>
+
+<section data-page-node-id="zccAIKKaWSr8uxUFLQpuAh">
+<h2 data-page-node-id="TUqFSTwrpR7Iho0t6aDYsW"><b data-page-node-id="OyrjuipJjEfAHRXFevyzeO">核心流程</b>学习</h2>
+<div class="grid" data-page-node-id="GxDZ7tuZirUKrSnUMQeXTf">
+
+<!-- 01 今日 -->
+<div class="shot" data-page-node-id="aBQvoZStOvv3pGdlcrGBDk"><div class="lb" data-page-node-id="BhyU9w6dvYEhglumwypFiE">01 今日<i data-page-node-id="tiLhQM3WeBUU6I5o3K5qtC">20 格刻度环，一格一词</i></div>
+<div class="phone" data-page-node-id="mpiyj2o8wXBSEvCYYCNILM"><div class="sb" data-sb data-page-node-id="kFydiuZGZyBF9eZztoRIAc"></div><div class="sc" data-page-node-id="pM2WklThHOkALDBCrbN50e">
+  <div class="tb" data-page-node-id="zi4K3QV82sZmJ6MXZw9AME"><div class="ic" data-page-node-id="Bpjoe9DEMhqC5v53CNThwL"></div><div class="t" data-page-node-id="fZJb4Gw0eoFERydewkEfhn">9月9日 星期三</div><div class="ic" data-page-node-id="gvVkLtlCEq1LtVdDDYnzrc"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-page-node-id="g84ruedLQ8MguqTnGdR7QZ"><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" data-page-node-id="n3m5vxFfr2CrEfIVmFVyhA"/><circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none" data-page-node-id="fP6a8wjprAZuj44uOHnYCR"/><circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none" data-page-node-id="73tOYHTPW5IWfLIUpXaxYk"/></svg></div></div>
+  <div style="flex:1;display:flex;flex-direction:column;padding:6px 20px 0" data-page-node-id="nmqfklBQUA3pkkhClNHF2L">
+    <div class="ser" style="font-size:25px;letter-spacing:-.4px" data-page-node-id="d5KKhU7pOczkPVrctOksGW">今日</div>
+    <div style="flex:1;display:flex;align-items:center;justify-content:center" data-page-node-id="truBurzphClI8J7evH1Pdt">
+      <svg width="176" height="176" viewBox="0 0 176 176" data-page-node-id="2Q3N3zIBI0D1KdRkgsTs05">
+        <g id="ticks" data-page-node-id="hobA8pcNkpI2EEg3pWprDA"></g>
+        <text x="88" y="84" text-anchor="middle" class="ser tnum" font-size="44" fill="var(--tx1)" data-page-node-id="CqAuyMzBkxXnd4R1986H3M">12</text>
+        <text x="88" y="106" text-anchor="middle" font-size="11" fill="var(--tx3)" letter-spacing="1.5" data-page-node-id="J6528Op0xvaL9ToCd1UzQ7">待学</text>
       </svg>
     </div>
-    <div style="display:flex;gap:10px;margin-bottom:16px">
-      <div style="flex:1;background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:12px 14px">
-        <div class="ser tnum" style="font-size:26px;line-height:1">47</div>
-        <div class="ul" style="margin-top:6px">待复习</div>
+    <div style="display:flex;gap:10px;margin-bottom:16px" data-page-node-id="0YOAlJwYfANXTBVWu4vYar">
+      <div style="flex:1;background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:12px 14px" data-page-node-id="zMbcHe7YmsyzZwC6Dw2Xla">
+        <div class="ser tnum" style="font-size:26px;line-height:1" data-page-node-id="aaEdjHpU1C4vBhz4Sz0T4C">47</div>
+        <div class="ul" style="margin-top:6px" data-page-node-id="Sx2aHYfPWv9X6bpLkpDRIs">待复习</div>
       </div>
-      <div style="flex:1;background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:12px 14px">
-        <div class="ser tnum" style="font-size:26px;line-height:1;color:var(--ac)">8</div>
-        <div class="ul" style="margin-top:6px">已学</div>
+      <div style="flex:1;background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:12px 14px" data-page-node-id="wMhUh7hAeXZTOrqYK1JmBC">
+        <div class="ser tnum" style="font-size:26px;line-height:1;color:var(--ac)" data-page-node-id="YCvraKOdkky6SBoZ0Klm1w">8</div>
+        <div class="ul" style="margin-top:6px" data-page-node-id="moTVPTo5RN238BdxDu0BSv">已学</div>
       </div>
     </div>
-    <div class="bt a" style="margin-bottom:10px">开 始 学 习</div>
-    <div class="txbt" style="height:44px">词汇量测试 <span style="color:var(--ac)">· 未测</span></div>
+    <div class="bt a" style="margin-bottom:8px" data-page-node-id="Xr4kB79mow9ous1ePJqSPV">开始学习</div>
+    <div style="text-align:center;font-size:11px;color:var(--tx3);margin-bottom:8px;letter-spacing:.3px" data-page-node-id="fKzIaW5EIAZs4ReowJF2Pe">预计 18 分钟 · 含 20 题熟词校准</div>
+    <div class="txbt" style="height:42px;border-top:1px solid var(--bd)" data-page-node-id="e3ecHqOWYGm7EzTwQoyWG8">熟词校准 <span style="color:var(--tx3);font-size:12.5px" data-page-node-id="ZI6sFp9sRbS0vsxWQqgAfB">· 已校准 1,240 词</span></div>
   </div>
-</div><div class="gb"><i></i></div><div class="tab" data-tab="home"></div></div>
+</div><div class="gb" data-page-node-id="ZUfhJRPWCh2rVDvTiG1Fym"><i data-page-node-id="LfmvD853vx6DU4rKyBFchy"></i></div><div class="tab" data-tab="home" data-page-node-id="YJlmD3i8avx6GMoDP8TyHl"></div></div>
 </div>
 
-<!-- 2 新词正面 -->
-<div class="shot"><div class="lb">02 新词·正面<i>首次接触，只给发音线索</i></div>
-<div class="phone"><div class="sb" data-sb></div><div class="sc">
-  <div class="tb"><div class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 6l12 12M18 6L6 18"/></svg></div><div class="t">新词 3 / 20</div><div class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg></div></div>
-  <div class="pgb"><i style="width:15%"></i></div>
-  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 24px">
-    <div class="ul">首 次 接 触</div>
-    <div class="ser" style="font-size:42px;margin-top:18px;letter-spacing:-.8px">abandon</div>
-    <div style="font-size:13px;color:var(--tx3);margin-top:12px;letter-spacing:.9px;font-family:'SF Mono',Consolas,monospace">/əˈbændən/</div>
-    <div style="width:44px;height:44px;border:1px solid var(--bd2);border-radius:22px;display:flex;align-items:center;justify-content:center;margin-top:26px">
-      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--tx1)" stroke-width="1.5" stroke-linecap="round"><path d="M4 12h1.5M8 8.5v7M12 5.5v13M16 8.5v7M20 11h0"/></svg>
+<!-- 02 新词正面 -->
+<div class="shot" data-page-node-id="v08Zam13E6aaLnyXkyktAH"><div class="lb" data-page-node-id="zQZEvF3OqU4UJOE3EdMbBz">02 新词·正面<i data-page-node-id="dW86SIVNFAcnxHTVYVFY6O">首次接触，只给发音线索</i></div>
+<div class="phone" data-page-node-id="y5ViLezapLDuhNeX5m4fnl"><div class="sb" data-sb data-page-node-id="mDTV1aRg0IYozwvqzcw9hb"></div><div class="sc" data-page-node-id="GyIqPQQKEY8LSpcHutM8hT">
+  <div class="tb" data-page-node-id="u8qJGOtWn8XAJF4Bhv54d2"><div class="ic" data-page-node-id="q3mqXKFqMB3EbBM5bSH5V0"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-page-node-id="V0AIUEehwdfYXNbd4i1MmD"><path d="M6 6l12 12M18 6L6 18" data-page-node-id="24fAHbqbAIZmEaKDhJDNLy"/></svg></div><div class="t" data-page-node-id="1T09LBmlBmV4NktuD7dNR2">新词 3 / 20</div><div class="ic" data-page-node-id="i0h3dqsHm8ll9dhC68uI1d"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-page-node-id="uKxtf5dlJ467mpqYxIVnkr"><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" data-page-node-id="Gr5SnufxVYZxHiYCc2MyZE"/><circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none" data-page-node-id="l7GBjcEGPgJSYRIvDKGssG"/><circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none" data-page-node-id="VYtX0dLcVJSJFQgS9WBe0m"/></svg></div></div>
+  <div class="pgb" data-page-node-id="xhDRCrHpQytz5jj2Aql3PJ"><i style="width:15%" data-page-node-id="agu1tLDiD0QH9S3tPeZmyp"></i></div>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 24px" data-page-node-id="Bw026u0wdbgxatqaxA8bEz">
+    <div class="ul" data-page-node-id="UaBLiUgxNBaPHmFUnPJvsg">首 次 接 触</div>
+    <div class="ser" style="font-size:42px;margin-top:18px;letter-spacing:-.8px" data-page-node-id="4fmqSGOSQX9Cm4A42iCIO7">abandon</div>
+    <div style="font-size:13px;color:var(--tx3);margin-top:12px;letter-spacing:.9px;font-family:'SF Mono',Consolas,monospace" data-page-node-id="pH35gNE12sxC7Eeifrnnjg">/əˈbændən/</div>
+    <div style="width:44px;height:44px;border:1px solid var(--bd2);border-radius:22px;display:flex;align-items:center;justify-content:center;margin-top:26px" data-page-node-id="EjoChUNyZIDyiA29xJwR2s">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--tx1)" stroke-width="1.5" stroke-linecap="round" data-page-node-id="IirQ9CJWLaCyJfRxvFDpKr"><path d="M4 12h1.5M8 8.5v7M12 5.5v13M16 8.5v7M20 11h0" data-page-node-id="EniVnBuMG1Mdvmq1x5WtU4"/></svg>
     </div>
   </div>
-  <div style="border-top:1px solid var(--bd)"><div class="txbt">显 示 释 义</div></div>
-</div><div class="gb"><i></i></div></div>
+  <div style="border-top:1px solid var(--bd)" data-page-node-id="ntmXARFun1KaN3DK99KWWW"><div class="txbt" data-page-node-id="rhePOFAL7pt5MAwnqtZiL8">显 示 释 义</div></div>
+</div><div class="gb" data-page-node-id="SAhWlbWhaT5HdLvjOjC5O7"><i data-page-node-id="gYmYW2HVH1CQTRGGMz5OPW"></i></div></div>
 </div>
 
-<!-- 3 新词背面 -->
-<div class="shot"><div class="lb">03 新词·背面<i>认知判断，不是记忆评分</i></div>
-<div class="phone"><div class="sb" data-sb></div><div class="sc">
-  <div class="tb"><div class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 6l12 12M18 6L6 18"/></svg></div><div class="t">新词 3 / 20</div><div class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg></div></div>
-  <div class="pgb"><i style="width:15%"></i></div>
-  <div style="flex:1;overflow:hidden;padding:18px 20px 0">
-    <div class="ser" style="font-size:27px;letter-spacing:-.4px">abandon</div>
-    <div style="font-size:12px;color:var(--tx3);margin-top:5px;letter-spacing:.8px;font-family:'SF Mono',Consolas,monospace">/əˈbændən/</div>
-    <div class="hair" style="margin:16px 0"></div>
-    <div style="display:flex;align-items:baseline;gap:9px">
-      <span style="font-size:11px;letter-spacing:.8px;color:var(--ac);font-weight:600;text-transform:uppercase">v.</span>
-      <span style="font-size:16.5px">抛弃；放弃；遗弃</span>
+<!-- 03 新词背面 -->
+<div class="shot" data-page-node-id="OySqCut8Z8IrfVMTTQJK3E"><div class="lb" data-page-node-id="yNChltKSoIlDmixqxyooNV">03 新词·背面<i data-page-node-id="fGIgRD1delF1PKVLN6gPSD">认知判断，不是记忆评分</i></div>
+<div class="phone" data-page-node-id="rlZtbXhz91HKj5pg763T58"><div class="sb" data-sb data-page-node-id="qCUupVbFHuL9kC9enH22yv"></div><div class="sc" data-page-node-id="IW49T8xPUxodnIerf48uCB">
+  <div class="tb" data-page-node-id="pG60XvUfM4gMYvy5bnqc4A"><div class="ic" data-page-node-id="S2ZpCCBjjpd5Vrfd1EFNsk"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-page-node-id="KN2i3cwjGDy1BnrQ5VXGGM"><path d="M6 6l12 12M18 6L6 18" data-page-node-id="6cV4mBWjKTbXzYeR6lw4pV"/></svg></div><div class="t" data-page-node-id="FcaOlcZNn3dJUCcmbk1Nyb">新词 3 / 20</div><div class="ic" data-page-node-id="14JjBJmMVoF4Dom8QC2DLK"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-page-node-id="mYhVoYlxVGDijZa0OHIE1K"><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" data-page-node-id="LuX51frXwzOEG4nEFrFnIK"/><circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none" data-page-node-id="I2A8jwWZC8cNfefv3QJ83I"/><circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none" data-page-node-id="YLJFgaiGfCyTLECxpkUyaV"/></svg></div></div>
+  <div class="pgb" data-page-node-id="AcmxhiOOp2gGBu1ErepZLz"><i style="width:15%" data-page-node-id="8NOJKFQJLS0wV5XJskN05n"></i></div>
+  <div style="flex:1;overflow:hidden;padding:18px 20px 0" data-page-node-id="MQ4Ce9405AHMg8MIInweUl">
+    <div class="ser" style="font-size:27px;letter-spacing:-.4px" data-page-node-id="pdvJcBbzSP0RoHYnWe7SRy">abandon</div>
+    <div style="font-size:12px;color:var(--tx3);margin-top:5px;letter-spacing:.8px;font-family:'SF Mono',Consolas,monospace" data-page-node-id="nAH4sRgXCnLMoC9VvaFr90">/əˈbændən/</div>
+    <div class="hair" style="margin:16px 0" data-page-node-id="ejr05E5s4oCb4PO9KM2NDs"></div>
+    <div style="display:flex;align-items:baseline;gap:9px" data-page-node-id="Hyzzq4xTGRdPimRBFmt4ig">
+      <span style="font-size:11px;letter-spacing:.8px;color:var(--ac);font-weight:600;text-transform:uppercase" data-page-node-id="vooQxkGifDHpA8URSqV1Dv">v.</span>
+      <span style="font-size:16.5px" data-page-node-id="k9l6Z8tFX4iPWX1XMGqtiy">抛弃；放弃；遗弃</span>
     </div>
-    <div style="font-size:13px;color:var(--tx2);margin-top:6px;line-height:1.6">to leave somebody permanently; to stop doing something before it is finished</div>
-    <div class="hair" style="margin:16px 0"></div>
-    <div class="ser" style="font-size:14px;font-style:italic;line-height:1.7;color:var(--tx2)">The crew had to <span style="font-style:normal;color:var(--tx1);border-bottom:1px solid var(--ac);padding-bottom:1px">abandon</span> the sinking ship.</div>
-    <div style="font-size:12.5px;color:var(--tx3);margin-top:6px;line-height:1.6">船员们不得不弃船。</div>
-    <div class="hair" style="margin:16px 0"></div>
-    <div style="display:flex;gap:8px;align-items:flex-start">
-      <span class="mk" style="margin-top:5px"></span>
-      <span style="font-size:12.5px;color:var(--tx2);line-height:1.7">ad-（去）+ bandon（管辖权）→ 交出控制权 → 抛弃</span>
-    </div>
-  </div>
-  <div style="padding:14px 20px 12px;border-top:1px solid var(--bd)">
-    <div class="ul" style="margin-bottom:9px">这 个 词 你 认 识 吗</div>
-    <div style="display:flex;gap:10px">
-      <div class="bt o" style="flex:1;height:50px;background:var(--b1);border-color:transparent;color:var(--b1t)">不认识</div>
-      <div class="bt o" style="flex:1;height:50px">认识</div>
+    <div style="font-size:13px;color:var(--tx2);margin-top:6px;line-height:1.6" data-page-node-id="yevBrESI5HvwYF3dRWRSWV">to leave somebody permanently; to stop doing something before it is finished</div>
+    <div class="hair" style="margin:16px 0" data-page-node-id="fnwElXCdu9hgYPTU4ndRnv"></div>
+    <div class="ser" style="font-size:14px;font-style:italic;line-height:1.7;color:var(--tx2)" data-page-node-id="9xeJAEnwMGjvm5jbCm33f7">The crew had to <span style="font-style:normal;color:var(--tx1);border-bottom:1px solid var(--ac);padding-bottom:1px" data-page-node-id="fHB2ZjTs1aGSXszCy1SjDl">abandon</span> the sinking ship.</div>
+    <div style="font-size:12.5px;color:var(--tx3);margin-top:6px;line-height:1.6" data-page-node-id="TuqlL4jhqHNXauCoHLEaBg">船员们不得不弃船。</div>
+    <div class="hair" style="margin:16px 0" data-page-node-id="BIGSoWvEJktuUI3drNJkJt"></div>
+    <div style="display:flex;gap:8px;align-items:flex-start" data-page-node-id="Aa39EYh4Co9uIhOFKoBPVm">
+      <span class="mk" style="margin-top:5px" data-page-node-id="PqYEGLbdQT2zQTIfxqaXnP"></span>
+      <span style="font-size:12.5px;color:var(--tx2);line-height:1.7" data-page-node-id="TFsEbQG7Sxn1M9YCBpAjLN">ad-（去）+ bandon（管辖权）→ 交出控制权 → 抛弃</span>
     </div>
   </div>
-</div><div class="gb"><i></i></div></div>
+  <div style="padding:14px 20px 12px;border-top:1px solid var(--bd)" data-page-node-id="TykxuaHtP2jwzqZo8ud8dw">
+    <div class="ul" style="margin-bottom:9px" data-page-node-id="d1af5RsYDRGZqIpGmEk8dv">这 个 词 你 认 识 吗</div>
+    <div style="display:flex;gap:10px" data-page-node-id="F4GB77i94olfbWEBDwVx2a">
+      <div class="bt o" style="flex:1;height:50px;background:var(--b1);border-color:transparent;color:var(--b1t)" data-page-node-id="iKjsM6gSLhWEuABUP0lxKe">不认识</div>
+      <div class="bt o" style="flex:1;height:50px" data-page-node-id="bVFhxhXMr63zVr6NwCkfGW">认识</div>
+    </div>
+  </div>
+</div><div class="gb" data-page-node-id="xDzDR2asIdfWl3xgkF1FB8"><i data-page-node-id="ADw3q9MLS7PGUrE5TgCgqE"></i></div></div>
 </div>
 
-<!-- 4 复习背面 -->
-<div class="shot"><div class="lb">04 复习·背面<i>条长 = 下次间隔</i></div>
-<div class="phone"><div class="sb" data-sb></div><div class="sc">
-  <div class="tb"><div class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 6l12 12M18 6L6 18"/></svg></div><div class="t">复习 12 / 47</div><div class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg></div></div>
-  <div class="pgb"><i style="width:26%"></i></div>
-  <div style="flex:1;overflow:hidden;padding:18px 20px 0">
-    <div class="ser" style="font-size:27px;letter-spacing:-.4px">abandon</div>
-    <div style="font-size:12px;color:var(--tx3);margin-top:5px;letter-spacing:.8px;font-family:'SF Mono',Consolas,monospace">/əˈbændən/</div>
-    <div class="hair" style="margin:16px 0"></div>
-    <div style="display:flex;align-items:baseline;gap:9px">
-      <span style="font-size:11px;letter-spacing:.8px;color:var(--ac);font-weight:600;text-transform:uppercase">v.</span>
-      <span style="font-size:16.5px">抛弃；放弃；遗弃</span>
+<!-- 04 复习背面 -->
+<div class="shot" data-page-node-id="MExOHxc9QwW35RW0uXEBVu"><div class="lb" data-page-node-id="NPLFBuFreTJWH70EAtb32y">04 复习·背面<i data-page-node-id="ltm60hwlcCXhPHBrrX0vYq">条长 = 下次间隔</i></div>
+<div class="phone" data-page-node-id="m9oQiLtH8RVRtvBzGfjefC"><div class="sb" data-sb data-page-node-id="GenSOOJeFWhNDF6BrLMe85"></div><div class="sc" data-page-node-id="GogD4kFQuwVuATHTSaPY31">
+  <div class="tb" data-page-node-id="w4H9ZC0gOk4qMG4vXyXARA"><div class="ic" data-page-node-id="7y73aWwg2BYQqHTB6vu3xT"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-page-node-id="iXgRghLo1d8nPlgo9pIEEZ"><path d="M6 6l12 12M18 6L6 18" data-page-node-id="hdWTMRKP2jUhQDS302dyBk"/></svg></div><div class="t" data-page-node-id="hwiIW0ndP8JitJHDYJtffd">复习 12 / 47</div><div class="ic" data-page-node-id="ddG1Mh9RvxkFL0YZEmbUQe"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-page-node-id="mbKucHhHS1JSxQgHLYRwjL"><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" data-page-node-id="V5Pbmqxag23d5rQsfg1kUn"/><circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none" data-page-node-id="Yr9pb3WGUDz42ArBZBm2v5"/><circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none" data-page-node-id="Dc7BrS1YlcFJOTCtJcujAE"/></svg></div></div>
+  <div class="pgb" data-page-node-id="duX2H5AD92bQ9esMfCoHfG"><i style="width:26%" data-page-node-id="ByDEvzImLifceDAmx6Jymh"></i></div>
+  <div style="flex:1;overflow:hidden;padding:18px 20px 0" data-page-node-id="V6UKirpSOV614OqOYxnPDY">
+    <div class="ser" style="font-size:27px;letter-spacing:-.4px" data-page-node-id="9c86AxRW6d1zdqrVNthZ4Z">abandon</div>
+    <div style="font-size:12px;color:var(--tx3);margin-top:5px;letter-spacing:.8px;font-family:'SF Mono',Consolas,monospace" data-page-node-id="Pg1keAoYng0rBRAofyoZsH">/əˈbændən/</div>
+    <div class="hair" style="margin:16px 0" data-page-node-id="iEeSggWRza7ZCY1AP6HzzC"></div>
+    <div style="display:flex;align-items:baseline;gap:9px" data-page-node-id="6Kqo78flU9u4LFAK6lzeIa">
+      <span style="font-size:11px;letter-spacing:.8px;color:var(--ac);font-weight:600;text-transform:uppercase" data-page-node-id="UbQ1QAV7W20JD2HLtzGKPu">v.</span>
+      <span style="font-size:16.5px" data-page-node-id="7CeHF7frN1JxvjDF1FkmEv">抛弃；放弃；遗弃</span>
     </div>
-    <div class="ser" style="font-size:14px;font-style:italic;line-height:1.7;color:var(--tx2);margin-top:12px;border-left:2px solid var(--bd2);padding-left:12px">The crew had to <span style="font-style:normal;color:var(--tx1)">abandon</span> the sinking ship.</div>
-    <div style="font-size:12.5px;color:var(--tx3);margin-top:6px;padding-left:14px">船员们不得不弃船。</div>
+    <div class="ser" style="font-size:14px;font-style:italic;line-height:1.7;color:var(--tx2);margin-top:12px;border-left:2px solid var(--bd2);padding-left:12px" data-page-node-id="aESTL8imQHMNiuPAtM9T1G">The crew had to <span style="font-style:normal;color:var(--tx1)" data-page-node-id="QjLQkyD1Y8aFBWDVYV5AfK">abandon</span> the sinking ship.</div>
+    <div style="font-size:12.5px;color:var(--tx3);margin-top:6px;padding-left:14px" data-page-node-id="uBcArZnYxmG4g5cQmY3IkI">船员们不得不弃船。</div>
   </div>
-  <div style="padding:12px 20px 14px;border-top:1px solid var(--bd)">
-    <div class="ul" style="margin-bottom:10px">想不起来 → 按「重来」，不是「困难」</div>
-    <div class="rt">
-      <div class="rb r1"><div class="bar" style="width:14px"></div><div class="n">重来</div><div class="i">10 分钟</div></div>
-      <div class="rb r2"><div class="bar" style="width:26px"></div><div class="n">困难</div><div class="i">1 天</div></div>
-      <div class="rb r3"><div class="bar" style="width:42px"></div><div class="n">良好</div><div class="i">4 天</div></div>
-      <div class="rb r4"><div class="bar" style="width:66px"></div><div class="n">简单</div><div class="i">12 天</div></div>
+  <div style="padding:12px 20px 14px;border-top:1px solid var(--bd)" data-page-node-id="DdYKtaboZwktcw0MSxmQXa">
+    <div class="ul" style="margin-bottom:10px" data-page-node-id="a6IFrItxRQ6nyImtmhuTT3">想不起来 → 按「重来」，不是「困难」</div>
+    <div class="rt" data-page-node-id="4OCFrQ20rYMpwCgJybMehm">
+      <div class="rb r1" data-page-node-id="knFCFtwKvUY7LFnfQSMFqL"><div class="bar" style="width:14px" data-page-node-id="3jJs7nZMngPKeHuGMysxnC"></div><div class="n" data-page-node-id="qSP5qivnwUGVs71ErdQouM">重来</div><div class="i" data-page-node-id="ryaAbspWnCnOOxUoYrAJfs">10 分钟</div></div>
+      <div class="rb r2" data-page-node-id="wwcB5bHaUrmwM9zCXmQhwB"><div class="bar" style="width:26px" data-page-node-id="r0Rk2yIGzbxYrhfiExr26N"></div><div class="n" data-page-node-id="6daXTlDV00RNO1WhHXeZYk">困难</div><div class="i" data-page-node-id="tyoCZvxlwkFazKyHPENgS5">1 天</div></div>
+      <div class="rb r3" data-page-node-id="CzoBLA8rbAv65BUAvzzJVo"><div class="bar" style="width:42px" data-page-node-id="P73h7Ttv4JpbY9K5VvBQyS"></div><div class="n" data-page-node-id="w3Ihk7bCDXG5zRsebm0JpC">良好</div><div class="i" data-page-node-id="ilRqw4NA7qHUCZC54JFhE0">4 天</div></div>
+      <div class="rb r4" data-page-node-id="1PKZUGNsv9fAhwGKHhHmXl"><div class="bar" style="width:66px" data-page-node-id="ECPopIM7PmG1BF1tmIm09Q"></div><div class="n" data-page-node-id="xVViEhE19MVtXD7OYNFbAv">简单</div><div class="i" data-page-node-id="BirUG7i14RGeOrRSJonn8T">12 天</div></div>
     </div>
   </div>
-</div><div class="gb"><i></i></div></div>
+</div><div class="gb" data-page-node-id="3BtDfHNvmvv6i2ZMgnXqIt"><i data-page-node-id="95GDKxCpOExCAXHZJzuMKb"></i></div></div>
 </div>
 
-<!-- 5 词汇量测试 -->
-<div class="shot"><div class="lb">05 词汇量测试<i>分层抽样，先筛熟词</i></div>
-<div class="phone"><div class="sb" data-sb></div><div class="sc">
-  <div class="tb"><div class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 6l12 12M18 6L6 18"/></svg></div><div class="t">第 18 / 60 题</div><div class="ic"></div></div>
-  <div class="pgb"><i style="width:30%"></i></div>
-  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 24px">
-    <div class="ul">这 个 词 你 认 识 吗</div>
-    <div class="ser" style="font-size:36px;margin-top:22px;letter-spacing:-.6px;text-align:center">meticulous</div>
-    <div style="display:flex;gap:10px;margin-top:34px;width:100%">
-      <div class="bt o" style="flex:1">认识</div>
-      <div class="bt o" style="flex:1;background:var(--b1);border-color:transparent;color:var(--b1t)">不认识</div>
+<!-- 05 熟词校准 -->
+<div class="shot" data-page-node-id="SrKLY88HyCANEaLsN7yLes"><div class="lb" data-page-node-id="qYUkGRGQFIcHaXIMDSVfT0">05 熟词校准<i data-page-node-id="PxYAQAfvvv5maxnSeQhYJN">首次在开始学习前触发，可跳过</i></div>
+<div class="phone" data-page-node-id="93FrWtoNPseNTSFtmzx8lR"><div class="sb" data-sb data-page-node-id="kb9rGF7UlwEjhE7yBiM1nE"></div><div class="sc" data-page-node-id="CVEwCpGZFPFCDLwMHaueES">
+  <div class="tb" data-page-node-id="P8ynLg32kJozyLs2ICVB33"><div class="ic" data-page-node-id="AO4xifMPHAB1EkrHyXEVoU"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-page-node-id="3KmRah858ZezmeFHlR3Q4A"><path d="M6 6l12 12M18 6L6 18" data-page-node-id="aKddkxaqlvH3ytifCsuQJz"/></svg></div><div class="t" data-page-node-id="mV3EM7P74xQGZ3r75cZYid">第 7 / 20 题</div><div class="ic tx" data-page-node-id="t7tdZTT48HcWeeP8UlnPfe">跳过</div></div>
+  <div class="pgb" data-page-node-id="JDfTIImVUGgA2Rh3N2IbEV"><i style="width:35%" data-page-node-id="O8tEIdds7AclUvTPq6h2OV"></i></div>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 24px" data-page-node-id="9FyABTeJomO9B6YA7ss1gI">
+    <div class="ul" data-page-node-id="0RG3wA2B1PKDMIDOtMxFpN">这 个 词 你 认 识 吗</div>
+    <div class="ser" style="font-size:36px;margin-top:22px;letter-spacing:-.6px;text-align:center" data-page-node-id="M4LCvChfjuyZU9KXdwVK4H">meticulous</div>
+    <div style="display:flex;gap:10px;margin-top:34px;width:100%" data-page-node-id="AfA15IXmxqJ0LniBHMWtLF">
+      <div class="bt o" style="flex:1" data-page-node-id="Qpdm3C0x69yYxJFXoOUHK2">认识</div>
+      <div class="bt o" style="flex:1;background:var(--b1);border-color:transparent;color:var(--b1t)" data-page-node-id="5SF9T5KctsuAAB82I0PqjW">不认识</div>
     </div>
-    <div style="font-size:11.5px;color:var(--tx3);margin-top:16px;text-align:center;line-height:1.6">不确定就选「不认识」，宁可多学一遍</div>
+    <div style="font-size:11.5px;color:var(--tx3);margin-top:16px;text-align:center;line-height:1.7" data-page-node-id="OiSgZXFoW6qJrFYY0CgyZh">约 30 秒 · 分层抽样，只为把已会的词剔出计划<br data-page-node-id="nVMBXCTaVmHosLm0hJfGaF">不确定就选「不认识」，宁可多学一遍</div>
   </div>
-</div><div class="gb"><i></i></div></div>
+</div><div class="gb" data-page-node-id="fXtmREOiMJvCb43oUU43Xi"><i data-page-node-id="38c6pzHFCDhBsnCyp9EWDy"></i></div></div>
 </div>
 
 </div>
 </section>
 
-<section>
-<h2><b>其余屏幕</b>词库 · 统计 · 详情 · 设置</h2>
-<div class="grid">
+<section data-page-node-id="Jfes2fnaUPnxkWnStv1BXF">
+<h2 data-page-node-id="uHMFOTTc9BodGpfRtEDlOh"><b data-page-node-id="7WJ5JoFXyZUzrhXxsQ1WCo">其余屏幕</b>词库 · 统计 · 详情 · 设置</h2>
+<div class="grid" data-page-node-id="2iMFWyT5FzAf6eHxE1ffaU">
 
-<!-- 6 词库 -->
-<div class="shot"><div class="lb">06 词库<i>标签即词库</i></div>
-<div class="phone"><div class="sb" data-sb></div><div class="sc">
-  <div class="tb"><div class="ic"></div><div class="t"></div><div class="ic" style="width:auto;padding:0 12px;font-size:13px;color:var(--ac)">导入</div></div>
-  <div class="pd" style="padding-bottom:4px">
-    <div class="ser" style="font-size:25px;letter-spacing:-.4px">词库</div>
-    <div class="ul" style="margin-top:7px">3 个已选 · 共 12,480 词</div>
+<!-- 06 词库 -->
+<div class="shot" data-page-node-id="76g91Zw9bxicMM7JUClW6b"><div class="lb" data-page-node-id="FRCiEQ3JELgHlbpikMN1bF">06 词库<i data-page-node-id="sNPl2dcZlYPReWY5mj4ZpF">右侧细条 = 词库相对大小</i></div>
+<div class="phone" data-page-node-id="kdyJ5DWS1JYAspTw7QOwML"><div class="sb" data-sb data-page-node-id="8M1b6tBsOeZMgBmNVuw5g8"></div><div class="sc" data-page-node-id="NIBkzWHZLcTSnwfZvilnqU">
+  <div class="tb" data-page-node-id="uWtSx8dRL36KIJXerHFHMT"><div class="ic" data-page-node-id="2tu4xprFX7HDudauXUq4dq"></div><div class="t" data-page-node-id="9LzukHrFoJHdSi3QvhNmEQ"></div><div class="ic tx" data-page-node-id="GAOGFRVAESa9h5NgGsEBxH">导入</div></div>
+  <div class="pd" style="padding-bottom:4px" data-page-node-id="JhmLST4UgtyVMk95OexV5e">
+    <div class="ser" style="font-size:25px;letter-spacing:-.4px" data-page-node-id="LAiQWTxDQuCWEWVH7yWKUj">词库</div>
+    <div class="ul" style="margin-top:7px" data-page-node-id="bysc4FKUqyMDg0NBc7VyDv">3 个已选 · 共 12,480 词</div>
   </div>
-  <div class="hair" style="margin:14px 20px"></div>
-  <div class="pd" style="flex:1;overflow:hidden">
-    <div class="rw"><span class="mk"></span><span class="n">四级核心</span><span class="v">4,512</span></div>
-    <div class="hair"></div>
-    <div class="rw"><span class="mk"></span><span class="n">GRE 核心</span><span class="v">6,203</span></div>
-    <div class="hair"></div>
-    <div class="rw"><span class="mk"></span><span class="n">高频短语</span><span class="v">1,765</span></div>
-    <div class="hair"></div>
-    <div class="rw"><span class="mk o"></span><span class="n" style="color:var(--tx2)">六级核心</span><span class="v">5,890</span></div>
-    <div class="hair"></div>
-    <div class="rw"><span class="mk o"></span><span class="n" style="color:var(--tx2)">考研核心</span><span class="v">5,431</span></div>
-    <div class="hair"></div>
-    <div class="rw"><span class="mk o"></span><span class="n" style="color:var(--tx2)">托福核心</span><span class="v">4,908</span></div>
-    <div class="hair"></div>
-    <div class="rw"><span class="mk o"></span><span class="n" style="color:var(--tx2)">雅思核心</span><span class="v">3,672</span></div>
-    <div class="hair"></div>
-    <div class="rw"><span class="mk o" style="border-style:dashed"></span><span class="n" style="color:var(--tx2)">我的词表 · 经济学人</span><span class="v">328</span></div>
+  <div class="hair" style="margin:14px 20px" data-page-node-id="rKeKQWHy0ajsdI0BFGU7Ux"></div>
+  <div class="pd" style="flex:1;overflow:hidden" data-page-node-id="QptZxpXnA1o3r5C8Bn4Tg4">
+    <div class="rw" data-page-node-id="Nwita8hi5xE86wFIzO3PFQ"><span class="mk" data-page-node-id="rKvcF1ZETfxCaHbmhsFyKm"></span><span class="n" data-page-node-id="vhDtq0ZLBefH0mUsxvBMb6">GRE 核心</span><span class="bar" data-page-node-id="pmWuYHo9SV1SnQ4bEBujRC"><i style="width:100%" data-page-node-id="G0r0LfSbUwPsDx8tzEqkWk"></i></span><span class="v" data-page-node-id="n7TJytF0gK63sAx8r1BnW1">6,203</span></div>
+    <div class="hair" data-page-node-id="yyibXDgSwxHtlF7ZdcaTUA"></div>
+    <div class="rw" data-page-node-id="REFGf9jK8aIHuF6YbhxhxI"><span class="mk" data-page-node-id="Df6j9jxVtbFtXlQyugRcX7"></span><span class="n" data-page-node-id="gooMlO9Bq37RucEj5l1gV6">四级核心</span><span class="bar" data-page-node-id="av0u7QcwdLByJTdByEiTsy"><i style="width:73%" data-page-node-id="YwDbv2PI42ABFErgTZilvJ"></i></span><span class="v" data-page-node-id="v7iRtWJS1Bj2wV8sQgfBHV">4,512</span></div>
+    <div class="hair" data-page-node-id="C5iC6aV1uBcOQOrU4pyAJG"></div>
+    <div class="rw" data-page-node-id="Ny8HvYQO33Z5HokO5SNVRY"><span class="mk" data-page-node-id="Tn94fcmHyReqYOkV8MVaLa"></span><span class="n" data-page-node-id="iOUBFezYVUylFoESvGUAQd">高频短语</span><span class="bar" data-page-node-id="UTxG7NpN778G33fJXdkG3i"><i style="width:28%" data-page-node-id="gcyDF0wTtVBxFtCAj3BJ0u"></i></span><span class="v" data-page-node-id="I9t8csvhmhGFeEA6RutlU7">1,765</span></div>
+    <div class="hair" data-page-node-id="VebIWdBIGZVbzUFlHRra6p"></div>
+    <div class="rw" data-page-node-id="7lnE1tkCHK1RbAfldmpfRu"><span class="mk o" data-page-node-id="AiBM8S1qyHX8tzIjxjZlKN"></span><span class="n" style="color:var(--tx2)" data-page-node-id="PYQQ3eVfOLsTvEzXbkOkL7">六级核心</span><span class="bar" data-page-node-id="7FFol3mVWMb5876vKMbON5"><i style="width:95%;background:var(--bd2)" data-page-node-id="J1tgCZ7EONzz3FCxPpxHsH"></i></span><span class="v" data-page-node-id="9804ZmfU2D0l1IO1lOLlOt">5,890</span></div>
+    <div class="hair" data-page-node-id="r0X9BE6eSHvhPee3XiG3EV"></div>
+    <div class="rw" data-page-node-id="0VNdmlDxzs3pCEHz97wqiI"><span class="mk o" data-page-node-id="3yxYzJNe7Sqlne5z3qKX87"></span><span class="n" style="color:var(--tx2)" data-page-node-id="3t4KTOIPXhsnpAR1bQxanq">考研核心</span><span class="bar" data-page-node-id="pXQuPfjEUsfpTcfHlWpGIO"><i style="width:88%;background:var(--bd2)" data-page-node-id="5QnIlYVS4UgylrNDvUQuue"></i></span><span class="v" data-page-node-id="HydjSHuUjTQYAXnguqOKUW">5,431</span></div>
+    <div class="hair" data-page-node-id="YD4fBhHA9NT0AgEj1zIZSB"></div>
+    <div class="rw" data-page-node-id="Kva6Sr7qkU4zumGhyI2HXM"><span class="mk o" data-page-node-id="KYjAKUcNZHB6q4SS09mGXu"></span><span class="n" style="color:var(--tx2)" data-page-node-id="mC50R88a0FlswTNB7eRPAY">托福核心</span><span class="bar" data-page-node-id="6WuGGoEqoX4EyFWCG0lxCw"><i style="width:79%;background:var(--bd2)" data-page-node-id="GVHoRMHuByzbzDvMUhY2EZ"></i></span><span class="v" data-page-node-id="VqEgTj64JHlMgBUlfSTYpv">4,908</span></div>
+    <div class="hair" data-page-node-id="B6GiSfNZCo1ghHxhgxEmh7"></div>
+    <div class="rw" data-page-node-id="ayj2YJ6xqx2g8NdxtWD1fT"><span class="mk o" data-page-node-id="sKh1loBfpRzBFMGpkJHw28"></span><span class="n" style="color:var(--tx2)" data-page-node-id="GKE65CE137F7NJ9r6OZfrz">雅思核心</span><span class="bar" data-page-node-id="jTyToCfiP6tCpzRC1DKtrq"><i style="width:59%;background:var(--bd2)" data-page-node-id="kbBPgoD1DxQlA5xJB1IZtl"></i></span><span class="v" data-page-node-id="qnGK5qZZeTIPtRatTTydGQ">3,672</span></div>
+    <div class="hair" data-page-node-id="PhkJyw6sLoMh5W0ZaaH51H"></div>
+    <div class="rw" data-page-node-id="eA3eNmATXBYLA3vB3m4Gra"><span class="mk o" style="border-style:dashed" data-page-node-id="smeQsnKSNZsLGK5cheRoSi"></span><span class="n" style="color:var(--tx2)" data-page-node-id="kiGvNE8HvidPfVJ55B44zp">我的词表 · 经济学人</span><span class="bar" data-page-node-id="wDKDH3U7afMaCnq5lbnt2D"><i style="width:6%;background:var(--bd2)" data-page-node-id="udFieoO4TlGM8BtJqqNFBC"></i></span><span class="v" data-page-node-id="vcdJxIVDZtJ3SSlKU4if8r">328</span></div>
   </div>
-</div><div class="gb"><i></i></div><div class="tab" data-tab="lib"></div></div>
+</div><div class="gb" data-page-node-id="OFJWIhDRdaLSSgMPRbEokG"><i data-page-node-id="YmsXcU2YhceSUsKmEVQBnW"></i></div><div class="tab" data-tab="lib" data-page-node-id="BqKR3ldfskxfqpHdrLqmH4"></div></div>
 </div>
 
-<!-- 7 统计 -->
-<div class="shot"><div class="lb">07 统计<i>不打卡、不排名</i></div>
-<div class="phone"><div class="sb" data-sb></div><div class="sc">
-  <div class="tb"><div class="ic"></div><div class="t"></div><div class="ic"></div></div>
-  <div class="pd" style="padding-bottom:2px">
-    <div class="ser" style="font-size:25px;letter-spacing:-.4px">统计</div>
-    <div class="ul" style="margin-top:7px">连 续 学 习 12 天</div>
+<!-- 07 统计 -->
+<div class="shot" data-page-node-id="SeOInErnPeuOrUSEzCAO5S"><div class="lb" data-page-node-id="Oq7td4xvViCEk0QSZoEwPn">07 统计<i data-page-node-id="JHz5sBxCoaS5QFlVV3pq4x">不打卡、不排名</i></div>
+<div class="phone" data-page-node-id="2jhC2wLSNLaeF6Xu38gBSy"><div class="sb" data-sb data-page-node-id="HwQ1zI8zYmshXC2CuqlMi0"></div><div class="sc" data-page-node-id="CQd59WqaV6F3EX7xHrtNke">
+  <div class="tb" data-page-node-id="GMluWheRN5ix5b0TQSFOAx"><div class="ic" data-page-node-id="BNME0pELi1sFXs698gtVyr"></div><div class="t" data-page-node-id="zEtkFFdRLUdHCAgaWEWqq0"></div><div class="ic" data-page-node-id="Vm70UZTAbi8uPgP6pjmm4D"></div></div>
+  <div class="pd" style="padding-bottom:2px" data-page-node-id="MunLYtRB1ajgKX0GVTVby9">
+    <div class="ser" style="font-size:25px;letter-spacing:-.4px" data-page-node-id="gLANhAWqF1Hw1GB7mNz29Y">统计</div>
+    <div class="ul" style="margin-top:7px" data-page-node-id="ePrsLLZ1APeD7UFu7uyZRa">连 续 学 习 12 天</div>
   </div>
-  <div class="pd" style="margin-top:16px">
-    <div style="display:flex;gap:10px">
-      <div style="flex:1"><div class="ser tnum" style="font-size:27px">1,284</div><div class="ul" style="margin-top:4px">已学</div></div>
-      <div style="flex:1"><div class="ser tnum" style="font-size:27px">863</div><div class="ul" style="margin-top:4px">复习中</div></div>
-      <div style="flex:1"><div class="ser tnum" style="font-size:27px;color:var(--ac)">421</div><div class="ul" style="margin-top:4px">已掌握</div></div>
+  <div class="pd" style="margin-top:16px" data-page-node-id="2QNmii76SHPgSrSjzHxPok">
+    <div style="display:flex;gap:10px" data-page-node-id="OqC8SaZp0m83kPyLCzsoQR">
+      <div style="flex:1" data-page-node-id="vu8BJXcXvA5WbcbPK6yyaq"><div class="ser tnum" style="font-size:27px" data-page-node-id="BRPTYFgPFotZjwyPwgCU88">1,284</div><div class="ul" style="margin-top:4px" data-page-node-id="LtAxzXFbtauA2Q8Z9CDu7C">已学</div></div>
+      <div style="flex:1" data-page-node-id="LDAdmdF2ebt2kec69v1W9Q"><div class="ser tnum" style="font-size:27px" data-page-node-id="t3D0eEK7WWL5gFdAwNrVxh">863</div><div class="ul" style="margin-top:4px" data-page-node-id="kDLFTyTr4GtuvtDq8u4lTL">复习中</div></div>
+      <div style="flex:1" data-page-node-id="UM5IyAQjkGFbURAk4ptvMo"><div class="ser tnum" style="font-size:27px;color:var(--ac)" data-page-node-id="ScBGyOwPWhC8BjeuWCBdL4">421</div><div class="ul" style="margin-top:4px" data-page-node-id="df98FkFMK55zUbwor15Bgn">已掌握</div></div>
     </div>
   </div>
-  <div class="hair" style="margin:20px 20px 0"></div>
-  <div class="pd" style="margin-top:16px">
-    <div class="ul">近 7 日 复 习 量</div>
-    <div style="display:flex;align-items:flex-end;gap:11px;height:96px;margin-top:14px">
-      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px"><div style="width:100%;height:38px;background:var(--bd);border-radius:2px"></div><div class="ul" style="letter-spacing:.5px">三</div></div>
-      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px"><div style="width:100%;height:62px;background:var(--bd);border-radius:2px"></div><div class="ul" style="letter-spacing:.5px">四</div></div>
-      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px"><div style="width:100%;height:29px;background:var(--bd);border-radius:2px"></div><div class="ul" style="letter-spacing:.5px">五</div></div>
-      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px"><div style="width:100%;height:74px;background:var(--bd);border-radius:2px"></div><div class="ul" style="letter-spacing:.5px">六</div></div>
-      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px"><div style="width:100%;height:51px;background:var(--bd);border-radius:2px"></div><div class="ul" style="letter-spacing:.5px">日</div></div>
-      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px"><div style="width:100%;height:83px;background:var(--bd);border-radius:2px"></div><div class="ul" style="letter-spacing:.5px">一</div></div>
-      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px"><div style="width:100%;height:47px;background:var(--ac);border-radius:2px"></div><div class="ul" style="letter-spacing:.5px;color:var(--ac)">今</div></div>
+  <div class="hair" style="margin:20px 20px 0" data-page-node-id="QvQvY9qj4TNOqtkWc8fHdW"></div>
+  <div class="pd" style="margin-top:16px" data-page-node-id="9svpSCbUfCC3Aue793HMxq">
+    <div class="ul" data-page-node-id="YHAJFdRWvDL7FHywofzNDD">近 7 日 复 习 量</div>
+    <div style="display:flex;align-items:flex-end;gap:11px;height:96px;margin-top:14px;border-bottom:1px solid var(--bd2)" data-page-node-id="lODC3fwh9jjvE8u1NvkNQu">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end" data-page-node-id="CXj8YcRpvZisoJGVWQDW5Y"><div style="width:100%;height:38px;background:var(--bd);border-radius:2px 2px 0 0" data-page-node-id="S9PyazX0cNSoCD5dQoUVWq"></div></div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end" data-page-node-id="fREm3MEsItUK0fn9WZTmwj"><div style="width:100%;height:62px;background:var(--bd);border-radius:2px 2px 0 0" data-page-node-id="ARtdqBIZlpC28MWglqksn6"></div></div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end" data-page-node-id="efD7dNS5sTHmi3RWcCxPJx"><div style="width:100%;height:29px;background:var(--bd);border-radius:2px 2px 0 0" data-page-node-id="bexaqVEETEet0H71zJG6pK"></div></div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end" data-page-node-id="sUNPOezPEUPLJw7rjf27v9"><div style="width:100%;height:74px;background:var(--bd);border-radius:2px 2px 0 0" data-page-node-id="2rabbSQ0h3MA9zBe4mjXtO"></div></div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end" data-page-node-id="byOMDtflTshqwpCkBlMByD"><div style="width:100%;height:51px;background:var(--bd);border-radius:2px 2px 0 0" data-page-node-id="RGFeuloaN7SvBce6J1HxJs"></div></div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end" data-page-node-id="9ygSuAkL2AghaDp8QWsxX1"><div style="width:100%;height:83px;background:var(--bd);border-radius:2px 2px 0 0" data-page-node-id="YGXjV9oraOz55qeKa6MTjw"></div></div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end" data-page-node-id="L2fjPFzQ5ouf9Y5t1CAenz"><div style="width:100%;height:47px;background:var(--ac);border-radius:2px 2px 0 0" data-page-node-id="Z64xQOhT7HLIsPDa6RNu45"></div></div>
+    </div>
+    <div style="display:flex;gap:11px;margin-top:6px" data-page-node-id="27p3uYrLEvdfJUbE8aGc1H">
+      <div class="ul" style="flex:1;text-align:center;letter-spacing:.5px" data-page-node-id="70rT5nzGz7hcBDG9s7zljd">三</div>
+      <div class="ul" style="flex:1;text-align:center;letter-spacing:.5px" data-page-node-id="36UHI0EzJbF837eP3jkofJ">四</div>
+      <div class="ul" style="flex:1;text-align:center;letter-spacing:.5px" data-page-node-id="aKOgAppLe7fHOpDOJJJniQ">五</div>
+      <div class="ul" style="flex:1;text-align:center;letter-spacing:.5px" data-page-node-id="5q02hSJullhsyhXVy3yIfk">六</div>
+      <div class="ul" style="flex:1;text-align:center;letter-spacing:.5px" data-page-node-id="Z3NiL6dGQvP9Y1Kizvu1Ko">日</div>
+      <div class="ul" style="flex:1;text-align:center;letter-spacing:.5px" data-page-node-id="nucHWjm7uKE2MyVFBSiKZC">一</div>
+      <div class="ul" style="flex:1;text-align:center;letter-spacing:.5px;color:var(--ac)" data-page-node-id="GZpxLIpwSCfGBAGzbCyF5T">今</div>
     </div>
   </div>
-  <div class="hair" style="margin:18px 20px 0"></div>
-  <div class="pd" style="margin-top:14px">
-    <div class="rws"><span>目标留存率</span><span class="v">90%</span></div>
-    <div class="rws"><span>实际留存率</span><span class="v ac">91.3%</span></div>
-    <div class="rws"><span>平均每日</span><span class="v">18.6 分钟</span></div>
-    <div class="rws"><span>累计学习</span><span class="v">42 小时</span></div>
+  <div class="hair" style="margin:14px 20px 0" data-page-node-id="LIH1Hd7PJw2MXJkmTH0ZhP"></div>
+  <div class="pd" style="margin-top:12px" data-page-node-id="P5mJoBErTBiRu0MO3q9m8n">
+    <div class="rws" data-page-node-id="eTBs2ljL7P8nyA0ByrKf3v"><span data-page-node-id="fVDbmbfZxMSrIheOxFKFDI">目标留存率</span><span class="v" data-page-node-id="pgQYHBBmtAgi1ZC1ScMPs1">90%</span></div>
+    <div class="rws" data-page-node-id="axXuk4YUVNxaiEcFiBLinq"><span data-page-node-id="qj9punzyHEbWhtCojAGTUi">实际留存率</span><span class="v ac" data-page-node-id="vI3Rn74amvwDFN0C5E9sGa">91.3%</span></div>
+    <div class="rws" data-page-node-id="NkVeq5BTciFWgqH1NOWWlm"><span data-page-node-id="Xv2rB5zlCjkpeTVCCCuif2">平均每日</span><span class="v" data-page-node-id="RkBbSDdU6f8dfjFYAmm98t">18.6 分钟</span></div>
+    <div class="rws" data-page-node-id="65KtrBLae6XfSyqCbWVjxo"><span data-page-node-id="v7Y10v2in33OjYUkNLHdd9">累计学习</span><span class="v" data-page-node-id="MQMJhJk4j2jLneYCHfslws">42 小时</span></div>
   </div>
-</div><div class="gb"><i></i></div><div class="tab" data-tab="st"></div></div>
+</div><div class="gb" data-page-node-id="obyjxkxEgRVe4rbf342F1S"><i data-page-node-id="wRFK07rq1ZNbgKQLS6cX4D"></i></div><div class="tab" data-tab="st" data-page-node-id="ZZOsdvHcKeIdkSSFyToanv"></div></div>
 </div>
 
-<!-- 8 单词详情 -->
-<div class="shot"><div class="lb">08 单词详情<i>词典条目式排版</i></div>
-<div class="phone"><div class="sb" data-sb></div><div class="sc">
-  <div class="tb"><div class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 5l-7 7 7 7"/></svg></div><div class="t">单词详情</div><div class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></div></div>
-  <div style="flex:1;overflow:hidden">
-    <div class="pd" style="padding-top:6px">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between">
-        <div>
-          <div class="ser" style="font-size:33px;letter-spacing:-.6px">abandon</div>
-          <div style="font-size:12.5px;color:var(--tx3);margin-top:6px;letter-spacing:.8px;font-family:'SF Mono',Consolas,monospace">/əˈbændən/</div>
+<!-- 08 单词详情 -->
+<div class="shot" data-page-node-id="cLEG4eijpISQBwiRGLJKPW"><div class="lb" data-page-node-id="DIephwOzdBneeVvd7kN4G9">08 单词详情<i data-page-node-id="OK7PHSBqJQq8RDkgnf9yu9">随时可标为已掌握</i></div>
+<div class="phone" data-page-node-id="1mWiPYILnEP7USUoHYZIcS"><div class="sb" data-sb data-page-node-id="ABzgEvH2JqPiPDD08EZRYK"></div><div class="sc" data-page-node-id="DeQOnniYuDpchzIjTAl7Rl">
+  <div class="tb" data-page-node-id="tEilIblmJUgkMIK7U0Z7jF"><div class="ic" data-page-node-id="VABACaLzKJJLY4oXkbndSg"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-page-node-id="hLGN3Bfv5HGSAGS0TNqGZT"><path d="M15 5l-7 7 7 7" data-page-node-id="BAREV1POmKJALmLM8J557V"/></svg></div><div class="t" data-page-node-id="tRJJmGLFaPgB3DqoBk2Pdq">单词详情</div><div class="ic" data-page-node-id="PEYPf0yPvPPgVG4yRY5ooi"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" data-page-node-id="uMUxCMcPLfnml4e0QfQrcp"><path d="M12 5v14M5 12h14" data-page-node-id="m7RojUuoXj7LbxWTLV2LcM"/></svg></div></div>
+  <div style="flex:1;overflow:hidden" data-page-node-id="scARiAjj9FwY1srElv4JhA">
+    <div class="pd" style="padding-top:6px" data-page-node-id="PxyAcb3LTTuOzN11jBZO3a">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between" data-page-node-id="Vn2g2sBqOBvOnEfjS9mLqY">
+        <div data-page-node-id="cFRoraVLPB18g4YybILMuf">
+          <div class="ser" style="font-size:33px;letter-spacing:-.6px" data-page-node-id="JqsGD4Yq172q53GtsN3mF1">abandon</div>
+          <div style="font-size:12.5px;color:var(--tx3);margin-top:6px;letter-spacing:.8px;font-family:'SF Mono',Consolas,monospace" data-page-node-id="gH8X6zxrR1pbVdQYIB2YzR">/əˈbændən/</div>
         </div>
-        <div style="width:40px;height:40px;border:1px solid var(--bd2);border-radius:20px;display:flex;align-items:center;justify-content:center;margin-top:4px">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--tx1)" stroke-width="1.5" stroke-linecap="round"><path d="M4 12h1.5M8 8.5v7M12 5.5v13M16 8.5v7M20 11h0"/></svg>
+        <div style="width:40px;height:40px;border:1px solid var(--bd2);border-radius:20px;display:flex;align-items:center;justify-content:center;margin-top:4px" data-page-node-id="42a7SZktV1mnVbmlAunhfU">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--tx1)" stroke-width="1.5" stroke-linecap="round" data-page-node-id="xrSPqBIWHmWDvHP7FeVllf"><path d="M4 12h1.5M8 8.5v7M12 5.5v13M16 8.5v7M20 11h0" data-page-node-id="pbEmxjww3h1M80tfXZVrgK"/></svg>
         </div>
       </div>
-      <div style="display:flex;gap:6px;margin-top:14px">
-        <span style="font-size:11.5px;padding:3px 8px;border:1px solid var(--bd2);border-radius:3px;color:var(--tx2)">四级</span>
-        <span style="font-size:11.5px;padding:3px 8px;border:1px solid var(--bd2);border-radius:3px;color:var(--tx2)">GRE</span>
-        <span style="font-size:11.5px;padding:3px 8px;border:1px solid var(--bd2);border-radius:3px;color:var(--ac)">已掌握</span>
+      <div style="display:flex;gap:6px;margin-top:14px;flex-wrap:wrap" data-page-node-id="SFjBqqrnqFz7QOGHDJKxns">
+        <span style="font-size:11.5px;padding:3px 8px;border:1px solid var(--bd2);border-radius:3px;color:var(--tx2)" data-page-node-id="DrjpER3qVtRRcqaiaz268x">四级</span>
+        <span style="font-size:11.5px;padding:3px 8px;border:1px solid var(--bd2);border-radius:3px;color:var(--tx2)" data-page-node-id="g2aBAz85y5Lj4ZgkZlDz6A">GRE</span>
+        <span style="font-size:11.5px;padding:3px 8px;border:1px solid var(--bd2);border-radius:3px;color:var(--ac)" data-page-node-id="eN3PXYcvDMvONKoneca7Am">已掌握</span>
+        <span style="font-size:11.5px;padding:3px 8px;border:1px dashed var(--bd2);border-radius:3px;color:var(--tx3)" data-page-node-id="ebEJqIidsgKp2HqE7ExKVE">+ 标为已掌握</span>
       </div>
     </div>
-    <div class="hair" style="margin:16px 20px"></div>
-    <div class="pd">
-      <div class="ul" style="margin-bottom:12px">释 义</div>
-      <div style="display:flex;gap:10px;margin-bottom:10px"><span class="ser" style="font-size:13px;color:var(--tx3);width:14px;flex:0 0 auto">1</span><div><span style="font-size:11px;letter-spacing:.8px;color:var(--ac);font-weight:600;margin-right:7px">v.</span><span style="font-size:15px">抛弃；遗弃；离弃</span></div></div>
-      <div style="display:flex;gap:10px;margin-bottom:10px"><span class="ser" style="font-size:13px;color:var(--tx3);width:14px;flex:0 0 auto">2</span><div><span style="font-size:11px;letter-spacing:.8px;color:var(--ac);font-weight:600;margin-right:7px">v.</span><span style="font-size:15px">放弃；中止</span></div></div>
-      <div style="display:flex;gap:10px"><span class="ser" style="font-size:13px;color:var(--tx3);width:14px;flex:0 0 auto">3</span><div><span style="font-size:11px;letter-spacing:.8px;color:var(--ac);font-weight:600;margin-right:7px">n.</span><span style="font-size:15px">放纵；任性</span></div></div>
+    <div class="hair" style="margin:16px 20px" data-page-node-id="cFJ5TIO08l6csVr6AJy0st"></div>
+    <div class="pd" data-page-node-id="JBv5ryrd3j8iIKFDWSBz2V">
+      <div class="ul" style="margin-bottom:12px" data-page-node-id="xnYtCT8EwG12qZOT9KnIOM">释 义</div>
+      <div style="display:flex;gap:10px;margin-bottom:10px" data-page-node-id="htKrJafCqBjQbR3Badd7rn"><span class="ser" style="font-size:13px;color:var(--tx3);width:14px;flex:0 0 auto" data-page-node-id="yzH97QC5oiBdAMJAgU3OOY">1</span><div data-page-node-id="FEZvOE07oQ5FiGUPtSoE9Q"><span style="font-size:11px;letter-spacing:.8px;color:var(--ac);font-weight:600;margin-right:7px" data-page-node-id="mYPyIRCQf7hMtFPpk52cWD">v.</span><span style="font-size:15px" data-page-node-id="47a8YAHj7YKRx21QcPQm0p">抛弃；遗弃；离弃</span></div></div>
+      <div style="display:flex;gap:10px;margin-bottom:10px" data-page-node-id="MOmnB5l1cEiLSwFwfYD36W"><span class="ser" style="font-size:13px;color:var(--tx3);width:14px;flex:0 0 auto" data-page-node-id="sTQUgGoGQAtxPFW4ZiF1AZ">2</span><div data-page-node-id="nL4IEwJg1NuC78D2nBXvIY"><span style="font-size:11px;letter-spacing:.8px;color:var(--ac);font-weight:600;margin-right:7px" data-page-node-id="7okJCB0W54OW1Ga6UHg6jJ">v.</span><span style="font-size:15px" data-page-node-id="a89OX5Ih38fZycZWKOmhEL">放弃；中止</span></div></div>
+      <div style="display:flex;gap:10px" data-page-node-id="cx6i2aduM2gGIH2V35N4eF"><span class="ser" style="font-size:13px;color:var(--tx3);width:14px;flex:0 0 auto" data-page-node-id="1zBZ8BCNAXqGHZ8BEmdtBq">3</span><div data-page-node-id="RNfbx8uyg50xgSDqjm00W1"><span style="font-size:11px;letter-spacing:.8px;color:var(--ac);font-weight:600;margin-right:7px" data-page-node-id="gTvCTuwTSwdMNOIfm7UeGt">n.</span><span style="font-size:15px" data-page-node-id="Jxff7oLOw4UtCB5HfWsK5w">放纵；任性</span></div></div>
     </div>
-    <div class="hair" style="margin:16px 20px"></div>
-    <div class="pd">
-      <div class="ul" style="margin-bottom:12px">例 句</div>
-      <div class="ser" style="font-size:13.5px;font-style:italic;line-height:1.75">They had to abandon their car in the snow.</div>
-      <div style="font-size:12.5px;color:var(--tx3);margin-top:5px;margin-bottom:12px">他们不得不把车丢在雪地里。</div>
-      <div class="ser" style="font-size:13.5px;font-style:italic;line-height:1.75">The project was abandoned for lack of funds.</div>
-      <div style="font-size:12.5px;color:var(--tx3);margin-top:5px">项目因资金不足被放弃。</div>
+    <div class="hair" style="margin:16px 20px" data-page-node-id="1Lhc8pu61ksjgERXnXyz5c"></div>
+    <div class="pd" data-page-node-id="AbfihKV4yIfnOADVvpFnLv">
+      <div class="ul" style="margin-bottom:12px" data-page-node-id="bb2k6yjZJ0ajwp99ky0qoE">例 句</div>
+      <div class="ser" style="font-size:13.5px;font-style:italic;line-height:1.75" data-page-node-id="trRzbQtrAhthYxxFZdThMn">They had to abandon their car in the snow.</div>
+      <div style="font-size:12.5px;color:var(--tx3);margin-top:5px;margin-bottom:12px" data-page-node-id="M2ZM3EKGpX5BQH8BGEWdVj">他们不得不把车丢在雪地里。</div>
+      <div class="ser" style="font-size:13.5px;font-style:italic;line-height:1.75" data-page-node-id="clgQjZijiTcSe108oORAez">The project was abandoned for lack of funds.</div>
+      <div style="font-size:12.5px;color:var(--tx3);margin-top:5px" data-page-node-id="ufGSLdvoDIq3zM5F6qFZbW">项目因资金不足被放弃。</div>
     </div>
-    <div class="hair" style="margin:16px 20px"></div>
-    <div class="pd">
-      <div class="ul" style="margin-bottom:12px">词 根</div>
-      <div style="display:flex;gap:8px;align-items:flex-start"><span class="mk" style="margin-top:5px"></span><span style="font-size:13.5px;color:var(--tx2);line-height:1.7">ad-（去，朝向）+ bandon（管辖权、控制）<br>→ 交出控制权 → 抛弃</span></div>
+    <div class="hair" style="margin:16px 20px" data-page-node-id="rBHevCG9Xm8T3PyZUybgTO"></div>
+    <div class="pd" data-page-node-id="QdFjUfQvTjaGZsxWK8WlIi">
+      <div class="ul" style="margin-bottom:12px" data-page-node-id="xd0JIm4X6EqRz2qi4AQe9X">词 根</div>
+      <div style="display:flex;gap:8px;align-items:flex-start" data-page-node-id="2qDjgUm38HFY9eALSln3tS"><span class="mk" style="margin-top:5px" data-page-node-id="ZJfdeQzpRThXEDmcjxdH0u"></span><span style="font-size:13.5px;color:var(--tx2);line-height:1.7" data-page-node-id="kBPAafyUAOvJp8SDwpzaPs">ad-（去，朝向）+ bandon（管辖权、控制）<br data-page-node-id="0BnBA1ZR9OyZBuZRgvjIM9">→ 交出控制权 → 抛弃</span></div>
     </div>
-    <div class="hair" style="margin:16px 20px"></div>
-    <div class="pd">
-      <div class="ul" style="margin-bottom:12px">我 的 助 记</div>
-      <div style="font-size:13.5px;color:var(--tx3);line-height:1.7;border:1px dashed var(--bd2);border-radius:5px;padding:11px 12px">一个板凳（ban-don）被扔在路边 → 抛弃</div>
+    <div class="hair" style="margin:16px 20px" data-page-node-id="2uNf6AqQAu2BAiUd7n0i08"></div>
+    <div class="pd" data-page-node-id="S2EYz2Jna7ClytSB8HKP5a">
+      <div class="ul" style="margin-bottom:12px" data-page-node-id="WaDChAa6b4H6ZfzKSvHq9g">我 的 助 记</div>
+      <div style="font-size:13.5px;color:var(--tx3);line-height:1.7;border:1px dashed var(--bd2);border-radius:5px;padding:11px 12px" data-page-node-id="ZDahxYEz4R49ceB4ECaGjK">一个板凳（ban-don）被扔在路边 → 抛弃</div>
     </div>
   </div>
-</div><div class="gb"><i></i></div><div class="tab" data-tab="se"></div></div>
+</div><div class="gb" data-page-node-id="g8Tdv0xtfGslTSbcmA2Am4"><i data-page-node-id="sLyEUuGxRVVFqcAh6tedTs"></i></div><div class="tab" data-tab="se" data-page-node-id="rrtHbD9GC6UI4tU3YbPIZn"></div></div>
 </div>
 
-<!-- 9 设置 -->
-<div class="shot"><div class="lb">09 设置<i>默认值随时可改</i></div>
-<div class="phone"><div class="sb" data-sb></div><div class="sc">
-  <div class="tb"><div class="ic"></div><div class="t"></div><div class="ic"></div></div>
-  <div class="pd" style="padding-bottom:2px"><div class="ser" style="font-size:25px;letter-spacing:-.4px">设置</div></div>
-  <div style="flex:1;overflow:hidden;margin-top:16px">
-    <div class="pd"><div class="ul" style="margin-bottom:6px">学 习</div></div>
-    <div class="pd">
-      <div class="rws"><span>每日新词</span><span class="v">20</span></div>
-      <div class="hair"></div>
-      <div class="rws"><span>每日复习上限</span><span class="v">200</span></div>
-      <div class="hair"></div>
-      <div class="rws"><span>目标留存率</span><span class="v">90%</span></div>
-      <div class="hair"></div>
-      <div class="rws"><span>每日分界</span><span class="v">04:00</span></div>
-      <div class="hair"></div>
-      <div class="rws"><span>新词优先于复习</span><span class="mk"></span></div>
+<!-- 09 设置 -->
+<div class="shot" data-page-node-id="JeHKGBfqSj9gDQnFCNXdWn"><div class="lb" data-page-node-id="lSbOZMGvgmhIob3OFqGLUr">09 设置<i data-page-node-id="NotAVMSODlx6uBwRVwrKpL">默认值随时可改</i></div>
+<div class="phone" data-page-node-id="xFAJ6D0rSXf6vd1fpzhtML"><div class="sb" data-sb data-page-node-id="lbEXJqNv5QRrRA43vjVkww"></div><div class="sc" data-page-node-id="2RIYD1HIbCjUUfD9b0ArSc">
+  <div class="tb" data-page-node-id="LlT4ZRdm8nxmXZLlGwKUhM"><div class="ic" data-page-node-id="BePM7YUorQC9LTiLzdgPtS"></div><div class="t" data-page-node-id="DnrhLFw5Ei3Li3NpcdtBxU"></div><div class="ic" data-page-node-id="McwMYYdGp1yLtAAj8J0iAu"></div></div>
+  <div class="pd" style="padding-bottom:2px" data-page-node-id="5GfYOpfZ5UiX1rJI767vWz"><div class="ser" style="font-size:25px;letter-spacing:-.4px" data-page-node-id="3dxBxXBBK4jUuJ3mfjXbkf">设置</div></div>
+  <div style="flex:1;overflow:hidden;margin-top:16px" data-page-node-id="5tidpACWoKk25ofRJzrzym">
+    <div class="pd" data-page-node-id="FMfR5ijeCZY3EfOGTbC4Gg"><div class="ul" style="margin-bottom:6px" data-page-node-id="zKBStARSFVZGEHPxDPGASV">学 习</div></div>
+    <div class="pd" data-page-node-id="FcYle72Gs5f6peVs3WxqO5">
+      <div class="rws" data-page-node-id="ezZG1vKyOFU7vAPUtVhscC"><span data-page-node-id="GExUVqFfL6aw3Bjs4j0Tnm">每日新词</span><span class="v" data-page-node-id="SG64xwN3mWYzYn7W3bye3U">20</span></div>
+      <div class="hair" data-page-node-id="4REDiNAORc0OTJ8iBKlA3J"></div>
+      <div class="rws" data-page-node-id="IvAJDyvRnJkLhiJYk6avSb"><span data-page-node-id="1fbexnuka1FpWiDEp4qHHE">每日复习上限</span><span class="v" data-page-node-id="nA4sv6pCq0a3Av4FoKpT6P">200</span></div>
+      <div class="hair" data-page-node-id="nNEzwKK04fI4Uhr884EzNp"></div>
+      <div class="rws" data-page-node-id="Mv2vnZ0mZQvnMZt02cQ6Ue"><span data-page-node-id="2zvWb0kAGjRBAP8VlJ5uLy">目标留存率</span><span class="v" data-page-node-id="8amGdkqiF5jLTqM8FPEY0e">90%</span></div>
+      <div class="hair" data-page-node-id="DN1DQ6thZg81O2noA43Jyg"></div>
+      <div class="rws" data-page-node-id="ADoE00VOYVZ8Irsvw2jFFO"><span data-page-node-id="GOzL46xbvXDTdQreLoOk6x">每日分界</span><span class="v" data-page-node-id="9CTbIwDrxsKPYcsRN4oGGu">04:00</span></div>
+      <div class="hair" data-page-node-id="QNAceV4GJLYuKltcf7A2FX"></div>
+      <div class="rws" data-page-node-id="Fh9Qpobe4LCEwDCy7TEt02"><span data-page-node-id="4DUZqXYlFOFmCQJhY3BzOK">新词优先于复习</span><span class="sw2 on" data-page-node-id="UVLAbx0zsADwOcnnhBafWw"><i data-page-node-id="XyHl4LdtkN3lnLFUWKImnY"></i></span></div>
     </div>
-    <div class="pd" style="margin-top:22px"><div class="ul" style="margin-bottom:6px">词 库</div></div>
-    <div class="pd">
-      <div class="rws"><span>导入自定义词表</span><span style="color:var(--tx3);font-size:13px">txt / csv</span></div>
-      <div class="hair"></div>
-      <div class="rws"><span>重置「已掌握」标记</span><span style="color:var(--tx3);font-size:13px">421 词</span></div>
+    <div class="pd" style="margin-top:22px" data-page-node-id="AHnEH8Wajnezu4hsbygi2E"><div class="ul" style="margin-bottom:6px" data-page-node-id="LdAzlEaB3eKOEA32zqn71n">词 库</div></div>
+    <div class="pd" data-page-node-id="lKByha7pGduvL3H2tG1lI0">
+      <div class="rws" data-page-node-id="DjAuOqgkdG5duKtwSeaSvX"><span data-page-node-id="fkHuD6fziKtbyVJTi43Grn">熟词校准</span><span style="color:var(--tx3);font-size:13px" data-page-node-id="GuoZov7eBYy5TCfsKVz5bn">已校准 1,240 词</span></div>
+      <div class="hair" data-page-node-id="k3mUNpge8gscRKazBZYEWJ"></div>
+      <div class="rws" data-page-node-id="qVfPaFGEOjPe3eTQya157S"><span data-page-node-id="J9p3OZBrhvfEVf1kKZFqDS">导入自定义词表</span><span style="color:var(--tx3);font-size:13px" data-page-node-id="HBAfPk5DcUTmUCg0kmdcg6">txt / csv</span></div>
+      <div class="hair" data-page-node-id="PGV94YBzTLnCtBKGVnhP1p"></div>
+      <div class="rws" data-page-node-id="TUenvGGnoPHpEFhh3gNUqP"><span data-page-node-id="xRNsJQxLKXxBzg5HCPrYXT">重置「已掌握」标记</span><span style="color:var(--tx3);font-size:13px" data-page-node-id="FllBgVGZQtVDdlJsdWtG4O">421 词</span></div>
     </div>
-    <div class="pd" style="margin-top:22px"><div class="ul" style="margin-bottom:6px">数 据</div></div>
-    <div class="pd">
-      <div class="rws"><span>导出进度备份</span><span style="color:var(--tx3);font-size:13px">JSON</span></div>
-      <div class="hair"></div>
-      <div class="rws"><span>导入进度备份</span><span style="color:var(--tx3);font-size:13px"></span></div>
+    <div class="pd" style="margin-top:22px" data-page-node-id="AfhTN9bT92z65EZNq93rTT"><div class="ul" style="margin-bottom:6px" data-page-node-id="ZyEKYFKBHBwuxCelrao4yo">数 据</div></div>
+    <div class="pd" data-page-node-id="JTIxyIGdhabIBdHyDWb4Jr">
+      <div class="rws" data-page-node-id="FLgAPJuFe9f1KcoQqIlJmy"><span data-page-node-id="aqaZepL11LxNygt9eBptpR">导出进度备份</span><span style="color:var(--tx3);font-size:13px" data-page-node-id="kJqJvyVqf37wBeEzapDLOn">JSON</span></div>
+      <div class="hair" data-page-node-id="Tk31iPvjxIINZ5wqyLmnkO"></div>
+      <div class="rws" data-page-node-id="pwUGSzAcCEI6fuqbldWY0N"><span data-page-node-id="oZKLWmcCPeX6fyIh1MBAiJ">导入进度备份</span><span style="color:var(--tx3);font-size:13px" data-page-node-id="ZvfOFHmngDL7BO2tCSDBiv"></span></div>
     </div>
-    <div class="pd" style="margin-top:22px"><div class="ul" style="margin-bottom:6px">关 于</div></div>
-    <div class="pd">
-      <div class="rws"><span>版本</span><span class="v">0.1.0</span></div>
-      <div class="hair"></div>
-      <div class="rws"><span>许可</span><span class="v">MIT</span></div>
-      <div class="hair"></div>
-      <div class="rws"><span>词库来源</span><span class="v">ECDICT · MIT</span></div>
+    <div class="pd" style="margin-top:22px" data-page-node-id="noLB7pDRpo4Rc3C9ejxNRR"><div class="ul" style="margin-bottom:6px" data-page-node-id="DVRnofV9lIZLBKeE2KQRd4">关 于</div></div>
+    <div class="pd" data-page-node-id="s5ZWxUsiynGw2ssFxMjy9i">
+      <div class="rws" data-page-node-id="tTAw7PSpthGHWBuDTSZ9qy"><span data-page-node-id="knvDhWlwlRfyoE3u1z1gkF">版本</span><span class="v" data-page-node-id="my4hEKsIceGZBhJGWSYbam">0.1.0</span></div>
+      <div class="hair" data-page-node-id="FluVlL0uqfRUIpAxRSjHV9"></div>
+      <div class="rws" data-page-node-id="s4R3k59STGzFYQM7BRLn6K"><span data-page-node-id="x0ME74G8faW0TNFRkyuwbO">许可</span><span class="v" data-page-node-id="4iYQoaxv9oqDaeEYGjY9QJ">MIT</span></div>
+      <div class="hair" data-page-node-id="WV5Luo60z3swH6vVJ5LMB2"></div>
+      <div class="rws" data-page-node-id="BOVHZiZ97psvP4iJxg7GKs"><span data-page-node-id="mrqO7ZcBiGC9UDVkEoGVNf">词库来源</span><span class="v" data-page-node-id="iqsTIFiBYleJQhU2QowwRP">ECDICT · MIT</span></div>
     </div>
   </div>
-</div><div class="gb"><i></i></div><div class="tab" data-tab="se"></div></div>
+</div><div class="gb" data-page-node-id="BrvwdXXwulv5nACcxblfyZ"><i data-page-node-id="hYlVyLjfJa0tgYnUIR84of"></i></div><div class="tab" data-tab="se" data-page-node-id="CnB7j9H3ixzaZodrZV56m9"></div></div>
 </div>
 
 </div>
 </section>
 
-<section>
-<h2><b>设计令牌</b>朱批</h2>
-<div class="tok">
-  <div class="tk"><h4>纸 · 墨 · 朱（上行亮 / 下行暗）</h4><div class="sw">
-    <div><i style="background:#FBF9F5"></i>bg 纸白<br>#FBF9F5<br><span style="color:#5F5A52">#141311</span></div>
-    <div><i style="background:#FFFFFF"></i>surface<br>#FFFFFF<br><span style="color:#5F5A52">#1C1A17</span></div>
-    <div><i style="background:#1B1917"></i>tx1 墨<br>#1B1917<br><span style="color:#5F5A52">#EDE8DE</span></div>
-    <div><i style="background:#6E6862"></i>tx2<br>#6E6862<br><span style="color:#5F5A52">#A79F94</span></div>
-    <div><i style="background:#A89F94"></i>tx3<br>#A89F94<br><span style="color:#5F5A52">#6F685E</span></div>
-    <div><i style="background:#E7E2D8"></i>bd 细线<br>#E7E2D8<br><span style="color:#5F5A52">#2C2925</span></div>
-    <div><i style="background:#C0452F"></i>ac 朱砂<br>#C0452F<br><span style="color:#5F5A52">#E0705A</span></div>
-    <div><i style="background:#F7EBE6"></i>朱砂浅底<br>#F7EBE6<br><span style="color:#5F5A52">#2E211C</span></div>
+<section data-page-node-id="CVYmYAP45ihjx7JNSu9SCK">
+<h2 data-page-node-id="ZHynf2EJLuzniBF4e2q9ut"><b data-page-node-id="YGn190KH9Vs9eBBuS6TWDH">设计令牌</b>朱批</h2>
+<div class="tok" data-page-node-id="kRHgKXNyaWKeveJoQF2gLH">
+  <div class="tk" data-page-node-id="p1O3vMuQYqz5qw2IIHjwv2"><h4 data-page-node-id="lsaVqBNSSPKMSkaUeearaK">纸 · 墨 · 朱（上行亮 / 下行暗）</h4><div class="sw" data-page-node-id="FvAMDNKBSTkil4sdd28nE2">
+    <div data-page-node-id="XnFDps3Jf97XU5F9M4ziJv"><i style="background:#FBF9F5" data-page-node-id="N3RPg4cbTPICTu5Mobqjf2"></i>bg 纸白<br data-page-node-id="cX74Lgmud0jXaHgLKqRCiV">#FBF9F5<br data-page-node-id="pYgHNFDTyuwXe8EHC88AxJ"><span style="color:#5F5A52" data-page-node-id="USxTT7HKXUoxRNJXmaS3Hs">#141311</span></div>
+    <div data-page-node-id="W9PncsfDeWxQ1rLWarweoh"><i style="background:#FFFFFF" data-page-node-id="sridJYKimeESyICV1Gow5y"></i>surface<br data-page-node-id="j9wQ2ldohGcxnmi0WxJLe7">#FFFFFF<br data-page-node-id="N4KxXlJ6H0btijZLAhdLyu"><span style="color:#5F5A52" data-page-node-id="f5MDs8rLyxFnFRU6Do6j6W">#1C1A17</span></div>
+    <div data-page-node-id="YSVtsilkuErTLs7njWh3sA"><i style="background:#1B1917" data-page-node-id="mqonE0mqhmjMFbTWu4QUmK"></i>tx1 墨<br data-page-node-id="wxWYDnlpERZkea72JPOcis">#1B1917<br data-page-node-id="r9L4gOG1R6OAcaM1YtGtPe"><span style="color:#5F5A52" data-page-node-id="TTmT89KI37RFVLJrlK4QDD">#EDE8DE</span></div>
+    <div data-page-node-id="r8wi9L0HwzfYoRxuCerBMi"><i style="background:#6E6862" data-page-node-id="9FEldCtPE7HiGwkRCMGZnR"></i>tx2<br data-page-node-id="QcbqwJZqCa7n27q8WcJsIH">#6E6862<br data-page-node-id="aPJzLtrLKkjXYvOb7zxdC5"><span style="color:#5F5A52" data-page-node-id="QM7nR4Qg6wHWSFtZbAn6xE">#A79F94</span></div>
+    <div data-page-node-id="IwhyXuvoHvITnDV9UlsOAL"><i style="background:#A89F94" data-page-node-id="xL63IFvMO4uWvMYs7JSUAn"></i>tx3<br data-page-node-id="4FSBhfAThsErTZAHPsvRZC">#A89F94<br data-page-node-id="xzhPtgN35OJiplFjQsePen"><span style="color:#5F5A52" data-page-node-id="ctJBSvCopOQ92ESs5GrqEJ">#6F685E</span></div>
+    <div data-page-node-id="O4OOEiHlDL11j5iQC9wkef"><i style="background:#E7E2D8" data-page-node-id="W3XwLpUhjbptzw0oaNXNPr"></i>bd 细线<br data-page-node-id="WENmNvvOfXRTxgCsRAyuCL">#E7E2D8<br data-page-node-id="GldGEVYrnxDKAbYmkML6vZ"><span style="color:#5F5A52" data-page-node-id="lIKRuFMgcMUtlDDe5ygjpB">#2C2925</span></div>
+    <div data-page-node-id="CRBY1ddfHWVlshMERtneMQ"><i style="background:#C0452F" data-page-node-id="WufcqRN7XiGHRLdtLtVJxf"></i>ac 朱砂<br data-page-node-id="ksAPQZ1EF2mu3UhE2E5YuM">#C0452F<br data-page-node-id="6I3RtbntqY0itgDgJEPY7O"><span style="color:#5F5A52" data-page-node-id="4CWK8nhD312DostQ6BkrFP">#E0705A</span></div>
+    <div data-page-node-id="rVZa2mcorPl6JtL1y9CdDi"><i style="background:#F7EBE6" data-page-node-id="Vg7b93eaz87PgQt0fwtbmk"></i>朱砂浅底<br data-page-node-id="v2YyhvdOWt15p3QlagrjPq">#F7EBE6<br data-page-node-id="lxFc9s31vKgDG7IEe0Yygv"><span style="color:#5F5A52" data-page-node-id="AvdPGMJPUfl0F7nLHRWSm4">#2E211C</span></div>
   </div></div>
 
-  <div class="tk"><h4>四档评分（条长即间隔）</h4><div class="sw">
-    <div><i style="background:#F7EBE6;border-bottom:2px solid #C0452F"></i>重来<br>10 分钟</div>
-    <div><i style="background:#F2EEE5;border-bottom:2px solid #A89F94"></i>困难<br>1 天</div>
-    <div><i style="background:#F5F3EC;border-bottom:2px solid #6E6862"></i>良好<br>4 天</div>
-    <div><i style="background:#EAEDE4;border-bottom:2px solid #1B1917"></i>简单<br>12 天</div>
+  <div class="tk" data-page-node-id="UfGKI23OVyLaYBjZunbW7I"><h4 data-page-node-id="j8DeR1wJACGbSD855LvbJn">四档评分（条长即间隔）</h4><div class="sw" data-page-node-id="4iepgYD2ahV2QWo1xg3YPD">
+    <div data-page-node-id="1VjK5kMqGYDRCbZeHW0FDi"><i style="background:#F7EBE6;border-bottom:2px solid #C0452F" data-page-node-id="b3azjr3fWBNs18lAIauMSP"></i>重来<br data-page-node-id="FKlWDC97CGDjYeziaiMm3H">10 分钟</div>
+    <div data-page-node-id="56w7h7sy7XiKyYJ9lwHns6"><i style="background:#F2EEE5;border-bottom:2px solid #A89F94" data-page-node-id="Fh9DAD5vQLKYiqSshjuVtS"></i>困难<br data-page-node-id="2rRzYrl30YDIoNAQ7Re1bC">1 天</div>
+    <div data-page-node-id="YOZpmeTpBpm4G7PiDd98Tc"><i style="background:#F5F3EC;border-bottom:2px solid #6E6862" data-page-node-id="D8INFBODafHfhZizOxfVr1"></i>良好<br data-page-node-id="e0rH5Yv22z4u2yhG3OwVIo">4 天</div>
+    <div data-page-node-id="L5eoyTOiVBeNkmsS8r1V4q"><i style="background:#EAEDE4;border-bottom:2px solid #1B1917" data-page-node-id="CXwro5fJVqd7fVZpmRYCHK"></i>简单<br data-page-node-id="2SHzxtA64BV0Eg3Ee4kpOD">12 天</div>
   </div>
-  <div style="font-size:11.5px;color:#8A8479;line-height:1.7;margin-top:12px">只有「重来」用朱砂；其余三档靠底的冷暖微差 + 条长递进区分。底部横条长度按间隔量级给（14 / 26 / 42 / 66 dp），不读数字也能看出量级。</div></div>
+  <div style="font-size:11.5px;color:#8A8479;line-height:1.7;margin-top:12px" data-page-node-id="un935YiTKHvPvgpR7fwTjN">只有「重来」用朱砂；其余三档靠底的冷暖微差 + 条长递进区分。横条长度按间隔量级给（14 / 26 / 42 / 66 dp），不读数字也能看出量级。</div></div>
 
-  <div class="tk"><h4>字体</h4><div class="ty">
-    <div><b>衬线</b><span class="px">42 sp</span>复习卡单词</div>
-    <div><b>衬线</b><span class="px">36 sp</span>测试词</div>
-    <div><b>衬线</b><span class="px">27 sp</span>背面单词</div>
-    <div><b>衬线</b><span class="px">25 sp</span>页面标题</div>
-    <div><b>衬线斜</b><span class="px">14 sp</span>例句</div>
-    <div><b>无衬线</b><span class="px">15 sp</span>释义、列表</div>
-    <div><b>无衬线</b><span class="px">10.5 sp</span>标签 +1.1 字距</div>
-    <div><b>等宽</b><span class="px">13 sp</span>音标 +0.8 字距</div>
+  <div class="tk" data-page-node-id="HOb7AND8EIo3PIhYEUOl4L"><h4 data-page-node-id="eyGDTAdGAh37EjRf1Z3HAo">字体</h4><div class="ty" data-page-node-id="8dwTrKScyOAiZpk7fjHnTb">
+    <div data-page-node-id="FMDpXru0cczARB0EiD5pCY"><b data-page-node-id="ojUbpMmMZtBNBXuSAseWM4">衬线</b><span class="px" data-page-node-id="rHyLcVzFSnS6bARHIXUkPQ">42 sp</span>复习卡单词</div>
+    <div data-page-node-id="sAuqNWtGlO6S9CApoVpVoC"><b data-page-node-id="ynZICCbG1JvxMwJcKcGDYH">衬线</b><span class="px" data-page-node-id="bLDcvwhJCXVGLnTwuRXOfT">36 sp</span>校准词</div>
+    <div data-page-node-id="Np5roUCPRsMDr5G0er37sa"><b data-page-node-id="Du2xuZrT2hpsoc4puMNUK1">衬线</b><span class="px" data-page-node-id="35MFEQyRUyRcYHQrpAEUnI">27 sp</span>背面单词 / 统计数</div>
+    <div data-page-node-id="BleEfQ4BuuE3wlnbUdycmp"><b data-page-node-id="70Rt862LZ3FoNSpIqsNE8K">衬线</b><span class="px" data-page-node-id="QxZPPFrCqsfETPmnIJTCVg">25 sp</span>页面标题（含中文）</div>
+    <div data-page-node-id="AVAB8omTkJfAiR6ewPyRtY"><b data-page-node-id="8fVvYKBTpBtMuFO1fE0h8Q">衬线斜</b><span class="px" data-page-node-id="EbwlJxJnrSRedjC1nDKaiB">14 sp</span>英文例句</div>
+    <div data-page-node-id="0vxWnPLJrH5RRKDNvs5u58"><b data-page-node-id="ZGRhP8wqhwQUAdq15Xgkhl">无衬线</b><span class="px" data-page-node-id="XoZEDmH2PXbE3u3P4BoClf">15 sp</span>释义、列表</div>
+    <div data-page-node-id="uGhemphlIX9GZedrUOODQJ"><b data-page-node-id="XQ9sWtYnD6QEgnBKjCbKtA">无衬线</b><span class="px" data-page-node-id="Z2BVFqtKRMRGRVGPTylzOA">10.5 sp</span>标签 +1.1 字距</div>
+    <div data-page-node-id="bfEDBYgc9L8Dy2BlfI7fPj"><b data-page-node-id="PPY1vT2mXXwIEhUi0rY9TZ">等宽</b><span class="px" data-page-node-id="lFTSJZWTwmwflZTVCXTWvv">13 sp</span>音标 +0.8 字距</div>
   </div></div>
 
-  <div class="tk"><h4>尺寸与节奏</h4><div class="ty">
-    <div><b>画布</b><span class="px">360 × 752</span>dp</div>
-    <div><b>边距</b><span class="px">20 dp</span>左右安全边距</div>
-    <div><b>圆角</b><span class="px">6 / 10</span>卡片 / 按钮</div>
-    <div><b>分割线</b><span class="px">hairline</span>1px，极淡</div>
-    <div><b>标记块</b><span class="px">5 – 7 dp</span>朱砂方块，非圆点</div>
-    <div><b>触摸目标</b><span class="px">≥ 48 dp</span>最小点击区</div>
-    <div><b>数字</b><span class="px">tabular</span>全部等宽对齐</div>
+  <div class="tk" data-page-node-id="uZayhOpofdacIDIYlK94qB"><h4 data-page-node-id="u8M15eqSnAGAI4VU2DITCC">尺寸与节奏</h4><div class="ty" data-page-node-id="COBcIXJ0B3iBvp5iUKCNer">
+    <div data-page-node-id="L6JdkfLwBNMaEAJEdKuyuc"><b data-page-node-id="Ycb3MGHYam4cm2RHLz9aSg">画布</b><span class="px" data-page-node-id="x7FSHyTSroWrGCl0qkKnxo">360 × 752</span>dp</div>
+    <div data-page-node-id="dkx076IlDRF2hZGIGu3rqQ"><b data-page-node-id="VEy0eZBFjSVr7QniFwYmYD">边距</b><span class="px" data-page-node-id="ATQ0IaIZGdEzGHxBTwNSVR">20 dp</span>左右安全边距</div>
+    <div data-page-node-id="Ag20jA9IWPCizMRG1efLf8"><b data-page-node-id="RFicSpf7A9nW150ofGEZJk">圆角</b><span class="px" data-page-node-id="RJdn3pwuFy7ZumBmGvvCpw">6 / 10</span>卡片 / 按钮</div>
+    <div data-page-node-id="7IyHbn8a3k5c990cFyDTWB"><b data-page-node-id="uk95pKruNViccsww3Rl5O4">分割线</b><span class="px" data-page-node-id="g1GKKNHNwfafpnND1Cqz5Q">hairline</span>1px，极淡</div>
+    <div data-page-node-id="g9CsLigRVDJ01vAa7tZT4N"><b data-page-node-id="B9g6GnrdTVykkG8eGBfJwS">标记块</b><span class="px" data-page-node-id="DFYH3AnQBd5roJWTeK2Bq8">5 – 7 dp</span>朱砂方块，非圆点</div>
+    <div data-page-node-id="ywXht27T5S5MuUnJ9w0MlF"><b data-page-node-id="3waWIyTyxbEKmkavavEBNm">触摸目标</b><span class="px" data-page-node-id="CEpTEZwQyqXP7oW6sFaGGV">≥ 48 dp</span>最小点击区</div>
+    <div data-page-node-id="Ig4hOb730S7id5CjMfqvqi"><b data-page-node-id="xDNN56Sb0v89rUQQgwvWQk">数字</b><span class="px" data-page-node-id="TgPj8XBQvsD2KfaOqh5vbA">tabular</span>全部等宽对齐</div>
   </div></div>
 </div>
 </section>
@@ -473,6 +550,19 @@ body.dark .phone{--bg:#141311;--sf:#1C1A17;--pg:#0E0D0C;
 
 <script>
 function setT(t,el){document.body.className=t;[...document.querySelectorAll('.tog button')].forEach(b=>b.classList.toggle('on',b===el))}
+function rate(e,el){e.stopPropagation();el.style.opacity='.5';setTimeout(()=>el.style.opacity='1',170)}
+
+/* 20 格刻度环：一格 = 一个新词，已完成 8 格填朱砂 */
+(function(){
+  const g=document.getElementById('ticks');if(!g)return;
+  let s='';
+  for(let i=0;i<20;i++){
+    const a=i*18;
+    s+='<line x1="88" y1="14" x2="88" y2="28" transform="rotate('+a+' 88 88)" '
+      +'stroke="'+(i<8?'var(--ac)':'var(--bd)')+'" stroke-width="'+(i<8?3.4:2.6)+'" stroke-linecap="round"/>';
+  }
+  g.innerHTML=s;
+})();
 
 const SBSVG='<svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor"><rect x="0" y="7" width="2.6" height="4" rx=".6"/><rect x="4" y="4.5" width="2.6" height="6.5" rx=".6"/><rect x="8" y="2" width="2.6" height="9" rx=".6"/><rect x="12" y="0" width="2.6" height="11" rx=".6"/></svg>'
 +'<svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor"><path d="M7.5 9.2L5.3 6.8a3.1 3.1 0 014.4 0L7.5 9.2z"/><path d="M3.4 4.6a6 6 0 018.2 0" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M1.3 2.3a9 9 0 0112.4 0" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>'
