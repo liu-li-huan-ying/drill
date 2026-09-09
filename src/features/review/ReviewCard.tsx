@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, Animated, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Animated, StyleSheet, type ViewStyle } from 'react-native';
 import { useTheme } from '../../theme/ThemeProvider';
 import { serif, FONT, mono } from '../../theme/tokens';
 import { speak } from '../../lib/speak';
@@ -20,10 +20,12 @@ export function ReviewCard({
   const spin = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    // 注意：rotateY（3D 翻转）在 Android 上不被原生动画驱动支持，
+    // 必须用 JS 驱动（useNativeDriver: false），否则卡片在安卓上根本不翻转。
     Animated.timing(spin, {
       toValue: flipped ? 1 : 0,
       duration: 450,
-      useNativeDriver: true,
+      useNativeDriver: false,
     }).start();
   }, [flipped, spin]);
 
@@ -109,7 +111,9 @@ function SoundIcon({ color }: { color: string }) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { flex: 1, position: 'relative' },
+  // perspective 放在容器上，让 iOS 的 3D 翻转有正确的纵深感（rotateY 在 JS 驱动下生效）。
+  // 该 prop 在 RN 运行时支持，但当前 @types 未收录，故在 wrap 上做局部断言。
+  wrap: { flex: 1, position: 'relative', perspective: 1000 } as ViewStyle,
   face: {
     position: 'absolute',
     inset: 0,
