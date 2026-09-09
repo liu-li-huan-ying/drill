@@ -5,6 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '../src/theme/ThemeProvider';
 import { serif, FONT, mono } from '../src/theme/tokens';
 import { getTagWords, getTagWordCount, setStudyScope, getStudyScope, type WordRow } from '../src/db/queries';
+import { splitSenses } from '../src/components/Definition';
 
 const PAGE = 150;
 
@@ -88,7 +89,7 @@ export default function WordListScreen() {
               ) : null}
             </View>
             <Text style={[styles.def, { color: c.tx2 }]} numberOfLines={1}>
-              {w.definition_zh || ''}
+              {splitSenses(w.definition_zh)[0] || ''}
             </Text>
           </TouchableOpacity>
         ))}

@@ -38,7 +38,7 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <ThemeProvider>
+    <ThemeProvider ready={ready}>
       {ready ? (
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(tabs)" />

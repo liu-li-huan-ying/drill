@@ -185,6 +185,32 @@ export interface TagRow {
   color: string | null;
   count: number;
 }
+// 全局词汇量（去重词数）。词库头部的「已装载 N 词」应使用此值，
+// 而非把各标签词数求和（一个词可属于多个标签，求和会重复计数）。
+export function getWordCount(): number {
+  const r = getDb().getFirstSync<{ c: number }>('SELECT COUNT(*) AS c FROM words');
+  return r?.c ?? 0;
+}
+
+// 主题模式：跟随系统 / 浅色 / 深色。持久化到 settings 表（key=theme_mode）。
+export type ThemeMode = 'system' | 'light' | 'dark';
+
+export function getThemeMode(): ThemeMode {
+  const r = getDb().getFirstSync<{ value: string }>(
+    "SELECT value FROM settings WHERE key = 'theme_mode'"
+  );
+  const v = r?.value;
+  return v === 'light' || v === 'dark' || v === 'system' ? v : 'system';
+}
+
+export function setThemeMode(mode: ThemeMode): void {
+  getDb().runSync(
+    `INSERT INTO settings(key, value) VALUES('theme_mode', ?)
+     ON CONFLICT(key) DO UPDATE SET value = ?`,
+    [mode, mode]
+  );
+}
+
 export function getTags(): TagRow[] {
   return getDb().getAllSync<TagRow>(
     `SELECT t.id, t.name, t.kind, t.color, COUNT(wt.word_id) AS count

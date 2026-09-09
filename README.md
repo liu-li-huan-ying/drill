@@ -43,6 +43,7 @@
 > - **按标签过滤学习池（只背某考纲）**：`settings.study_tag` 持久化学习范围；`planSession()` 在查询时加 `IN (SELECT word_id FROM word_tags WHERE tag_id=?)` 子查询，不动 `cards` 表即可只练某纲；首页显示当前范围 + 「✕ 背全部」清除；`wordlist` 页「只背这一纲 →」一键设范围并 `dismissAll` 回首页
 > - **M3.2 例句索引（Tatoeba 英中句对）**：`build_examples.py` 在 Tatoeba 周更导出上构建 `examples(word_id, sentence_en, sentence_zh, ord)` 表，`word` 详情页接入「例句」区（衬线斜体英文 + 中文译文），`user_version=3`。当前为**英文例句先行版**——`links.tar.bz2`（EN→ZH 配对，149MB）受代理网络限制未下全，中文句对待补全；构建器在缺 links/cmn 时自动退化为纯英文，不阻塞交付
 > - **UI 规范对齐（朱批）**：按 [docs/设计系统.md](docs/设计系统.md) 修了一批细节——分割线统一 hairline `--bd`（移除临时 `rgba` 灰、刻度环未完格由 `--bd2` 改 `--bd`）、英文例句改衬线斜体、评分条三档去灰度梯度（统一中性、仅「重来」用朱砂）、导入框占位符修正换行实体、数字补 `tabular-nums`
+> - **四处体验修复（用户反馈）**：① 多义项释义——词库数据以字面转义的 `\n`/`\r\n` 入库（19,826 行），渲染期统一还原真实换行并按义项分行，行首词性缩写（`v.`/`n.`…）与 `[计]` 标签用朱砂高亮；新增 `src/components/Definition.tsx`（`normalizeDef`/`splitSenses`/`DefinitionView`）在 `word`/`ReviewCard` 背面/`wordlist`/`library` 搜索结果四处复用 ② 词库头部「已装载 N 词」由「各标签词数求和」改为 `COUNT(*) FROM words`（去重，30,565），消除重复计数 ③ 底部标签栏方块标记放大（7→10dp、加圆角描边）并配清晰标签，栏体抬高加大（58→66dp），不再像「图片未加载」占位点 ④ 暗黑模式——`app.json` 的 `userInterfaceStyle` 由 `light` 改为 `automatic` 以跟随系统；并新增「外观」设置（跟随系统 / 浅色 / 深色，持久化到 `settings.theme_mode`，`ThemeProvider` 读取后覆盖系统跟随）
 >
 > 下一步：补全 `links.tar.bz2`（断点续传中，按完整 149551113 字节判定）后重建 `examples` 表补 EN→ZH 译文；并接入复习卡背面 / 词列表的例句微展示。完整设计见 [docs/开发计划.md](docs/开发计划.md)、[docs/对抗式审查.md](docs/对抗式审查.md)、[docs/设计系统.md](docs/设计系统.md)。
 

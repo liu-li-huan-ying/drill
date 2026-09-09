@@ -4,13 +4,14 @@ import { View, Text, ScrollView, TextInput, TouchableOpacity, StyleSheet } from 
 import { useRouter } from 'expo-router';
 import { useTheme } from '../../src/theme/ThemeProvider';
 import { serif, FONT, mono } from '../../src/theme/tokens';
-import { getTags, searchWords, type WordRow } from '../../src/db/queries';
+import { getTags, getWordCount, searchWords, type WordRow } from '../../src/db/queries';
+import { splitSenses } from '../../src/components/Definition';
 
 export default function LibraryScreen() {
   const { colors: c } = useTheme();
   const router = useRouter();
   const tags = getTags();
-  const total = tags.reduce((a, t) => a + t.count, 0);
+  const total = getWordCount();
   const max = Math.max(1, ...tags.map((t) => t.count));
 
   const [query, setQuery] = useState('');
@@ -53,7 +54,7 @@ export default function LibraryScreen() {
             <TouchableOpacity key={w.word_id} style={[styles.resRow, { borderBottomColor: c.bd }]} onPress={() => goWord(w)}>
               <Text style={[styles.resWord, { color: c.tx1 }]}>{w.word}</Text>
               <Text style={[styles.resDef, { color: c.tx2 }]} numberOfLines={1}>
-                {w.definition_zh || ''}
+                {splitSenses(w.definition_zh)[0] || ''}
               </Text>
             </TouchableOpacity>
           ))}

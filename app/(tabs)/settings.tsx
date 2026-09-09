@@ -6,7 +6,7 @@ import { useTheme } from '../../src/theme/ThemeProvider';
 import { getSettings, getMasteredCount, saveSettings, resetMastered } from '../../src/db/queries';
 
 export default function SettingsScreen() {
-  const { colors: c } = useTheme();
+  const { colors: c, themeMode, setThemeMode } = useTheme();
   const router = useRouter();
   const s = getSettings();
   const mastered = getMasteredCount();
@@ -103,6 +103,34 @@ export default function SettingsScreen() {
         <Text style={[styles.resetText, { color: c.tx2 }]}>重置已掌握（{mastered}）</Text>
       </TouchableOpacity>
 
+      <Text style={[styles.group, { color: c.tx3 }]}>外 观</Text>
+      <View style={[styles.card, { backgroundColor: c.sf, borderColor: c.bd }]}>
+        <View style={[styles.row, { borderBottomWidth: 0 }]}>
+          <Text style={[styles.k, { color: c.tx2 }]}>深色模式</Text>
+        </View>
+        <View style={styles.seg}>
+          {(['system', 'light', 'dark'] as const).map((m) => {
+            const active = themeMode === m;
+            return (
+              <TouchableOpacity
+                key={m}
+                activeOpacity={0.8}
+                onPress={() => setThemeMode(m)}
+                style={[
+                  styles.segItem,
+                  active && { backgroundColor: c.ac },
+                  !active && { borderColor: c.bd2 },
+                ]}
+              >
+                <Text style={[styles.segText, { color: active ? c.acon : c.tx2 }]}>
+                  {m === 'system' ? '跟随系统' : m === 'light' ? '浅色' : '深色'}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+
       <Text style={[styles.group, { color: c.tx3 }]}>工 具</Text>
       <Entry title="自定义词库导入" sub="粘贴单词，建专属词单" onPress={() => router.push('/import')} />
       <Entry title="词汇量测试" sub="估算你的词汇量并筛熟词" onPress={() => router.push('/vocabtest')} />
@@ -119,6 +147,12 @@ const styles = StyleSheet.create({
   container: { flexGrow: 1, paddingTop: 64, paddingHorizontal: 24, paddingBottom: 40 },
   kicker: { fontSize: 10.5, letterSpacing: 3, textTransform: 'uppercase', fontWeight: '600' },
   card: { marginTop: 18, borderRadius: 10, borderWidth: 1, overflow: 'hidden' },
+  seg: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingBottom: 16, paddingTop: 4 },
+  segItem: {
+    flex: 1, height: 38, borderRadius: 8, borderWidth: 1,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  segText: { fontSize: 13, letterSpacing: 1, fontWeight: '600' },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1 },
   k: { fontSize: 14 },
   stepper: { flexDirection: 'row', alignItems: 'center' },

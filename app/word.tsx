@@ -5,6 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '../src/theme/ThemeProvider';
 import { serif, FONT, mono } from '../src/theme/tokens';
 import { getWordDetail, markMastered, getExamples, type ExampleRow } from '../src/db/queries';
+import { DefinitionView } from '../src/components/Definition';
 import { speak } from '../src/lib/speak';
 
 // 考纲代号 → 中文展示名（与 build_dict.py 的 EXAM_LABELS 对应）。
@@ -80,12 +81,18 @@ export default function WordScreen() {
           </View>
         ) : null}
 
-        {detail.definition_zh ? (
-          <Text style={[styles.def, { color: c.tx1 }]}>{detail.definition_zh}</Text>
-        ) : null}
-        {detail.definition_en ? (
-          <Text style={[styles.defEn, { color: c.tx2 }]}>{detail.definition_en}</Text>
-        ) : null}
+        <DefinitionView
+          raw={detail.definition_zh}
+          accent={c.ac}
+          blockStyle={{ marginTop: 18 }}
+          style={{ color: c.tx1, fontSize: FONT.def, lineHeight: 25 }}
+        />
+        <DefinitionView
+          raw={detail.definition_en}
+          accent={c.ac}
+          blockStyle={{ marginTop: 10 }}
+          style={{ color: c.tx2, fontSize: 13, fontStyle: 'italic', lineHeight: 19 }}
+        />
 
         {detail.root_affix ? (
           <View style={[styles.rootRow, { borderColor: c.bd }]}>

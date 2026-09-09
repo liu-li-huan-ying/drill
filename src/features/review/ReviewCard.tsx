@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Animated, StyleSheet, type ViewStyle } fr
 import { useTheme } from '../../theme/ThemeProvider';
 import { serif, FONT, mono } from '../../theme/tokens';
 import { speak } from '../../lib/speak';
+import { DefinitionView } from '../../components/Definition';
 import type { QueueItem } from '../../db/queries';
 
 // 3D 翻转卡：正面单词 + 音标；背面释义 + 词根。翻转用 rotateY + backfaceVisibility 实现。
@@ -66,10 +67,19 @@ export function ReviewCard({
       >
         <View style={styles.body}>
           {item.pos ? <Text style={[styles.pos, { color: c.ac }]}>{item.pos}</Text> : null}
-          <Text style={[styles.def, { color: c.tx1 }]}>{item.definition_zh}</Text>
-          {item.definition_en ? (
-            <Text style={[styles.defEn, { color: c.tx2 }]}>{item.definition_en}</Text>
-          ) : null}
+          <DefinitionView
+            raw={item.definition_zh}
+            accent={c.ac}
+            center
+            style={{ color: c.tx1, fontSize: FONT.def, lineHeight: 24 }}
+          />
+          <DefinitionView
+            raw={item.definition_en}
+            accent={c.ac}
+            center
+            blockStyle={{ marginTop: 8 }}
+            style={{ color: c.tx2, fontSize: 13, fontStyle: 'italic', lineHeight: 19 }}
+          />
           {item.root_affix ? (
             <View style={styles.rootRow}>
               <View style={[styles.mk, { backgroundColor: c.ac }]} />
