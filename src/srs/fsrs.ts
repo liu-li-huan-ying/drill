@@ -21,15 +21,18 @@ export interface DbCard {
   mastered: number; // 0 / 1
 }
 
-// State 枚举：New=1, Learning=2, Review=3, Relearning=4。
+// State 枚举（ts-fsrs v5 为 0 起始）：New=0, Learning=1, Review=2, Relearning=3。
+// DB 存储字符串与之一一对应：'new' | 'learning' | 'review' | 'relearning'。
+// 注意：早期版本误按 1 起始做 `-1/+1` 偏移，会把 Learning 写成 'new'，
+// 导致评分后的新卡仍留在 new 池、次日（或退出重进）又从第一个开始学。已修正为直接下标映射。
 const STATE_NAMES = ['new', 'learning', 'review', 'relearning'] as const;
 
 export function stateName(s: State): string {
-  return STATE_NAMES[(s as number) - 1] ?? 'new';
+  return STATE_NAMES[s as number] ?? 'new';
 }
 export function stateFromName(n: string): State {
   const i = STATE_NAMES.indexOf(n as (typeof STATE_NAMES)[number]);
-  return ((i < 0 ? 0 : i) + 1) as State;
+  return ((i < 0 ? 0 : i)) as State;
 }
 
 // 默认目标留存率 0.9（设置页可调）。此处取默认值，运行时从 settings 读取覆盖。

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, Animated, StyleSheet, type ViewStyle } from 'react-native';
+import { View, Text, TouchableOpacity, Animated, ScrollView, StyleSheet, type ViewStyle } from 'react-native';
 import { useTheme } from '../../theme/ThemeProvider';
 import { serif, FONT, mono } from '../../theme/tokens';
 import { speak } from '../../lib/speak';
@@ -23,6 +23,8 @@ export function ReviewCard({
 }) {
   const { colors: c } = useTheme();
   const spin = useRef(new Animated.Value(0)).current;
+  // 背面长释义滚动：记录按下的位置/时间，抬手时判断是否「轻点」（非滚动）以翻转回正面。
+  const tapStart = useRef<{ x: number; y: number; t: number } | null>(null);
 
   useEffect(() => {
     // 注意：rotateY（3D 翻转）在 Android 上不被原生动画驱动支持，
@@ -57,15 +59,36 @@ export function ReviewCard({
         </View>
       </Animated.View>
 
-      {/* 背面（纯展示，不含 touchable） */}
+      {/* 背面：长释义可滚动。pointerEvents 随翻转切换——
+          未翻面时设为 none，点按穿透到最上层的翻转层（避免安卓上被隐藏背面吞掉命中）；
+          翻面后设为 auto，由本 ScrollView 接管滚动与轻点翻转回正面。 */}
       <Animated.View
         style={[
           styles.face,
           styles.back,
           { transform: [{ rotateY: backRotate }], backfaceVisibility: 'hidden' },
         ]}
+        pointerEvents={flipped ? 'auto' : 'none'}
       >
-        <View style={styles.body}>
+        <ScrollView
+          style={styles.backScroll}
+          contentContainerStyle={styles.backContent}
+          showsVerticalScrollIndicator
+          keyboardShouldPersistTaps="handled"
+          onTouchStart={(e) => {
+            const { pageX, pageY } = e.nativeEvent;
+            tapStart.current = { x: pageX, y: pageY, t: Date.now() };
+          }}
+          onTouchEnd={(e) => {
+            const s = tapStart.current;
+            if (!s) return;
+            const { pageX, pageY } = e.nativeEvent;
+            const dx = Math.abs(pageX - s.x);
+            const dy = Math.abs(pageY - s.y);
+            const dt = Date.now() - s.t;
+            if (dx < 10 && dy < 10 && dt < 300) onFlip();
+          }}
+        >
           {item.pos ? <Text style={[styles.pos, { color: c.ac }]}>{item.pos}</Text> : null}
           <DefinitionView
             raw={item.definition_zh}
@@ -86,7 +109,7 @@ export function ReviewCard({
               <Text style={[styles.root, { color: c.tx2 }]}>{item.root_affix}</Text>
             </View>
           ) : null}
-        </View>
+        </ScrollView>
       </Animated.View>
 
       {/* 翻转触发层：覆盖整卡，统一接手势，避免背面（层级在上）吞掉点击 */}
@@ -139,6 +162,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 24,
+  },
+  // 背面滚动容器：内容短则整体居中（flexGrow + justifyContent center），
+  // 内容长则超出高度可纵向滚动（ScrollView 接管）。
+  backScroll: { flex: 1, width: '100%' },
+  backContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 28,
   },
   // 透明翻转层：盖住整张卡，承接所有点击。
   tap: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
