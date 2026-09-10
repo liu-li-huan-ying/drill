@@ -51,7 +51,7 @@
 >
 > M3.2 已收尾：`links.tar.bz2`（149,551,113 字节，EN→ZH 配对）下全并重建 `examples` 表，8,779 行带中文译文已随 `dictionary.db`（`user_version=4`，22.0MB）进包；运行时经 `EXPECTED_DB_VERSION=4` 整库换库把中文例句带进 `drill.db`。例句当前在单词详情页展示；复习卡背面 / 词列表的例句微展示为后续可选项。
 > - **M5 统计看板（里程碑下一步）**：`stats.tsx` 从「今日新词 / 今日复习 / 已掌握」三项扩展为完整看板——连续打卡（按本地 04:00 分界连续有记录的天数）、学习总览（累计学习 / 词库总量）、近 7 日趋势（自绘条形，每日新词 + 复习）、留存率（基于 `review_logs` 四档评分，Good/Easy 计正确）、记忆状态分布（新词 / 学习中 / 复习中 / 重新学习 占比）。数据全来自本地库，纯 RN View 自绘、不引图表库。新增 `queries.ts`：`getStreak` / `getDailyHistory` / `getRetention` / `getStateDistribution` / `getLearningStats` + 日期偏移辅助 `shiftDateKey`。`tsc` 通过。
-> - **M5 备份导出 / 导入（已完成，待真机验证）**：新增 `app/backup.tsx` + `queries.ts` 的 `exportBackupData` / `restoreBackup`。导出 = 收集 cards/review_logs/daily_stats/user_notes/settings + 元信息（app/schema/version/exportedAt）→ JSON → `Paths.document.createFile` 写入文档目录 → `expo-sharing` 分享；导入 = `expo-document-picker` 选 JSON → `new File(uri).text()` 读 → 解析 → 合并本地（cards 按 `last_review_at` 取新、review_logs 追加、daily_stats 按日累加、user_notes 按 `updated_at` 取新、settings 覆盖），整批事务、失败回滚。设置页「工具」新增「备份与恢复」入口。依赖 `expo-file-system@57.0.6` / `expo-sharing@57.0.18` / `expo-document-picker@57.0.1`（已 `npm install ... --legacy-peer-deps` 安装；react@19 peer 冲突须带该 flag）。⚠️ **SDK 57 的 expo-file-system v57 已移除旧版 `FileSystem.writeAsStringAsync` / `readAsStringAsync` / `documentDirectory` 扁平 API（运行时抛错），改用 `File` / `Paths` 新 API**——`Paths.document.createFile(name,'application/json')` 建句柄 + `file.write(json)` 写 + `file.uri` 分享 + `file.text()` 读。代码已按新 API 实现且 `tsc --noEmit` 通过。仍建议 Android 真机跑一次导出 / 导入确认原生行为。
+> - **M5 备份导出 / 导入（已完成，待真机验证）**：新增 `app/backup.tsx` + `queries.ts` 的 `exportBackupData` / `restoreBackup`。导出 = 收集 cards/review_logs/daily_stats/user_notes/settings + 元信息（app/schema/version/exportedAt）→ JSON → `Paths.document.createFile` 写入文档目录 → `expo-sharing` 分享；导入 = `expo-document-picker` 选 JSON → `new File(uri).text()` 读 → 解析 → 合并本地（cards 按 `last_review_at` 取新、review_logs 追加、daily_stats 按日累加、user_notes 按 `updated_at` 取新、settings 覆盖），整批事务、失败回滚。设置页「工具」新增「备份与恢复」入口。依赖 `expo-file-system@57.0.6` / `expo-sharing@57.0.18` / `expo-document-picker@57.0.1`（见「依赖说明」）。⚠️ **SDK 57 的 expo-file-system v57 已移除旧版 `FileSystem.writeAsStringAsync` / `readAsStringAsync` / `documentDirectory` 扁平 API（运行时抛错），改用 `File` / `Paths` 新 API**——`Paths.document.createFile(name,'application/json')` 建句柄 + `file.write(json)` 写 + `file.uri` 分享 + `file.text()` 读。代码已按新 API 实现且 `tsc --noEmit` 通过。仍建议 Android 真机跑一次导出 / 导入确认原生行为。
 >
 > 完整设计见 [docs/开发计划.md](docs/开发计划.md)、[docs/对抗式审查.md](docs/对抗式审查.md)、[docs/设计系统.md](docs/设计系统.md)。
 
@@ -73,6 +73,24 @@ python3 tools/build_examples.py  # 拉取 Tatoeba 英/中句 + links，构建 ex
 npm install
 npm start          # 启动 Metro，扫码或连接设备
 npm run android    # 真机 / 模拟器
+```
+
+## 依赖说明（重要，别踩坑）
+
+本项目**必须用 `npm install --legacy-peer-deps`**：锁文件里 `react@19.2.3` 与 `react-dom@19.2.8` 版本不匹配（历史遗留），不带该 flag 会 `ERESOLVE` 直接中止安装。
+
+但 `--legacy-peer-deps` 会**完全跳过 peerDependencies**——凡是只靠 peer 关系装上的包，npm 会当成「多余」清掉。`expo-router` 的原生必需依赖正是这种 peer：
+
+- `react-native-safe-area-context`、`react-native-screens`、`expo-linking`、`expo-constants`
+
+**规则：这些包必须在 `package.json` 里显式声明**（本项目已加）。否则一次 `npm install` 就会把它们剪掉，Metro 打包立刻报 `Unable to resolve "react-native-safe-area-context"`。
+
+改完依赖后**务必验证三件事**再收工：
+
+```bash
+npm ls react-native-safe-area-context react-native-screens   # 1. 包在树上、版本对
+npx tsc --noEmit                                             # 2. 类型零错误
+npx expo export --platform android                            # 3. Metro 真打包能过
 ```
 
 ## 许可证
