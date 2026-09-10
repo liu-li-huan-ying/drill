@@ -33,7 +33,7 @@
 
 ## 状态
 
-> 开发中，当前 **M1（数据管线 v1）+ UI 原型（v2.1）+ M2（最小闭环）+ M3（全量词库 v1）已完成**：
+> 开发中，当前 **M1（数据管线 v1）+ UI 原型（v2.1）+ M2（最小闭环）+ M3（全量词库 v1）+ M4（检索/详情/设置/导入/词汇量测试）+ M5（统计看板 + 备份导出导入）+ M6（词根词缀拆解 + 手写助记与检索）已完成**：
 > - M1：ECDICT → SQLite 管线跑通，产出 500 词样本 `assets/db/dictionary.db`
 > - UI：9 屏「朱批」安卓真机原型 [`docs/ui-prototype.html`](docs/ui-prototype.html)（360×752dp，1px=1dp，亮暗双套，刻度环 / 可翻转卡片 / 条长编码间隔）
 > - M2：Expo Router 路由 + 朱批设计令牌 + FSRS 调度 + 复习闭环（今日 → 复习 → 四档评分 → 写回 → 进度），含熟词校准、词库 / 统计 / 设置页骨架，全量 `tsc --noEmit` 通过
@@ -52,6 +52,8 @@
 > M3.2 已收尾：`links.tar.bz2`（149,551,113 字节，EN→ZH 配对）下全并重建 `examples` 表，8,779 行带中文译文已随 `dictionary.db`（`user_version=4`，22.0MB）进包；运行时经 `EXPECTED_DB_VERSION=4` 整库换库把中文例句带进 `drill.db`。例句当前在单词详情页展示；复习卡背面 / 词列表的例句微展示为后续可选项。
 > - **M5 统计看板（里程碑下一步）**：`stats.tsx` 从「今日新词 / 今日复习 / 已掌握」三项扩展为完整看板——连续打卡（按本地 04:00 分界连续有记录的天数）、学习总览（累计学习 / 词库总量）、近 7 日趋势（自绘条形，每日新词 + 复习）、留存率（基于 `review_logs` 四档评分，Good/Easy 计正确）、记忆状态分布（新词 / 学习中 / 复习中 / 重新学习 占比）。数据全来自本地库，纯 RN View 自绘、不引图表库。新增 `queries.ts`：`getStreak` / `getDailyHistory` / `getRetention` / `getStateDistribution` / `getLearningStats` + 日期偏移辅助 `shiftDateKey`。`tsc` 通过。
 > - **M5 备份导出 / 导入（已完成，待真机验证）**：新增 `app/backup.tsx` + `queries.ts` 的 `exportBackupData` / `restoreBackup`。导出 = 收集 cards/review_logs/daily_stats/user_notes/settings + 元信息（app/schema/version/exportedAt）→ JSON → `Paths.document.createFile` 写入文档目录 → `expo-sharing` 分享；导入 = `expo-document-picker` 选 JSON → `new File(uri).text()` 读 → 解析 → 合并本地（cards 按 `last_review_at` 取新、review_logs 追加、daily_stats 按日累加、user_notes 按 `updated_at` 取新、settings 覆盖），整批事务、失败回滚。设置页「工具」新增「备份与恢复」入口。依赖 `expo-file-system@57.0.6` / `expo-sharing@57.0.18` / `expo-document-picker@57.0.1`（见「依赖说明」）。⚠️ **SDK 57 的 expo-file-system v57 已移除旧版 `FileSystem.writeAsStringAsync` / `readAsStringAsync` / `documentDirectory` 扁平 API（运行时抛错），改用 `File` / `Paths` 新 API**——`Paths.document.createFile(name,'application/json')` 建句柄 + `file.write(json)` 写 + `file.uri` 分享 + `file.text()` 读。代码已按新 API 实现且 `tsc --noEmit` 通过。仍建议 Android 真机跑一次导出 / 导入确认原生行为。
+> - **M6 词根词缀 · 运行时规则拆解**：随包词库 `words.root_affix` 字段全为 NULL（30565 词无一有值），故词根词缀改由**纯规则在运行时拆**。新增 `src/lib/morphology.ts`（无 DB 依赖、可单测）：前缀表 / 后缀表 / 约 150 条拉丁希腊词根表 + `decompose(word, isKnown)`。策略**宁缺毋滥**——同一词枚举所有「前缀 × 后缀」组合，逐条打分取最高分（**词根命中 ≫ 普通单词命中**；拼写无改动、词缀更全、词干更长者更可信），低于阈值直接返回 null 不显示，避免给出错误拆解误导记忆。个别易假命中短词的后缀（如 `-ion`：million→mill、companion→pan）对词干另设更长门槛。全量 30565 词中 **10545 词（34.5%）可拆**；`-ion` 假朋友人工抽检 ≈2–3% 误报且均形态可读。`queries.ts` 加 `decomposeWord`（惰性构建全词集验证词干），`src/components/Morphology.tsx` 渲染「前缀 + 词干/词根 + 后缀」分段（词缀朱砂、词干主文本色，段下标注）。单词详情页原先恒为空的 `root_affix` 死展示块已**删除**，改用 `MorphologyView`。
+> - **M6 手写助记 · 编辑 + 检索**：`user_notes(word_id PK, mnemonic, note, updated_at)` 表落地为「我的助记」。详情页新增「我的助记」区——两条 `TextInput`（助记联想 / 补充备注），`onEndEditing` 即自动落库（`saveUserNote`，两栏皆空则删行，保持「有助记才有记录」），页内「已保存」轻提示。新增 `app/notes.tsx`「我的助记」检索页：`getNotes(q)` JOIN words 按 `updated_at` 倒序，支持按 **单词 / 助记 / 备注** 模糊检索，点行进详情继续编辑。设置页新增「学习记录」分组挂入口。`tsc --noEmit` 零错误、`npx expo export --platform android` 打包通过。
 >
 > 完整设计见 [docs/开发计划.md](docs/开发计划.md)、[docs/对抗式审查.md](docs/对抗式审查.md)、[docs/设计系统.md](docs/设计系统.md)。
 

@@ -3,6 +3,7 @@
 import { getDb } from './Database';
 import { dateKey } from '../lib/date';
 import { gradeCard, gradeNewCard, schedToDb, type DbCard } from '../srs/fsrs';
+import { decompose, type Morphology } from '../lib/morphology';
 import type { Grade } from 'ts-fsrs';
 
 export interface QueueItem {
@@ -685,4 +686,91 @@ export function getVocabTestSample(perBand = 3, bands = 12): {
     for (const r of picked) items.push({ ...rowToItem(r, true), band: i });
   }
   return { items, bandSizes };
+}
+
+// ── M6 · 词根词缀（运行时规则拆解）────────────────────────────────────────
+// 惰性构建一次「全部单词」集合，供拆解算法验证词干是否为随包词典里的真实单词。
+let _wordSet: Set<string> | null = null;
+function getWordSet(): Set<string> {
+  if (!_wordSet) {
+    _wordSet = new Set(
+      getDb()
+        .getAllSync<{ word: string }>('SELECT word FROM words')
+        .map((r) => r.word.toLowerCase())
+    );
+  }
+  return _wordSet;
+}
+
+// 把一个单词拆成 前缀/词干/词根/后缀；拆不出（或不可信）返回 null。
+export function decomposeWord(word: string): Morphology | null {
+  return decompose(word, (w) => getWordSet().has(w));
+}
+
+// ── M6 · 手写助记（读写 user_notes，word_id 为 PRIMARY KEY）─────────────
+export interface UserNote {
+  word_id: number;
+  mnemonic: string | null;
+  note: string | null;
+  updated_at: number | null;
+}
+
+export function getUserNote(wordId: number): UserNote | null {
+  return (
+    getDb().getFirstSync<UserNote>(
+      'SELECT word_id, mnemonic, note, updated_at FROM user_notes WHERE word_id = ?',
+      [wordId]
+    ) ?? null
+  );
+}
+
+// 保存助记 / 备注。两者皆空则删除该行，不留空记录（保持「有助记才有行」的语义）。
+export function saveUserNote(wordId: number, mnemonic: string, note: string): void {
+  const m = mnemonic.trim();
+  const n = note.trim();
+  if (!m && !n) {
+    getDb().runSync('DELETE FROM user_notes WHERE word_id = ?', [wordId]);
+    return;
+  }
+  getDb().runSync(
+    `INSERT INTO user_notes (word_id, mnemonic, note, updated_at) VALUES (?, ?, ?, ?)
+     ON CONFLICT(word_id) DO UPDATE SET
+       mnemonic = excluded.mnemonic, note = excluded.note, updated_at = excluded.updated_at`,
+    [wordId, m || null, n || null, Date.now()]
+  );
+}
+
+// 「我的助记」列表 / 检索：有关联词的助记记录。传 q 则按 单词 / 助记 / 备注 模糊匹配。
+export interface NoteRow {
+  word_id: number;
+  word: string;
+  phonetic_uk: string | null;
+  definition_zh: string | null;
+  mnemonic: string | null;
+  note: string | null;
+  updated_at: number | null;
+}
+
+export function getNotes(q = '', limit = 300): NoteRow[] {
+  const kw = q.trim().toLowerCase();
+  const base = `SELECT n.word_id, w.word, w.phonetic_uk, w.definition_zh,
+                       n.mnemonic, n.note, n.updated_at
+                FROM user_notes n JOIN words w ON w.id = n.word_id`;
+  if (!kw) {
+    return getDb().getAllSync<NoteRow>(`${base} ORDER BY n.updated_at DESC LIMIT ?`, [limit]);
+  }
+  const like = `%${kw}%`;
+  return getDb().getAllSync<NoteRow>(
+    `${base}
+     WHERE lower(w.word) LIKE ?
+        OR lower(COALESCE(n.mnemonic, '')) LIKE ?
+        OR lower(COALESCE(n.note, '')) LIKE ?
+     ORDER BY n.updated_at DESC LIMIT ?`,
+    [like, like, like, limit]
+  );
+}
+
+export function getNoteCount(): number {
+  const r = getDb().getFirstSync<{ c: number }>('SELECT COUNT(*) AS c FROM user_notes');
+  return r?.c ?? 0;
 }

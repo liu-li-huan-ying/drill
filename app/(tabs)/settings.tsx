@@ -131,6 +131,9 @@ export default function SettingsScreen() {
         </View>
       </View>
 
+      <Text style={[styles.group, { color: c.tx3 }]}>学 习 记 录</Text>
+      <Entry title="我的助记" sub="查看 / 检索所有手写助记与备注" onPress={() => router.push('/notes')} />
+
       <Text style={[styles.group, { color: c.tx3 }]}>工 具</Text>
       <Entry title="自定义词库导入" sub="粘贴单词，建专属词单" onPress={() => router.push('/import')} />
       <Entry title="词汇量测试" sub="估算你的词汇量并筛熟词" onPress={() => router.push('/vocabtest')} />

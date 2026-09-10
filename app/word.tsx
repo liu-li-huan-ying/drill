@@ -1,11 +1,21 @@
-// 单词详情：释义 / 词性 / 例句占位 / 词根词缀 / 考纲标签 + 标为已掌握。
+// 单词详情：释义 / 词性 / 例句 / 词根词缀（运行时拆解） / 手写助记 / 考纲标签 + 标为已掌握。
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '../src/theme/ThemeProvider';
 import { serif, FONT, mono } from '../src/theme/tokens';
-import { getWordDetail, markMastered, getExamples, type ExampleRow } from '../src/db/queries';
+import {
+  getWordDetail,
+  markMastered,
+  getExamples,
+  decomposeWord,
+  getUserNote,
+  saveUserNote,
+  type ExampleRow,
+} from '../src/db/queries';
+import type { Morphology } from '../src/lib/morphology';
 import { DefinitionView } from '../src/components/Definition';
+import { MorphologyView } from '../src/components/Morphology';
 import { speak } from '../src/lib/speak';
 
 // 考纲代号 → 中文展示名（与 build_dict.py 的 EXAM_LABELS 对应）。
@@ -23,12 +33,20 @@ export default function WordScreen() {
   const [detail, setDetail] = useState<ReturnType<typeof getWordDetail>>(null);
   const [mastered, setMastered] = useState(false);
   const [examples, setExamples] = useState<ExampleRow[]>([]);
+  const [morph, setMorph] = useState<Morphology | null>(null);
+  const [mnemonic, setMnemonic] = useState('');
+  const [note, setNote] = useState('');
+  const [noteSaved, setNoteSaved] = useState(false);
 
   useEffect(() => {
     const d = getWordDetail(wordId);
     setDetail(d);
     setMastered(d?.mastered ?? false);
     setExamples(getExamples(wordId));
+    setMorph(d ? decomposeWord(d.word) : null);
+    const un = getUserNote(wordId);
+    setMnemonic(un?.mnemonic ?? '');
+    setNote(un?.note ?? '');
   }, [wordId]);
 
   if (!detail) {
@@ -49,6 +67,13 @@ export default function WordScreen() {
     setMastered((m) => !m);
   };
 
+  // 编辑结束时落库；两栏皆空则删行（保持「有助记才有记录」）。
+  const persistNote = () => {
+    saveUserNote(detail.word_id, mnemonic, note);
+    setNoteSaved(true);
+    setTimeout(() => setNoteSaved(false), 1500);
+  };
+
   const examChips = (detail.exam_tags || '')
     .split(',')
     .map((s) => s.trim())
@@ -64,7 +89,7 @@ export default function WordScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.body}>
+      <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
         <View style={styles.wordRow}>
           <Text style={[styles.word, { color: c.tx1 }]}>{detail.word}</Text>
           <TouchableOpacity style={styles.sound} activeOpacity={0.6} onPress={() => speak(detail.word)}>
@@ -94,10 +119,15 @@ export default function WordScreen() {
           style={{ color: c.tx2, fontSize: 13, fontStyle: 'italic', lineHeight: 19 }}
         />
 
-        {detail.root_affix ? (
-          <View style={[styles.rootRow, { borderColor: c.bd }]}>
-            <View style={[styles.mk, { backgroundColor: c.ac }]} />
-            <Text style={[styles.root, { color: c.tx2 }]}>{detail.root_affix}</Text>
+        {morph ? (
+          <View style={{ marginTop: 22 }}>
+            <View style={styles.exHeader}>
+              <View style={[styles.mk, { backgroundColor: c.ac }]} />
+              <Text style={[styles.secTitle, { color: c.tx1 }]}>词 根 词 缀</Text>
+            </View>
+            <View style={[styles.morphBox, { borderColor: c.bd, backgroundColor: c.sf }]}>
+              <MorphologyView data={morph} />
+            </View>
           </View>
         ) : null}
 
@@ -115,7 +145,7 @@ export default function WordScreen() {
 
         <View style={styles.exHeader}>
           <View style={[styles.mk, { backgroundColor: c.ac }]} />
-          <Text style={[styles.exTitle, { color: c.tx1 }]}>例 句</Text>
+          <Text style={[styles.secTitle, { color: c.tx1 }]}>例 句</Text>
         </View>
         {examples.length > 0 ? (
           examples.map((ex, i) => (
@@ -129,6 +159,36 @@ export default function WordScreen() {
         ) : (
           <Text style={[styles.exEmpty, { color: c.tx3 }]}>暂无例句</Text>
         )}
+
+        <View style={[styles.exHeader, { justifyContent: 'space-between' }]}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <View style={[styles.mk, { backgroundColor: c.ac }]} />
+            <Text style={[styles.secTitle, { color: c.tx1 }]}>我 的 助 记</Text>
+          </View>
+          {noteSaved ? <Text style={[styles.savedTag, { color: c.ac }]}>已保存</Text> : null}
+        </View>
+        <TextInput
+          style={[styles.input, { color: c.tx1, borderColor: c.bd2, backgroundColor: c.sf }]}
+          placeholder="联想 / 谐音 / 拆词记忆点…"
+          placeholderTextColor={c.tx3}
+          value={mnemonic}
+          onChangeText={setMnemonic}
+          onEndEditing={persistNote}
+          multiline
+        />
+        <TextInput
+          style={[
+            styles.input,
+            styles.inputMulti,
+            { color: c.tx1, borderColor: c.bd2, backgroundColor: c.sf },
+          ]}
+          placeholder="补充备注（易混词、搭配、考点…）"
+          placeholderTextColor={c.tx3}
+          value={note}
+          onChangeText={setNote}
+          onEndEditing={persistNote}
+          multiline
+        />
 
         <View style={{ flex: 1 }} />
       </ScrollView>
@@ -181,20 +241,23 @@ const styles = StyleSheet.create({
   ipa: { fontFamily: mono, fontSize: FONT.ipa, marginTop: 12, letterSpacing: 0.8 },
   posChip: { alignSelf: 'flex-start', marginTop: 16, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
   posText: { fontSize: 11, letterSpacing: 1, fontWeight: '600', textTransform: 'uppercase' },
-  def: { fontSize: FONT.def, lineHeight: 25, marginTop: 18 },
-  defEn: { fontSize: 13, fontStyle: 'italic', lineHeight: 19, marginTop: 10 },
-  rootRow: { flexDirection: 'row', alignItems: 'center', marginTop: 18, paddingTop: 16, borderTopWidth: 1, gap: 8 },
   mk: { width: 7, height: 7, borderRadius: 1 },
-  root: { fontSize: 13, lineHeight: 20 },
+  morphBox: { marginTop: 14, padding: 16, borderRadius: 10, borderWidth: 1 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 18 },
   chip: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 },
   chipText: { fontSize: 12, letterSpacing: 0.5 },
   exHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 26 },
-  exTitle: { fontSize: 13, letterSpacing: 4, fontWeight: '600' },
+  secTitle: { fontSize: 13, letterSpacing: 4, fontWeight: '600' },
   exItem: { marginTop: 12, paddingLeft: 12, borderLeftWidth: 2 },
   exEn: { fontFamily: serif, fontStyle: 'italic', fontSize: FONT.quote, lineHeight: 20 },
   exZh: { fontSize: 13, lineHeight: 19, marginTop: 6 },
   exEmpty: { fontSize: 13, marginTop: 14, fontStyle: 'italic' },
+  savedTag: { fontSize: 12, letterSpacing: 1 },
+  input: {
+    marginTop: 12, minHeight: 44, borderRadius: 10, borderWidth: 1,
+    paddingHorizontal: 14, paddingVertical: 11, fontSize: 14.5, lineHeight: 21,
+  },
+  inputMulti: { minHeight: 72, textAlignVertical: 'top' },
   footer: { paddingHorizontal: 18, paddingBottom: 24, paddingTop: 12, borderTopWidth: 1 },
   masterBtn: { height: 50, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   masterText: { fontSize: 15, letterSpacing: 3, fontWeight: '600' },
