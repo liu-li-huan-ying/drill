@@ -39,8 +39,12 @@ body.ink{--bg:#131211;--sf:#1B1A18;--pg:#0D0C0B;--tx1:#F0EBE2;--tx2:#A69E93;--tx
 /* ══ 屏 ══ */
 .screens{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
 .screen{display:none;padding:0 24px 40px}
-.screen.on{display:block;animation:enter .28s cubic-bezier(.32,.72,.28,1)}
-@keyframes enter{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.screen.on{display:block;animation:enter .32s cubic-bezier(.32,.72,.28,1)}
+.screen.on.fwd{animation:enterF .34s cubic-bezier(.32,.72,.28,1)}
+.screen.on.back{animation:enterB .34s cubic-bezier(.32,.72,.28,1)}
+@keyframes enter{from{opacity:0}to{opacity:1}}
+@keyframes enterF{from{opacity:0;transform:translate3d(18px,0,0)}to{opacity:1;transform:none}}
+@keyframes enterB{from{opacity:0;transform:translate3d(-18px,0,0)}to{opacity:1;transform:none}}
 
 /* ══ 卡片 ══ */
 .card{background:var(--sf);border-radius:12px;padding:26px;margin-top:12px;box-shadow:var(--sh)}
@@ -132,19 +136,43 @@ body.v3 .fce{border:1px solid var(--bd)}
 .sw.on{background:var(--ac);justify-content:flex-end}
 .sw i{width:16px;height:16px;border-radius:8px;background:var(--sf);display:block}
 
+/* ══ 完成屏：收尾 · 成就感 ══ */
+.done{display:flex;flex-direction:column;align-items:center;padding:52px 0 8px;text-align:center}
+.sealbig{width:66px;height:66px;border-radius:7px;background:var(--ac);position:relative;margin-bottom:30px;box-shadow:var(--shs)}
+.sealbig::after{content:"";position:absolute;inset:15px;border:2px solid var(--bg);border-radius:2px}
+.done .t{font-size:23px;letter-spacing:5px}
+.done .d{font-size:13px;color:var(--tx3);margin-top:13px;letter-spacing:.5px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;margin:38px 0 30px}
+.grid3>div{background:var(--sf);border-radius:12px;padding:20px 6px;box-shadow:var(--sh)}
+body.v3 .grid3>div{border:1px solid var(--bd)}
+.grid3 .v{font-size:26px;line-height:1.1}
+.grid3 .k{font-size:10px;letter-spacing:1.6px;color:var(--tx3);margin-top:9px}
+.bt2{height:50px;width:100%;border:none;background:none;color:var(--tx3);font-size:13.5px;letter-spacing:2px;font-family:inherit}
+.bt2:active{opacity:.6}
+
+/* ══ 学习进度线 ══ */
+.prog{height:2px;background:var(--bd);border-radius:1px;margin-top:16px;overflow:hidden}
+.prog i{display:block;height:2px;background:var(--ac);border-radius:1px;transition:width .4s cubic-bezier(.32,.72,.28,1)}
+
 /* ══ 7 日柱 ══ */
-.bars{display:flex;align-items:flex-end;gap:8px;height:96px}
-.bars .b{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:9px;height:100%}
-.bars .b i{display:block;width:100%;background:var(--bd2);border-radius:2px}
+.bars{display:flex;align-items:flex-end;gap:9px;height:78px;border-bottom:1px solid var(--bd)}
+.bars .b{flex:1;display:flex;align-items:flex-end;justify-content:center;height:100%}
+.bars .b i{display:block;width:100%;max-width:24px;background:var(--bd2);border-radius:3px 3px 0 0;animation:grow .55s cubic-bezier(.32,.72,.28,1) both}
 .bars .b.today i{background:var(--ac)}
-.bars .b span{font-size:10px;color:var(--tx3);font-variant-numeric:tabular-nums}
+@keyframes grow{from{height:0}to{height:var(--h)}}
+.barlab{display:flex;gap:9px;margin-top:10px}
+.barlab span{flex:1;text-align:center;font-size:10px;color:var(--tx3);font-variant-numeric:tabular-nums}
 
 /* ══ tab bar ══ */
-.tabbar{flex:0 0 auto;display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--bd);background:var(--bg);padding:8px 0;padding-bottom:calc(8px + env(safe-area-inset-bottom))}
-.tabbar button{border:none;background:none;font-family:inherit;height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;color:var(--tx3);font-size:11.5px;letter-spacing:.8px;transition:color .18s ease}
-.tabbar button.on{color:var(--tx1);font-weight:500}
-.tabbar .mk{width:7px;height:7px;border-radius:1.5px;background:var(--bd2);transition:background .18s ease}
-.tabbar button.on .mk{background:var(--ac)}
+.tabbar{position:relative;z-index:6;flex:0 0 auto;display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--bd);background:var(--bg);padding:8px 0 0;padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+.tabbar::before{content:'';position:absolute;left:0;right:0;top:-22px;height:22px;background:linear-gradient(to top,var(--bg),rgba(0,0,0,0));pointer-events:none}
+.tabbar .rule{position:absolute;top:-1px;left:0;width:30px;height:4px;margin-left:-15px;opacity:0;transform:translate3d(var(--x,50px),0,0);transition:transform .38s cubic-bezier(.32,.72,.28,1),opacity .28s ease;pointer-events:none}
+.tabbar .rule.on{opacity:1}
+.tabbar button{border:none;background:none;font-family:inherit;height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;color:var(--tx3);font-size:11px;letter-spacing:1.1px;-webkit-tap-highlight-color:transparent;transition:color .26s ease}
+.tabbar button:active{opacity:.55}
+.tabbar button .ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;transition:color .26s ease,transform .34s cubic-bezier(.32,.72,.28,1)}
+.tabbar button.on{color:var(--tx1);letter-spacing:1.6px}
+.tabbar button.on .ic{color:var(--ac);transform:translateY(-1px) scale(1.06)}
 
 /* ══ 浮层 ══ */
 .sheet{position:absolute;inset:0;background:rgba(0,0,0,.36);display:none;align-items:flex-end;z-index:20}
@@ -179,22 +207,20 @@ body.v3 .fce{border:1px solid var(--bd)}
     <!-- 今日 -->
     <section class="screen on" id="s-home">
       <div class="ring">
-        <svg width="196" height="196" viewBox="0 0 196 196" aria-label="今日进度">
-          <circle cx="98" cy="98" r="82" fill="none" stroke="var(--bd)" stroke-width="1"/>
-          <circle cx="98" cy="98" r="62" fill="none" stroke="var(--bd)" stroke-width="1"/>
+        <svg width="196" height="196" viewBox="0 0 196 196" aria-label="今日进度 7 / 20 已完成">
           <g id="ringG"></g>
         </svg>
         <div class="ringc"><div class="n ser tnum">13</div><div class="lb zhs">今 日 待 学</div></div>
       </div>
 
       <div class="grid2">
-        <div class="stat"><div class="k zhs">新 词</div><div class="v ser tnum">13<small>词</small></div></div>
         <div class="stat"><div class="k zhs">复 习</div><div class="v ser tnum">24<small>词</small></div></div>
+        <div class="stat"><div class="k zhs">已 掌 握</div><div class="v ser tnum">213<small>词</small></div></div>
       </div>
 
       <div style="margin-top:34px">
         <button class="bt a" onclick="go('learn')">开 始 学 习</button>
-        <div class="sub">预计 18 分钟 · 含 20 题熟词校准</div>
+        <div class="sub">预计 18 分钟 · 今日 37 词</div>
       </div>
 
       <div style="margin-top:30px">
@@ -208,8 +234,12 @@ body.v3 .fce{border:1px solid var(--bd)}
       </div>
     </section>
 
-    <!-- 学习 -->
+    <!-- 学习：使命=专注处理当前这一个词 -->
     <section class="screen" id="s-learn">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span class="ul">复习 12 / 47</span><span class="ul">剩 35</span>
+      </div>
+      <div class="prog"><i style="width:26%"></i></div>
       <div class="flipwrap">
         <div class="flip" id="flip" onclick="doFlip()">
           <div class="fce">
@@ -248,6 +278,23 @@ body.v3 .fce{border:1px solid var(--bd)}
           </div>
         </div>
       </div>
+      <button class="bt2" onclick="go('done')">结 束 本 轮 · 看 今 日 成 果</button>
+    </section>
+
+    <!-- 完成：使命=收尾与成就感，不施压 -->
+    <section class="screen" id="s-done">
+      <div class="done">
+        <div class="sealbig"></div>
+        <div class="t ser">今 日 已 毕</div>
+        <div class="d">连续学习 12 天 · 比昨日多 6 词</div>
+        <div class="grid3">
+          <div><div class="v ser tnum">37</div><div class="k zhs">完 成</div></div>
+          <div><div class="v ser tnum">18</div><div class="k zhs">分 钟</div></div>
+          <div><div class="v ser tnum">87%</div><div class="k zhs">正 确 率</div></div>
+        </div>
+        <button class="bt o" onclick="go('stats')">看 看 坚 持 了 多 久</button>
+        <button class="bt2" onclick="go('home')">回 到 今 日</button>
+      </div>
     </section>
 
     <!-- 详情 -->
@@ -283,6 +330,7 @@ body.v3 .fce{border:1px solid var(--bd)}
         <div class="card">
           <div class="k zhs" style="font-size:10px;letter-spacing:1.6px;color:var(--tx3);font-weight:500;margin-bottom:16px">近 7 日</div>
           <div class="bars" id="bars"></div>
+          <div class="barlab" id="barlab"></div>
         </div>
       </div>
       <div style="margin-top:12px">
@@ -318,11 +366,12 @@ body.v3 .fce{border:1px solid var(--bd)}
   </div>
 
   <nav class="tabbar">
-    <button class="on" data-t="home" onclick="go('home',this)"><span class="mk"></span>今日</button>
-    <button data-t="learn" onclick="go('learn',this)"><span class="mk"></span>学习</button>
-    <button data-t="word" onclick="go('word',this)"><span class="mk"></span>详情</button>
-    <button data-t="stats" onclick="go('stats',this)"><span class="mk"></span>统计</button>
-    <button data-t="set" onclick="go('set',this)"><span class="mk"></span>设置</button>
+    <svg class="rule" id="rule" viewBox="0 0 30 4" aria-hidden="true"><path d="M2,2.7 C9,1.6 17,3 22,2 C25,1.5 27,2.1 28,1.9" stroke="var(--ac)" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>
+    <button class="on" data-t="home" onclick="go('home',this)"><svg class="ic" viewBox="0 0 24 24"><rect x="4.5" y="3.5" width="15" height="17" rx="2"/><path d="M8 8.5h8M8 12h8M8 15.5h5"/></svg><span class="lb">今日</span></button>
+    <button data-t="learn" onclick="go('learn',this)"><svg class="ic" viewBox="0 0 24 24"><rect x="3.6" y="6" width="12" height="12.5" rx="2"/><path d="M8.6 6V4.8A1.8 1.8 0 0 1 10.4 3h7.8A1.8 1.8 0 0 1 20 4.8v10.4a1.8 1.8 0 0 1-1.8 1.8h-1"/></svg><span class="lb">学习</span></button>
+    <button data-t="word" onclick="go('word',this)"><svg class="ic" viewBox="0 0 24 24"><circle cx="10.4" cy="10.4" r="6.2"/><path d="M15.1 15.1 20.4 20.4M7.9 10.4h5"/></svg><span class="lb">详情</span></button>
+    <button data-t="stats" onclick="go('stats',this)"><svg class="ic" viewBox="0 0 24 24"><path d="M4 20h16M7.5 20v-5.5M12 20v-9.5M16.5 20v-3"/></svg><span class="lb">统计</span></button>
+    <button data-t="set" onclick="go('set',this)"><svg class="ic" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9.6" cy="7" r="2.1"/><circle cx="14.8" cy="12" r="2.1"/><circle cx="8.6" cy="17" r="2.1"/></svg><span class="lb">设置</span></button>
   </nav>
 
   <div class="sheet" id="sheet" onclick="if(event.target===this)closeSheet()">
@@ -334,37 +383,60 @@ body.v3 .fce{border:1px solid var(--bd)}
 var THEME='paper', V3=true;
 
 function buildRing(){
-  var s='', cx=98, cy=98, r=72;
-  for(var i=0;i<20;i++){
-    var a=(i/20)*Math.PI*2-Math.PI/2;
-    var done=i<7;
-    var r1=done?r-7:r-4, r2=done?r+7:r+4;
-    var x1=cx+Math.cos(a)*r1, y1=cy+Math.sin(a)*r1;
-    var x2=cx+Math.cos(a)*r2, y2=cy+Math.sin(a)*r2;
-    s+='<line x1="'+x1.toFixed(1)+'" y1="'+y1.toFixed(1)+'" x2="'+x2.toFixed(1)+'" y2="'+y2.toFixed(1)+'" stroke="'+(done?'var(--ac)':'var(--bd2)')+'" stroke-width="'+(done?2.6:1.4)+'" stroke-linecap="round"/>';
+  var cx=98, cy=98, r=76, n=20, done=7, gap=2.8, seg=360/n, s='';
+  for(var i=0;i<n;i++){
+    var a1=i*seg+gap/2-90, a2=(i+1)*seg-gap/2-90;
+    var t1=a1*Math.PI/180, t2=a2*Math.PI/180;
+    var x1=(cx+r*Math.cos(t1)).toFixed(2), y1=(cy+r*Math.sin(t1)).toFixed(2);
+    var x2=(cx+r*Math.cos(t2)).toFixed(2), y2=(cy+r*Math.sin(t2)).toFixed(2);
+    s+='<path d="M'+x1+' '+y1+' A'+r+' '+r+' 0 0 1 '+x2+' '+y2+'" stroke="'+(i<done?'var(--ac)':'var(--bd)')+'" stroke-width="9" fill="none" stroke-linecap="butt"/>';
   }
   document.getElementById('ringG').innerHTML=s;
 }
 
 function buildBars(){
-  var d=[18,24,12,30,22,26,20], w=['一','二','三','四','五','六','日'], s='', max=Math.max.apply(null,d);
+  var d=[18,24,12,30,22,26,20], w=['一','二','三','四','五','六','日'], s='', lab='';
+  var max=Math.max.apply(null,d);
   for(var i=0;i<7;i++){
-    s+='<div class="b'+(i===6?' today':'')+'"><i style="height:'+Math.round(d[i]/max*62)+'px"></i><span>'+w[i]+'</span></div>';
+    var h=Math.max(4,Math.round(d[i]/max*74));
+    s+='<div class="b'+(i===6?' today':'')+'"><i style="--h:'+h+'px;height:'+h+'px"></i></div>';
+    lab+='<span>'+w[i]+'</span>';
   }
   document.getElementById('bars').innerHTML=s;
+  document.getElementById('barlab').innerHTML=lab;
 }
 
+var FLOW=['home','learn','done','word','stats','set'];
+function moveRule(btn,first){
+  var r=document.getElementById('rule');
+  if(!btn||!r) return;
+  if(first) r.style.transition='none';
+  r.classList.add('on');
+  r.style.setProperty('--x',(btn.offsetLeft+btn.offsetWidth/2)+'px');
+  if(first) setTimeout(function(){ r.style.transition=''; },40);
+}
 function go(id,btn){
+  var cur=document.querySelector('.screen.on');
+  var from=cur?cur.id.slice(2):'home';
   var ss=document.querySelectorAll('.screen');
-  for(var i=0;i<ss.length;i++) ss[i].classList.remove('on');
-  document.getElementById('s-'+id).classList.add('on');
+  for(var i=0;i<ss.length;i++) ss[i].classList.remove('on','fwd','back');
+  var el=document.getElementById('s-'+id);
+  var a=FLOW.indexOf(from), b=FLOW.indexOf(id);
+  if(a>-1&&b>-1&&a!==b) el.classList.add(b>a?'fwd':'back');
+  el.classList.add('on');
+  if(!btn) btn=document.querySelector('.tabbar button[data-t="'+id+'"]');
   if(btn){
     var bs=document.querySelectorAll('.tabbar button');
     for(var j=0;j<bs.length;j++) bs[j].classList.remove('on');
     btn.classList.add('on');
+    moveRule(btn);
   }
   document.querySelector('.screens').scrollTop=0;
 }
+window.addEventListener('resize',function(){
+  var b=document.querySelector('.tabbar button.on');
+  if(b) moveRule(b,true);
+});
 
 function doFlip(){
   document.getElementById('flip').classList.toggle('d');
@@ -410,6 +482,14 @@ var PANELS={
     +'<div class="pr"><div class="t">尺度 <em>SCALE</em></div><div class="d">圆角六档、间距 4dp 网格、控件高度四档、动效四档，全走 token。</div><div class="j">审查实证：<b>改造前圆角 10 种取值、按钮高度 8 种，每个文件各写各的。</b></div></div>'
     +'<div class="pr"><div class="t">动效 <em>MOTION</em></div><div class="d">纸的物理性——慢而稳、有阻尼、无回弹。翻转 500ms。</div><div class="j">判据：<b>不做弹跳（spring），纸不会弹。</b></div></div>'
     +'<div class="pr"><div class="t">明暗对偶 <em>PAPER / INK</em></div><div class="d">亮色走竹简宣纸，暗色切换到碑刻拓片——不是把暖黄搬进暗色。</div><div class="j">判据：<b>共用同一组令牌名，切换的是意象不是结构。</b></div></div></div>'
+    +'<div class="blk"><div class="k zhs">屏 幕 使 命 · 一 屏 一 事</div>'
+    +'<div class="lead" style="margin:0 0 14px">故事流程：今日（承诺）→ 学习（专注）→ 完成（收尾）→ 统计（反馈）→ 明日回到今日。详情是插曲：学到一半想深究就进，看完回到学习。</div>'
+    +'<div class="pr"><div class="t">今日 <em>COMMIT</em></div><div class="d">让用户对今天做出承诺。</div><div class="j">唯一重点：<b>还剩多少 + 要多久</b>。不该出现：历史、详细数据。</div></div>'
+    +'<div class="pr"><div class="t">学习 <em>FOCUS</em></div><div class="d">专注处理当前这一个词。</div><div class="j">唯一重点：<b>当前词</b>。不该出现：导航、其他词、进度干扰。</div></div>'
+    +'<div class="pr"><div class="t">完成 <em>CLOSURE</em></div><div class="d">收尾，给成就感。</div><div class="j">唯一重点：<b>今日已毕</b>。不该出现：继续施压。</div></div>'
+    +'<div class="pr"><div class="t">详情 <em>DEPTH</em></div><div class="d">深究一个词。</div><div class="j">唯一重点：<b>完整条目</b>。不该出现：学习压力。</div></div>'
+    +'<div class="pr"><div class="t">统计 <em>FEEDBACK</em></div><div class="d">反馈坚持与趋势。</div><div class="j">唯一重点：<b>连续天数</b>。不该出现：行动召唤。</div></div>'
+    +'<div class="pr"><div class="t">设置 <em>CONTROL</em></div><div class="d">调整参数。</div><div class="j">唯一重点：<b>学习参数</b>。不该出现：内容。</div></div></div>'
     +'<div class="blk"><div class="k zhs">底 线</div>'
     +'<div class="pr"><div class="t">宽容 + 可达</div><div class="d">评分可撤销，主行动落在下半屏单手可达区。</div><div class="j">判据：<b>美观不得挤掉这两条。</b></div></div></div>'
     +'<button class="close" onclick="closeSheet()">关 闭</button>'
@@ -419,6 +499,7 @@ function closeSheet(){ document.getElementById('sheet').classList.remove('on'); 
 
 buildRing();
 buildBars();
+moveRule(document.querySelector('.tabbar button.on'),true);
 
 (function(){
   var h=location.hash.slice(1);
