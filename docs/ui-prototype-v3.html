@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#FBF9F5">
+<title>背呗 · 朱批</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:#0E0D0C;font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased;color:#1B1917}
+
+/* ══ 令牌 ══ 亮=纸(宣纸) · 暗=墨(碑拓) ══
+   朱砂取沉稳的印泥红而非亮橙红；纸白偏暖；暗色朱砂提亮但仍压住饱和度 */
+/* 纸的层次：背景比纸面略深一点，卡片是「压在纸上的另一张纸」——靠层次与极短阴影，不靠粗边框 */
+body.paper{--bg:#F7F4ED;--sf:#FDFCFA;--pg:#EFEBE3;--tx1:#171512;--tx2:#6E675E;--tx3:#A29A8E;--tx4:#C8C0B4;--bd:#E9E3D8;--bd2:#DAD3C5;--ac:#A8382A;--acsf:#F8EEEA;--acon:#FFFFFF;--b1:#F8EEEA;--b1t:#A8382A;--b2:#F2EFE7;--b3:#F4F3ED;--b4:#EBEEE5;
+  --sh:0 1px 3px rgba(23,21,18,.05),0 2px 8px rgba(23,21,18,.035);--shs:0 1px 2px rgba(23,21,18,.04)}
+body.ink{--bg:#131211;--sf:#1B1A18;--pg:#0D0C0B;--tx1:#F0EBE2;--tx2:#A69E93;--tx3:#736C62;--tx4:#4E4941;--bd:#2A2722;--bd2:#494337;--ac:#D0684F;--acsf:#2D201B;--acon:#131211;--b1:#2D201B;--b1t:#D0684F;--b2:#252320;--b3:#232522;--b4:#212420;
+  --sh:none;--shs:none}
+body.ink{--bg:#131211;--sf:#1B1A18;--pg:#0D0C0B;--tx1:#F0EBE2;--tx2:#A69E93;--tx3:#736C62;--tx4:#4E4941;--bd:#2A2722;--bd2:#494337;--ac:#D0684F;--acsf:#2D201B;--acon:#131211;--b1:#2D201B;--b1t:#D0684F;--b2:#252320;--b3:#232522;--b4:#212420;
+  --sh:none;--shs:none}
+
+.app{width:100%;max-width:430px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;background:var(--bg);position:relative;overflow:hidden}
+
+.ser{font-family:"Iowan Old Style","Palatino Linotype",Georgia,"Times New Roman","Noto Serif","Source Han Serif SC","Songti SC",SimSun,serif}
+.tnum{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+.ul{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--tx3);font-weight:500}
+.zhs{letter-spacing:2.2px}
+
+/* ══ 顶栏 ══ */
+.top{flex:0 0 auto;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 12px 0 24px;background:var(--bg);padding-top:env(safe-area-inset-top)}
+.brand{display:flex;align-items:center;gap:9px}
+.brand .seal{width:16px;height:16px;border-radius:2px;background:var(--ac);position:relative}
+.brand .seal::after{content:"";position:absolute;inset:3.5px;border:1px solid var(--bg);border-radius:1px}
+.brand .nm{font-size:16.5px;letter-spacing:2px;color:var(--tx1)}
+.iconbtn{width:44px;height:44px;border:none;background:none;display:flex;align-items:center;justify-content:center;color:var(--tx2)}
+.iconbtn:active{opacity:.5}
+
+/* ══ 屏 ══ */
+.screens{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.screen{display:none;padding:0 24px 40px}
+.screen.on{display:block;animation:enter .28s cubic-bezier(.32,.72,.28,1)}
+@keyframes enter{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ══ 卡片 ══ */
+.card{background:var(--sf);border-radius:12px;padding:26px;margin-top:12px;box-shadow:var(--sh)}
+body.v3 .card{border:1px solid var(--bd);padding:34px 26px 24px}
+
+/* 界行（竹片缝） */
+body.v3 .sense{position:relative;padding-left:16px}
+body.v3 .sense::before{content:"";position:absolute;left:0;top:3px;bottom:3px;width:1px;background:var(--bd)}
+
+/* ══ 刻度环 ══ */
+.ring{position:relative;width:196px;height:196px;margin:30px auto 6px}
+.ring svg{display:block}
+.ringc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ringc .n{font-size:58px;line-height:1;letter-spacing:-1.2px;margin-bottom:12px}
+.ringc .lb{font-size:10px;letter-spacing:2.6px;color:var(--tx3);font-weight:500}
+
+/* ══ 双列数据 ══ */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:26px}
+.stat{background:var(--sf);border-radius:12px;padding:22px 20px 20px;box-shadow:var(--sh)}
+body.v3 .stat{border:1px solid var(--bd);padding:30px 20px 20px}
+.stat .k{font-size:10px;letter-spacing:2px;color:var(--tx3);font-weight:500}
+.stat .v{font-size:31px;line-height:1.15;margin-top:12px;letter-spacing:-.3px}
+.stat .v small{font-size:12px;color:var(--tx3);letter-spacing:0;margin-left:3px;font-family:inherit}
+
+/* ══ 按钮 ══ */
+.bt{display:flex;align-items:center;justify-content:center;height:54px;border-radius:10px;font-size:15px;font-weight:500;letter-spacing:3px;border:none;font-family:inherit;width:100%;transition:transform .12s ease,opacity .12s ease}
+.bt.a{background:var(--ac);color:var(--acon)}
+.bt.o{background:var(--sf);border:1px solid var(--bd2);color:var(--tx1)}
+.bt:active{transform:scale(.985);opacity:.9}
+.sub{font-size:12.5px;color:var(--tx3);text-align:center;margin-top:13px;letter-spacing:.2px}
+
+/* ══ 复习卡 ══ */
+.flipwrap{position:relative;margin-top:14px;height:500px}
+.flip{position:absolute;inset:0;transform-style:preserve-3d;transform:perspective(1600px) rotateY(0deg);transition:transform .5s cubic-bezier(.32,.72,.28,1)}
+.flip.d{transform:perspective(1600px) rotateY(180deg)}
+.fce{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--sf);border-radius:12px;display:flex;flex-direction:column;padding:28px 26px;overflow:hidden;box-shadow:var(--sh)}
+body.v3 .fce{border:1px solid var(--bd)}
+.fce.b{transform:rotateY(180deg)}
+
+.fce .hd{display:flex;align-items:center;justify-content:space-between}
+.fce .ct{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:16px 0}
+.fce .ct .w{font-size:48px;line-height:1.15;letter-spacing:-.6px;text-align:center}
+.fce .ct .ipa{font-family:"SF Mono",Consolas,monospace;font-size:12.5px;color:var(--tx3);letter-spacing:1.2px;margin-top:18px}
+.soundbtn{width:46px;height:46px;border-radius:23px;border:1px solid var(--bd2);background:var(--bg);display:flex;align-items:center;justify-content:center;margin-top:26px}
+.soundbtn:active{opacity:.6}
+.fce .hint{font-size:12px;color:var(--tx4);text-align:center;letter-spacing:1px;padding-bottom:4px}
+
+/* 朱笔痕迹：不是色块，是有起收笔的笔触（批注的「批」） */
+.stroke{display:block;width:100%;height:9px;margin-top:6px}
+/* 竖排眉批：古籍的批注位（英文仍横排，中文眉批竖排不影响阅读） */
+.mei{position:absolute;top:24px;right:24px;writing-mode:vertical-rl;font-size:11px;letter-spacing:3.5px;color:var(--ac);font-family:"Iowan Old Style",Georgia,"Songti SC",SimSun,serif;opacity:.9}
+
+.fce.b .w2{font-size:25px;letter-spacing:-.2px}
+.fce .sec{margin-top:22px}
+.fce .sec>.k{font-size:10px;letter-spacing:1.6px;color:var(--tx3);font-weight:500;margin-bottom:12px}
+.def{padding:7px 0;font-size:15.5px;line-height:1.72;color:var(--tx1);font-family:"Iowan Old Style",Georgia,"Source Han Serif SC","Noto Serif CJK SC","Songti SC",SimSun,serif}
+.def .pos{font-size:9.5px;letter-spacing:1.4px;color:var(--ac);margin-right:9px;text-transform:uppercase;font-weight:500}
+.quote{font-size:14px;font-style:italic;color:var(--tx2);line-height:1.72;font-family:"Iowan Old Style",Georgia,serif}
+.quote .zh{font-style:normal;font-family:-apple-system,"PingFang SC",sans-serif;font-size:12.5px;color:var(--tx3);display:block;margin-top:8px;letter-spacing:.3px}
+
+.hair{height:1px;background:var(--bd);margin:20px 0}
+
+/* ══ 评分：条长即间隔 ══ */
+.rt{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:20px}
+.rb{position:relative;height:64px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:11px;border:none;font-family:inherit;transition:transform .12s ease}
+.rb:active{transform:scale(.96)}
+.rb .bar{position:absolute;left:50%;transform:translateX(-50%);top:14px;height:2px;border-radius:1px}
+.rb .n{font-size:13.5px;font-weight:500;letter-spacing:.5px}
+.rb .i{font-size:10.5px;margin-top:4px;color:var(--tx2);letter-spacing:.2px}
+.rb.r1{background:var(--b1)}.rb.r1 .n,.rb.r1 .bar{color:var(--b1t);background:transparent}
+.rb.r1 .bar{background:var(--b1t)}
+.rb.r2{background:var(--b2)}.rb.r2 .n{color:var(--tx1)}.rb.r2 .bar{background:var(--tx4)}
+.rb.r3{background:var(--b3)}.rb.r3 .n{color:var(--tx1)}.rb.r3 .bar{background:var(--tx3)}
+.rb.r4{background:var(--b4)}.rb.r4 .n{color:var(--tx1)}.rb.r4 .bar{background:var(--tx2)}
+
+.undo{display:none;margin-top:11px;height:46px;background:var(--acsf);border-radius:10px;align-items:center;justify-content:space-between;padding:0 6px 0 16px;font-size:13px;color:var(--tx2)}
+.undo.on{display:flex;animation:enter .22s ease}
+.undo button{border:none;background:none;color:var(--ac);font-family:inherit;font-size:13px;font-weight:500;height:44px;padding:0 12px;letter-spacing:.5px}
+
+/* ══ 列表 ══ */
+.row{display:flex;align-items:center;gap:14px;min-height:58px}
+.row .n{flex:1;font-size:15px;color:var(--tx1)}
+.row .v{font-size:12.5px;color:var(--tx3);font-variant-numeric:tabular-nums}
+.row+.row{border-top:1px solid var(--bd)}
+.chev{width:7px;height:7px;border-top:1px solid var(--tx4);border-right:1px solid var(--tx4);transform:rotate(45deg);opacity:.8}
+.chip{display:inline-block;padding:5px 11px;border-radius:6px;background:var(--acsf);color:var(--ac);font-size:10px;letter-spacing:1.4px;font-weight:500;margin:0 6px 6px 0}
+
+.sw{width:38px;height:22px;border-radius:11px;background:var(--bd2);display:inline-flex;align-items:center;padding:0 3px;justify-content:flex-start;flex:0 0 auto;transition:background .2s ease}
+.sw.on{background:var(--ac);justify-content:flex-end}
+.sw i{width:16px;height:16px;border-radius:8px;background:var(--sf);display:block}
+
+/* ══ 7 日柱 ══ */
+.bars{display:flex;align-items:flex-end;gap:8px;height:96px}
+.bars .b{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:9px;height:100%}
+.bars .b i{display:block;width:100%;background:var(--bd2);border-radius:2px}
+.bars .b.today i{background:var(--ac)}
+.bars .b span{font-size:10px;color:var(--tx3);font-variant-numeric:tabular-nums}
+
+/* ══ tab bar ══ */
+.tabbar{flex:0 0 auto;display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--bd);background:var(--bg);padding:8px 0;padding-bottom:calc(8px + env(safe-area-inset-bottom))}
+.tabbar button{border:none;background:none;font-family:inherit;height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;color:var(--tx3);font-size:11.5px;letter-spacing:.8px;transition:color .18s ease}
+.tabbar button.on{color:var(--tx1);font-weight:500}
+.tabbar .mk{width:7px;height:7px;border-radius:1.5px;background:var(--bd2);transition:background .18s ease}
+.tabbar button.on .mk{background:var(--ac)}
+
+/* ══ 浮层 ══ */
+.sheet{position:absolute;inset:0;background:rgba(0,0,0,.36);display:none;align-items:flex-end;z-index:20}
+.sheet.on{display:flex}
+.panel{background:var(--bg);width:100%;max-height:86%;overflow-y:auto;border-radius:14px 14px 0 0;padding:26px 24px calc(30px + env(safe-area-inset-bottom))}
+.panel h3{font-size:17px;font-weight:500;letter-spacing:.3px}
+.panel .lead{font-size:12.5px;color:var(--tx3);line-height:1.8;margin-top:8px}
+.panel .blk{margin-top:24px}
+.panel .blk>.k{font-size:10px;letter-spacing:1.6px;color:var(--tx3);font-weight:500;margin-bottom:12px}
+.pr{padding-left:15px;border-left:1px solid var(--bd);margin-bottom:18px}
+.pr.on{border-left-color:var(--ac)}
+.pr .t{font-size:14px;font-weight:500}
+.pr .t em{font-style:normal;color:var(--ac);font-size:9.5px;letter-spacing:1.2px;margin-left:9px}
+.pr .d{font-size:12.5px;color:var(--tx2);line-height:1.72;margin-top:6px}
+.pr .j{font-size:12px;color:var(--tx3);line-height:1.68;margin-top:7px}
+.pr .j b{color:var(--tx2);font-weight:500}
+.close{width:100%;height:52px;border-radius:10px;border:1px solid var(--bd2);background:var(--sf);color:var(--tx1);font-family:inherit;font-size:14px;letter-spacing:2px;margin-top:10px}
+</style>
+</head>
+<body class="paper v3">
+
+<div class="app">
+  <div class="top">
+    <div class="brand"><span class="seal"></span><span class="nm ser">背呗</span></div>
+    <button class="iconbtn" onclick="openSheet('ctl')" aria-label="原型控制台">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="4" r="1.1" fill="currentColor" stroke="none"/><circle cx="9" cy="9" r="1.1" fill="currentColor" stroke="none"/><circle cx="9" cy="14" r="1.1" fill="currentColor" stroke="none"/></svg>
+    </button>
+  </div>
+
+  <div class="screens">
+
+    <!-- 今日 -->
+    <section class="screen on" id="s-home">
+      <div class="ring">
+        <svg width="196" height="196" viewBox="0 0 196 196" aria-label="今日进度">
+          <circle cx="98" cy="98" r="82" fill="none" stroke="var(--bd)" stroke-width="1"/>
+          <circle cx="98" cy="98" r="62" fill="none" stroke="var(--bd)" stroke-width="1"/>
+          <g id="ringG"></g>
+        </svg>
+        <div class="ringc"><div class="n ser tnum">13</div><div class="lb zhs">今 日 待 学</div></div>
+      </div>
+
+      <div class="grid2">
+        <div class="stat"><div class="k zhs">新 词</div><div class="v ser tnum">13<small>词</small></div></div>
+        <div class="stat"><div class="k zhs">复 习</div><div class="v ser tnum">24<small>词</small></div></div>
+      </div>
+
+      <div style="margin-top:34px">
+        <button class="bt a" onclick="go('learn')">开 始 学 习</button>
+        <div class="sub">预计 18 分钟 · 含 20 题熟词校准</div>
+      </div>
+
+      <div style="margin-top:30px">
+        <div class="card">
+          <div class="row" style="min-height:48px">
+            <span class="n">熟词校准</span>
+            <span class="v">已校准 486 词</span>
+            <span class="chev"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 学习 -->
+    <section class="screen" id="s-learn">
+      <div class="flipwrap">
+        <div class="flip" id="flip" onclick="doFlip()">
+          <div class="fce">
+            <div class="hd"><span class="ul">复习 12 / 47</span><span class="ul">ephemeral</span></div>
+            <div class="mei">易 忘</div>
+            <div class="ct">
+              <div class="w ser">ephemeral</div>
+              <svg class="stroke" viewBox="0 0 200 9" preserveAspectRatio="none" aria-hidden="true"><path d="M3,6 C42,2.8 82,7.2 122,4.6 C156,2.4 180,5.8 197,3.8" stroke="var(--ac)" fill="none" stroke-width="3" stroke-linecap="round" opacity=".8"/></svg>
+              <div class="ipa">/ɪˈfemərəl/</div>
+              <div class="soundbtn" onclick="event.stopPropagation()">
+                <svg width="17" height="17" viewBox="0 0 17 17" fill="none" stroke="var(--tx2)" stroke-width="1.5" stroke-linecap="round"><path d="M8.5 2.5v12M4.5 5.5v6M12.5 5.5v6M2 7v3M15 7v3"/></svg>
+              </div>
+            </div>
+            <div class="hint">轻触卡片 · 查看释义</div>
+          </div>
+          <div class="fce b">
+            <div class="hd"><span class="ul">复习 12 / 47</span></div>
+            <div class="w2 ser" style="font-size:25px;margin-top:20px">ephemeral</div>
+            <div class="hair"></div>
+            <div class="sec" style="margin-top:0">
+              <div class="k zhs">释 义</div>
+              <div class="sense def"><span class="pos">adj.</span>短暂的；朝生暮死的</div>
+              <div class="sense def"><span class="pos">n.</span>生命极短暂之物</div>
+            </div>
+            <div class="sec">
+              <div class="k zhs">例 句</div>
+              <div class="quote">Fame in this world is ephemeral.<span class="zh">尘世的名声转瞬即逝。</span></div>
+            </div>
+            <div class="rt">
+              <button class="rb r1" onclick="rate(event,0)"><i class="bar" style="width:14px"></i><span class="n">重来</span><span class="i">10 分钟</span></button>
+              <button class="rb r2" onclick="rate(event,1)"><i class="bar" style="width:26px"></i><span class="n">困难</span><span class="i">1 天</span></button>
+              <button class="rb r3" onclick="rate(event,2)"><i class="bar" style="width:42px"></i><span class="n">良好</span><span class="i">4 天</span></button>
+              <button class="rb r4" onclick="rate(event,3)"><i class="bar" style="width:66px"></i><span class="n">简单</span><span class="i">12 天</span></button>
+            </div>
+            <div class="undo" id="undo"><span>已记录 · 4 天</span><button onclick="undo(event)">撤销</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 详情 -->
+    <section class="screen" id="s-word">
+      <div class="card">
+        <div class="ser" style="font-size:34px;letter-spacing:-.3px">ephemeral</div>
+        <svg viewBox="0 0 200 9" preserveAspectRatio="none" aria-hidden="true" style="display:block;width:168px;height:9px"><path d="M3,6 C42,2.8 82,7.2 122,4.6 C156,2.4 180,5.8 197,3.8" stroke="var(--ac)" fill="none" stroke-width="3" stroke-linecap="round" opacity=".8"/></svg>
+        <div style="font-family:'SF Mono',Consolas,monospace;font-size:12.5px;color:var(--tx3);letter-spacing:1.2px;margin-top:16px">/ɪˈfemərəl/</div>
+        <div class="hair"></div>
+        <div style="margin-top:2px">
+          <div class="k zhs" style="font-size:10px;letter-spacing:1.6px;color:var(--tx3);font-weight:500;margin-bottom:12px">释 义</div>
+          <div class="sense def"><span class="pos">adj.</span>短暂的；朝生暮死的</div>
+          <div class="sense def"><span class="pos">n.</span>生命极短暂之物</div>
+        </div>
+        <div class="hair"></div>
+        <div class="k zhs" style="font-size:10px;letter-spacing:1.6px;color:var(--tx3);font-weight:500;margin-bottom:12px">例 句</div>
+        <div class="quote">Fame in this world is ephemeral.<span class="zh">尘世的名声转瞬即逝。</span></div>
+        <div class="hair"></div>
+        <div class="k zhs" style="font-size:10px;letter-spacing:1.6px;color:var(--tx3);font-weight:500;margin-bottom:12px">词 根 词 缀</div>
+        <div><span class="chip">epi- 在…之上</span><span class="chip">hemer 日</span><span class="chip">-al 形容词</span></div>
+      </div>
+      <div style="margin-top:16px"><button class="bt o">标 为 已 掌 握</button></div>
+    </section>
+
+    <!-- 统计 -->
+    <section class="screen" id="s-stats">
+      <div class="stat" style="margin-top:12px"><div class="k zhs">连 续 学 习</div><div class="v ser tnum" style="font-size:34px">12<small>天</small></div></div>
+      <div class="grid2">
+        <div class="stat"><div class="k zhs">累 计 学 习</div><div class="v ser tnum">486<small>词</small></div></div>
+        <div class="stat"><div class="k zhs">已 掌 握</div><div class="v ser tnum">213<small>词</small></div></div>
+      </div>
+      <div style="margin-top:22px">
+        <div class="card">
+          <div class="k zhs" style="font-size:10px;letter-spacing:1.6px;color:var(--tx3);font-weight:500;margin-bottom:16px">近 7 日</div>
+          <div class="bars" id="bars"></div>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <div class="card">
+          <div class="row" style="min-height:48px">
+            <span class="n">正确率 · Good / Easy</span>
+            <span class="v ser" style="font-size:17px;color:var(--tx1)">87%</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 设置 -->
+    <section class="screen" id="s-set">
+      <div class="card" style="margin-top:12px">
+        <div class="k zhs" style="font-size:10px;letter-spacing:1.6px;color:var(--tx3);font-weight:500;margin-bottom:12px">外 观</div>
+        <div class="row" style="min-height:52px"><span class="n">纸 / 墨</span><span class="sw on" id="swT" onclick="toggleTheme()"><i></i></span></div>
+        <div class="row" style="min-height:52px"><span class="n">古风版式</span><span class="sw on" id="swV" onclick="toggleV3()"><i></i></span></div>
+      </div>
+      <div class="card">
+        <div class="k zhs" style="font-size:10px;letter-spacing:1.6px;color:var(--tx3);font-weight:500;margin-bottom:12px">学 习</div>
+        <div class="row" style="min-height:52px"><span class="n">每日新词</span><span class="v">20</span><span class="chev"></span></div>
+        <div class="row" style="min-height:52px"><span class="n">每日复习上限</span><span class="v">200</span><span class="chev"></span></div>
+        <div class="row" style="min-height:52px"><span class="n">自动发音</span><span class="sw"><i></i></span></div>
+      </div>
+      <div class="card">
+        <div class="k zhs" style="font-size:10px;letter-spacing:1.6px;color:var(--tx3);font-weight:500;margin-bottom:12px">数 据</div>
+        <div class="row" style="min-height:52px"><span class="n">备份与恢复</span><span class="v">JSON</span><span class="chev"></span></div>
+        <div class="row" style="min-height:52px"><span class="n">我的助记</span><span class="v">18 条</span><span class="chev"></span></div>
+      </div>
+      <div style="margin-top:16px"><button class="bt o" onclick="openSheet('sys')">设 计 体 系</button></div>
+    </section>
+  </div>
+
+  <nav class="tabbar">
+    <button class="on" data-t="home" onclick="go('home',this)"><span class="mk"></span>今日</button>
+    <button data-t="learn" onclick="go('learn',this)"><span class="mk"></span>学习</button>
+    <button data-t="word" onclick="go('word',this)"><span class="mk"></span>详情</button>
+    <button data-t="stats" onclick="go('stats',this)"><span class="mk"></span>统计</button>
+    <button data-t="set" onclick="go('set',this)"><span class="mk"></span>设置</button>
+  </nav>
+
+  <div class="sheet" id="sheet" onclick="if(event.target===this)closeSheet()">
+    <div class="panel" id="panel"></div>
+  </div>
+</div>
+
+<script>
+var THEME='paper', V3=true;
+
+function buildRing(){
+  var s='', cx=98, cy=98, r=72;
+  for(var i=0;i<20;i++){
+    var a=(i/20)*Math.PI*2-Math.PI/2;
+    var done=i<7;
+    var r1=done?r-7:r-4, r2=done?r+7:r+4;
+    var x1=cx+Math.cos(a)*r1, y1=cy+Math.sin(a)*r1;
+    var x2=cx+Math.cos(a)*r2, y2=cy+Math.sin(a)*r2;
+    s+='<line x1="'+x1.toFixed(1)+'" y1="'+y1.toFixed(1)+'" x2="'+x2.toFixed(1)+'" y2="'+y2.toFixed(1)+'" stroke="'+(done?'var(--ac)':'var(--bd2)')+'" stroke-width="'+(done?2.6:1.4)+'" stroke-linecap="round"/>';
+  }
+  document.getElementById('ringG').innerHTML=s;
+}
+
+function buildBars(){
+  var d=[18,24,12,30,22,26,20], w=['一','二','三','四','五','六','日'], s='', max=Math.max.apply(null,d);
+  for(var i=0;i<7;i++){
+    s+='<div class="b'+(i===6?' today':'')+'"><i style="height:'+Math.round(d[i]/max*62)+'px"></i><span>'+w[i]+'</span></div>';
+  }
+  document.getElementById('bars').innerHTML=s;
+}
+
+function go(id,btn){
+  var ss=document.querySelectorAll('.screen');
+  for(var i=0;i<ss.length;i++) ss[i].classList.remove('on');
+  document.getElementById('s-'+id).classList.add('on');
+  if(btn){
+    var bs=document.querySelectorAll('.tabbar button');
+    for(var j=0;j<bs.length;j++) bs[j].classList.remove('on');
+    btn.classList.add('on');
+  }
+  document.querySelector('.screens').scrollTop=0;
+}
+
+function doFlip(){
+  document.getElementById('flip').classList.toggle('d');
+  document.getElementById('undo').classList.remove('on');
+}
+function rate(ev,i){
+  ev.stopPropagation();
+  var lb=['10 分钟','1 天','4 天','12 天'];
+  var u=document.getElementById('undo');
+  u.querySelector('span').textContent='已记录 · '+lb[i];
+  u.classList.add('on');
+}
+function undo(ev){ if(ev) ev.stopPropagation(); document.getElementById('undo').classList.remove('on'); }
+
+function toggleTheme(){
+  THEME = THEME==='paper' ? 'ink' : 'paper';
+  document.body.classList.remove('paper','ink');
+  document.body.classList.add(THEME);
+  document.getElementById('swT').classList.toggle('on', THEME==='paper');
+  var m=document.querySelector('meta[name=theme-color]');
+  if(m) m.setAttribute('content', THEME==='paper' ? '#FBF9F5' : '#131211');
+  buildRing();
+}
+function toggleV3(){
+  V3=!V3;
+  document.body.classList.toggle('v3',V3);
+  document.getElementById('swV').classList.toggle('on',V3);
+}
+
+var PANELS={
+  ctl:'<h3 class="ser">原型控制台</h3><div class="lead">原型专用。正式版不出现这些开关。</div>'
+    +'<div class="blk"><div class="k zhs">外 观</div>'
+    +'<div class="row" style="min-height:52px"><span class="n">纸 / 墨（亮暗对偶）</span><span class="sw '+(THEME==='paper'?'on':'')+'" onclick="toggleTheme();openSheet(\'ctl\')"><i></i></span></div>'
+    +'<div class="row" style="min-height:52px"><span class="n">古风版式（版框 · 天头 · 界行）</span><span class="sw '+(V3?'on':'')+'" onclick="toggleV3();openSheet(\'ctl\')"><i></i></span></div></div>'
+    +'<button class="close" onclick="openSheet(\'sys\')">查 看 设 计 体 系</button>'
+    +'<button class="close" onclick="closeSheet()" style="margin-top:10px">关 闭</button>',
+  sys:'<h3 class="ser">朱批 · 设计体系</h3><div class="lead">三条可判定的原理，推导四个子系统。不是往界面贴古风元素，而是让每个决策都有判据。</div>'
+    +'<div class="blk"><div class="k zhs">原 理</div>'
+    +'<div class="pr on"><div class="t">臣服 <em>DEFERENCE</em></div><div class="d">单词是唯一主角，界面臣服于它。</div><div class="j">判据：<b>任何界面元素若比单词更抢眼，就不通过。</b></div></div>'
+    +'<div class="pr on"><div class="t">痕迹 <em>TRACE</em></div><div class="d">朱砂只标记人的痕迹——批注、标记、评分。</div><div class="j">判据：<b>问「这是人留下的还是机器生成的」，机器生成的一律中性色。</b></div></div>'
+    +'<div class="pr on"><div class="t">量度 <em>MEASURE</em></div><div class="d">量级必须有物理编码，不能只有数字。</div><div class="j">判据：<b>凡表示多少 / 多久的信息，必须有长度或面积编码。</b></div></div></div>'
+    +'<div class="blk"><div class="k zhs">子 系 统</div>'
+    +'<div class="pr"><div class="t">尺度 <em>SCALE</em></div><div class="d">圆角六档、间距 4dp 网格、控件高度四档、动效四档，全走 token。</div><div class="j">审查实证：<b>改造前圆角 10 种取值、按钮高度 8 种，每个文件各写各的。</b></div></div>'
+    +'<div class="pr"><div class="t">动效 <em>MOTION</em></div><div class="d">纸的物理性——慢而稳、有阻尼、无回弹。翻转 500ms。</div><div class="j">判据：<b>不做弹跳（spring），纸不会弹。</b></div></div>'
+    +'<div class="pr"><div class="t">明暗对偶 <em>PAPER / INK</em></div><div class="d">亮色走竹简宣纸，暗色切换到碑刻拓片——不是把暖黄搬进暗色。</div><div class="j">判据：<b>共用同一组令牌名，切换的是意象不是结构。</b></div></div></div>'
+    +'<div class="blk"><div class="k zhs">底 线</div>'
+    +'<div class="pr"><div class="t">宽容 + 可达</div><div class="d">评分可撤销，主行动落在下半屏单手可达区。</div><div class="j">判据：<b>美观不得挤掉这两条。</b></div></div></div>'
+    +'<button class="close" onclick="closeSheet()">关 闭</button>'
+};
+function openSheet(k){ document.getElementById('panel').innerHTML=PANELS[k]||PANELS.sys; document.getElementById('sheet').classList.add('on'); }
+function closeSheet(){ document.getElementById('sheet').classList.remove('on'); }
+
+buildRing();
+buildBars();
+
+(function(){
+  var h=location.hash.slice(1);
+  if(!h) return;
+  if(h.slice(0,4)==='ink-'){ h=h.slice(4); toggleTheme(); }
+  var fb=h.slice(-2)==='-b'; if(fb) h=h.slice(0,-2);
+  if(!document.getElementById('s-'+h)) return;
+  go(h, document.querySelector('.tabbar button[data-t="'+h+'"]'));
+  if(fb) document.getElementById('flip').classList.add('d');
+})();
+</script>
+</body>
+</html>

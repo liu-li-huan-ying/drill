@@ -24,16 +24,16 @@ export interface Tokens {
 
 export const tokens: Record<Scheme, Tokens> = {
   light: {
-    bg: '#FBF9F5', sf: '#FFFFFF', pg: '#F2EFE8',
-    tx1: '#1B1917', tx2: '#6E6862', tx3: '#A89F94', bd: '#E7E2D8', bd2: '#D8D2C6',
-    ac: '#C0452F', acsf: '#F7EBE6', acon: '#FFFFFF',
-    b1: '#F7EBE6', b1t: '#C0452F', b2: '#F2EEE5', b3: '#F5F3EC', b4: '#EAEDE4',
+    bg: '#F7F4ED', sf: '#FDFCFA', pg: '#EFEBE3',
+    tx1: '#171512', tx2: '#6E675E', tx3: '#A29A8E', bd: '#E9E3D8', bd2: '#DAD3C5',
+    ac: '#A8382A', acsf: '#F8EEEA', acon: '#FFFFFF',
+    b1: '#F8EEEA', b1t: '#A8382A', b2: '#F2EFE7', b3: '#F4F3ED', b4: '#EBEEE5',
   },
   dark: {
-    bg: '#141311', sf: '#1C1A17', pg: '#0E0D0C',
-    tx1: '#EDE8DE', tx2: '#A79F94', tx3: '#6F685E', bd: '#2C2925', bd2: '#3A362F',
-    ac: '#E0705A', acsf: '#2E211C', acon: '#141311',
-    b1: '#2E211C', b1t: '#E0705A', b2: '#262320', b3: '#242720', b4: '#212420',
+    bg: '#131211', sf: '#1B1A18', pg: '#0D0C0B',
+    tx1: '#F0EBE2', tx2: '#A69E93', tx3: '#736C62', bd: '#2A2722', bd2: '#494337',
+    ac: '#D0684F', acsf: '#2D201B', acon: '#131211',
+    b1: '#2D201B', b1t: '#D0684F', b2: '#252320', b3: '#232522', b4: '#212420',
   },
 };
 
@@ -60,3 +60,69 @@ export const FONT = {
 export const RATING_BARS = [14, 26, 42, 66] as const;
 export const RATING_LABELS = ['重来', '困难', '良好', '简单'] as const;
 export const RATING_INTERVALS = ['10 分钟', '1 天', '4 天', '12 天'] as const;
+
+// ────────────────────────────────────────────────────────────
+// 尺度系统（体系第二支柱）
+//
+// 建立动因是审查实证，不是预防性抽象：全量扫描 app/ 后发现
+//   - border-radius 出现 2/4/5/6/8/9.5/10/12/20/22 共 10 种，
+//     其中 12 出现 5 次、直接超出设计文档规定的 6/8/10 上限
+//   - 控件高度出现 38/42/44/46/48/50/52/54 共 8 种
+//   - padding 取 10/14/18/22 等脱离 4dp 网格的值
+// 每个文件各写各的 → 同一 App 内界面互不相认。以下尺度是唯一取值来源。
+// ────────────────────────────────────────────────────────────
+
+// 圆角：只此六档。圆形一律用 pill，不再出现 20/22/9.5 这类随直径手算的值。
+export const RADIUS = {
+  mark: 1, // 方块标记 .mk（朱批印记）
+  bar: 2, // 进度条 / 细条
+  chip: 6, // 小标签、词性角标
+  ctrl: 10, // 按钮、输入框
+  card: 12, // 卡片（v3 原型定案；旧值 10 偏硬、12 起才有「纸的柔」）
+  pill: 999, // 圆形 / 胶囊：声波钮、头像
+} as const;
+
+// 间距：4dp 基础网格。现有 10/14/18/22 一律就近归并到偶数档。
+export const SPACE = {
+  hair: 1, // hairline
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20, // 页面左右边距（设计文档规定）
+  xxl: 24,
+  xxxl: 32,
+  huge: 40,
+  touch: 48, // 最小触摸目标
+} as const;
+
+// 控件高度：现有 8 种归并为 4 档。
+export const CONTROL = {
+  sm: 38, // 次级行内控件
+  md: 44, // 常规按钮 / 输入
+  lg: 50, // 主行动按钮
+  xl: 54, // 首页 CTA
+} as const;
+
+// 动效时长（ms）。曲线不在常量里 —— RN 的 Easing 需从 react-native 导入，
+// 保持本文件零依赖。曲线规范见设计文档「动效」一节：纸感，慢而稳，无回弹。
+export const MOTION = {
+  press: 120, // 按压反馈
+  fade: 200, // 淡入淡出、内容替换
+  flip: 500, // 卡片翻转（设计文档规定）
+  sheet: 280, // 浮层进出
+} as const;
+
+// 字重：只两级。衬线内容用 regular，操作与强调标签用 medium。
+export const WEIGHT = {
+  regular: '400',
+  medium: '500',
+} as const;
+
+// 层级：材质靠「描边 + 极轻抬升」表达，不靠色彩、不靠大阴影。
+// 值为 elevation（Android）；iOS 走同档极轻 shadow。
+export const LAYER = {
+  flat: 0, // 页面底：无抬升
+  card: 1, // 卡片：1px 描边
+  overlay: 3, // 浮层：描边 + 抬升
+} as const;
