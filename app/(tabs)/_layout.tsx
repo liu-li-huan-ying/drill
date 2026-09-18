@@ -1,53 +1,188 @@
-// 底部标签栏：学习 / 词库 / 统计 / 设置。
-// 朱批风格：激活态用朱砂方块标记 + 朱砂标签；未激活为描边方块 + 弱化标签。
-// 方块刻意做得清晰、够大，避免被误认成「图片未加载」的占位点；栏体抬高加大，更顺手。
-import React from 'react';
+// 底部标签栏：朱批导航 —— 线性图标 + 朱笔横痕指示器。
+// 废掉「每个 tab 挂一个小方块」：方块是「未读」状态指示，不是导航语言，
+// 四格各挂一个等于把导航降格成开关。现在用一根会滑动的朱痕说「你在这里」。
+import React, { useEffect, useRef, useState } from 'react';
 import { Tabs } from 'expo-router';
-import { View, Text, type ColorValue } from 'react-native';
+import { View, Text, TouchableOpacity, Animated, Easing, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../src/theme/ThemeProvider';
+import { BrandBar } from '../../src/components/ui';
+import { RADIUS, SPACE, WEIGHT } from '../../src/theme/tokens';
 
-function TabMark({ focused, color }: { focused: boolean; color: ColorValue }) {
+const RULE_W = 30; // 朱痕宽度
+const TITLES: Record<string, string> = {
+  index: '学习',
+  library: '词库',
+  stats: '统计',
+  settings: '设置',
+};
+
+/** 四个线性图标（纯 View 绘制，项目无 SVG 依赖）：册页 / 书 / 柱 / 旋钮。 */
+function Icon({ name, color }: { name: string; color: string }) {
+  const bar = { backgroundColor: color } as const;
+  switch (name) {
+    case 'index': // 册页
+      return (
+        <View style={styles.iconBox}>
+          <View
+            style={{
+              width: 15,
+              height: 17,
+              borderWidth: 1.5,
+              borderColor: color,
+              borderRadius: RADIUS.xs,
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 2.5,
+            }}
+          >
+            <View style={[bar, { width: 7.5, height: 1.2, borderRadius: RADIUS.mark }]} />
+            <View style={[bar, { width: 7.5, height: 1.2, borderRadius: RADIUS.mark }]} />
+            <View style={[bar, { width: 4.5, height: 1.2, borderRadius: RADIUS.mark }]} />
+          </View>
+        </View>
+      );
+    case 'library': // 书（书脊在右）
+      return (
+        <View style={styles.iconBox}>
+          <View
+            style={{
+              width: 14,
+              height: 16,
+              borderWidth: 1.5,
+              borderColor: color,
+              borderRadius: RADIUS.xs,
+            }}
+          />
+          <View
+            style={[
+              bar,
+              { position: 'absolute', right: 2.4, top: 5.5, width: 1.5, height: 11, borderRadius: RADIUS.mark },
+            ]}
+          />
+        </View>
+      );
+    case 'stats': // 柱
+      return (
+        <View style={styles.iconBox}>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 3.4, height: 15 }}>
+            <View style={[bar, { width: 1.8, height: 7, borderRadius: RADIUS.mark }]} />
+            <View style={[bar, { width: 1.8, height: 14, borderRadius: RADIUS.mark }]} />
+            <View style={[bar, { width: 1.8, height: 4.5, borderRadius: RADIUS.mark }]} />
+          </View>
+        </View>
+      );
+    default: // 设置：旋钮
+      return (
+        <View style={styles.iconBox}>
+          <View
+            style={{
+              width: 15,
+              height: 15,
+              borderRadius: RADIUS.pill,
+              borderWidth: 1.5,
+              borderColor: color,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <View style={[bar, { width: 4.5, height: 4.5, borderRadius: RADIUS.xs }]} />
+          </View>
+        </View>
+      );
+  }
+}
+
+function TabBar({ state, navigation }: { state: any; navigation: any }) {
+  const { colors: c } = useTheme();
+  const insets = useSafeAreaInsets();
+  const [width, setWidth] = useState(0);
+  const slide = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (!width) return;
+    const cell = width / state.routes.length;
+    Animated.timing(slide, {
+      toValue: (state.index + 0.5) * cell - RULE_W / 2,
+      duration: 380,
+      easing: Easing.bezier(0.32, 0.72, 0.28, 1),
+      useNativeDriver: true,
+    }).start();
+  }, [state.index, state.routes.length, width, slide]);
+
   return (
     <View
-      style={{
-        width: 10,
-        height: 10,
-        borderWidth: 1.5,
-        borderColor: color,
-        backgroundColor: focused ? color : 'transparent',
-        borderRadius: 2,
-      }}
-    />
+      onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
+      style={[
+        styles.bar,
+        { backgroundColor: c.bg, borderTopColor: c.bd, paddingBottom: insets.bottom + SPACE.sm },
+      ]}
+    >
+      {width > 0 ? (
+        <Animated.View
+          pointerEvents="none"
+          style={[styles.rule, { backgroundColor: c.ac, transform: [{ translateX: slide }] }]}
+        />
+      ) : null}
+
+      <View style={styles.items}>
+        {state.routes.map((route: any, i: number) => {
+          const focused = state.index === i;
+          const color = focused ? c.ac : c.tx3;
+          const labelColor = focused ? c.tx1 : c.tx3;
+          return (
+            <TouchableOpacity
+              key={route.key}
+              activeOpacity={0.6}
+              style={styles.item}
+              onPress={() => {
+                const event = navigation.emit({
+                  type: 'tabPress',
+                  target: route.key,
+                  canPreventDefault: true,
+                });
+                if (!focused && !event.defaultPrevented) navigation.navigate(route.name);
+              }}
+            >
+              <Icon name={route.name} color={color} />
+              <Text
+                style={{
+                  color: labelColor,
+                  fontSize: 11,
+                  // 未选 0.8 / 选中 1.1：中文全角字不吃宽字距，只留一点呼吸
+                  letterSpacing: focused ? 1.1 : 0.8,
+                  fontWeight: focused ? WEIGHT.semibold : WEIGHT.medium,
+                }}
+              >
+                {TITLES[route.name] ?? route.name}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
   );
 }
 
 export default function TabsLayout() {
-  const { colors: c } = useTheme();
-  const icon = ({ focused, color }: { focused: boolean; color: ColorValue }) => (
-    <TabMark focused={focused} color={color} />
-  );
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: c.ac,
-        tabBarInactiveTintColor: c.tx3,
-        tabBarStyle: {
-          backgroundColor: c.bg,
-          borderTopColor: c.bd,
-          borderTopWidth: 1,
-          height: 66,
-          paddingTop: 8,
-          paddingBottom: 12,
-        },
-        tabBarLabelStyle: { fontSize: 11.5, letterSpacing: 1, marginTop: 5, fontWeight: '500' },
-        tabBarItemStyle: { paddingTop: 0 },
-      }}
-    >
-      <Tabs.Screen name="index" options={{ title: '学习', tabBarIcon: icon }} />
-      <Tabs.Screen name="library" options={{ title: '词库', tabBarIcon: icon }} />
-      <Tabs.Screen name="stats" options={{ title: '统计', tabBarIcon: icon }} />
-      <Tabs.Screen name="settings" options={{ title: '设置', tabBarIcon: icon }} />
-    </Tabs>
+    <View style={{ flex: 1 }}>
+      <BrandBar />
+      <Tabs screenOptions={{ headerShown: false }} tabBar={(props: any) => <TabBar {...props} />}>
+        <Tabs.Screen name="index" options={{ title: '学习' }} />
+        <Tabs.Screen name="library" options={{ title: '词库' }} />
+        <Tabs.Screen name="stats" options={{ title: '统计' }} />
+        <Tabs.Screen name="settings" options={{ title: '设置' }} />
+      </Tabs>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  bar: { borderTopWidth: 1, paddingTop: SPACE.sm },
+  // 朱痕：栏顶一道笔触，切换时横向滑动 —— 它不是装饰，是「你在这里」的痕迹。
+  rule: { position: 'absolute', top: -1, left: 0, width: RULE_W, height: 4, borderRadius: RADIUS.bar },
+  items: { flexDirection: 'row' },
+  item: { flex: 1, height: 62, alignItems: 'center', justifyContent: 'center', gap: 7 },
+  iconBox: { width: 22, height: 22, alignItems: 'center', justifyContent: 'center' },
+});

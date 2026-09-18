@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../src/theme/ThemeProvider';
-import { serif, FONT, mono } from '../src/theme/tokens';
+import { serif, FONT, mono, RADIUS, SPACE } from '../src/theme/tokens';
 import { getNotes, getNoteCount, type NoteRow } from '../src/db/queries';
 import { splitSenses } from '../src/components/Definition';
 
@@ -101,21 +101,21 @@ const styles = StyleSheet.create({
   screen: { flex: 1, paddingTop: 52 },
   top: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 18, paddingBottom: 12, borderBottomWidth: 1,
+    paddingHorizontal: SPACE.xl, paddingBottom: 12, borderBottomWidth: 1,
   },
   back: { fontSize: 15, width: 56 },
   title: { fontSize: 18, flex: 1, textAlign: 'center' },
   total: { fontSize: 12, fontVariant: ['tabular-nums'], width: 56, textAlign: 'right' },
-  searchWrap: { paddingHorizontal: 18, paddingTop: 14 },
+  searchWrap: { paddingHorizontal: SPACE.xl, paddingTop: 14 },
   search: {
     flexDirection: 'row', alignItems: 'center', height: 42,
-    borderRadius: 10, borderWidth: 1, paddingHorizontal: 14,
+    borderRadius: RADIUS.ctrl, borderWidth: 1, paddingHorizontal: 14,
   },
   searchInput: { flex: 1, fontSize: 14.5, paddingVertical: 0 },
   clear: { fontSize: 15, paddingLeft: 8 },
-  list: { paddingHorizontal: 18, paddingTop: 14 },
+  list: { paddingHorizontal: SPACE.xl, paddingTop: 14 },
   empty: { fontSize: 13, fontStyle: 'italic', marginTop: 28, textAlign: 'center', lineHeight: 20 },
-  card: { borderRadius: 10, borderWidth: 1, padding: 14, marginBottom: 12 },
+  card: { borderRadius: RADIUS.card, borderWidth: 1, padding: SPACE.lg, marginBottom: SPACE.md },
   head: { flexDirection: 'row', alignItems: 'baseline', gap: 10 },
   word: { fontSize: 18, fontFamily: serif },
   ipa: { fontSize: FONT.ipa, fontFamily: mono },

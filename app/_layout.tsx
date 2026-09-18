@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { View, Text } from 'react-native';
 import { ThemeProvider, useTheme } from '../src/theme/ThemeProvider';
+import { RADIUS } from '../src/theme/tokens';
 import { initDatabase } from '../src/db/Database';
 import { ensureCards } from '../src/db/queries';
 
@@ -11,7 +12,7 @@ function BootScreen() {
   const { colors: c } = useTheme();
   return (
     <View style={{ flex: 1, backgroundColor: c.bg, alignItems: 'center', justifyContent: 'center' }}>
-      <View style={{ width: 12, height: 12, backgroundColor: c.ac, borderRadius: 2, marginBottom: 14 }} />
+      <View style={{ width: 12, height: 12, backgroundColor: c.ac, borderRadius: RADIUS.xs, marginBottom: 14 }} />
       <Text style={{ color: c.tx2, fontSize: 12, letterSpacing: 2 }}>载 入 中</Text>
     </View>
   );

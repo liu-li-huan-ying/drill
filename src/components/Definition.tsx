@@ -39,11 +39,12 @@ interface Props {
   accent: string; // 词性 / 标签 token 的高亮色（朱砂）
   style?: TextStyle; // 每个义项行的文本样式（含 color / fontSize / lineHeight / fontStyle）
   blockStyle?: TextStyle; // 外层容器样式（通常用于 marginTop）
-  center?: boolean; // 是否居中（复习卡背面）
+  center?: boolean; // 是否居中（当前无调用方，保留给需要居中的场景）
+  rule?: string; // 传入颜色即给每个义项加「界行」（1px 竖线），古籍版式的义项分隔
 }
 
 // 渲染一整段释义：每个义项独立成行，行首词性缩写 / [标签] 用 accent 高亮。
-export function DefinitionView({ raw, accent, style, blockStyle, center }: Props) {
+export function DefinitionView({ raw, accent, style, blockStyle, center, rule }: Props) {
   const senses = splitSenses(raw);
   if (senses.length === 0) return null;
   return (
@@ -52,14 +53,20 @@ export function DefinitionView({ raw, accent, style, blockStyle, center }: Props
         const m = sense.match(/^((?:[a-z]{1,8}\.|\[[^\]]+\])\s*)/i);
         const pos = m ? m[1] : '';
         const rest = m ? sense.slice(pos.length) : sense;
-        return (
-          <Text
-            key={i}
-            style={[{ marginTop: i === 0 ? 0 : 6, textAlign: center ? 'center' : 'left' }, style]}
-          >
+        const line = (
+          <Text style={[{ flex: rule ? 1 : undefined, marginTop: i === 0 ? 0 : 6, textAlign: center ? 'center' : 'left' }, style]}>
             {pos ? <Text style={{ color: accent }}>{pos}</Text> : null}
             {rest}
           </Text>
+        );
+        // 界行：竹片之间的那道缝。义项有自己的边界，才不会连成一坨。
+        return rule ? (
+          <View key={i} style={{ flexDirection: 'row' }}>
+            <View style={{ width: 1, backgroundColor: rule, marginRight: 15, marginVertical: 4 }} />
+            {line}
+          </View>
+        ) : (
+          React.cloneElement(line, { key: i })
         );
       })}
     </View>

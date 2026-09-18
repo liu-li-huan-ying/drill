@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '../src/theme/ThemeProvider';
-import { serif, FONT, mono } from '../src/theme/tokens';
+import { serif, FONT, mono, RADIUS, WEIGHT, SPACE, CONTROL } from '../src/theme/tokens';
 import { getTagWords, getTagWordCount, setStudyScope, getStudyScope, type WordRow } from '../src/db/queries';
 import { splitSenses } from '../src/components/Definition';
 
@@ -108,12 +108,12 @@ const styles = StyleSheet.create({
   screen: { flex: 1, paddingTop: 52 },
   top: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 18, paddingBottom: 12, borderBottomWidth: 1,
+    paddingHorizontal: SPACE.xl, paddingBottom: 12, borderBottomWidth: 1,
   },
   back: { fontSize: 15 },
   title: { fontSize: 18, flex: 1, textAlign: 'center', marginHorizontal: 10 },
   total: { fontSize: 12, fontVariant: ['tabular-nums'] },
-  list: { paddingHorizontal: 18, paddingBottom: 40 },
+  list: { paddingHorizontal: SPACE.xl, paddingBottom: 40 },
   row: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingVertical: 14, borderBottomWidth: 1,
@@ -122,10 +122,10 @@ const styles = StyleSheet.create({
   word: { fontSize: 17, fontFamily: serif },
   ipa: { fontSize: FONT.ipa, fontFamily: mono, marginTop: 3 },
   def: { fontSize: 13, flex: 1, textAlign: 'right' },
-  scopeBtn: { marginTop: 12, height: 46, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  scopeBtnText: { fontSize: 14, letterSpacing: 2, fontWeight: '600' },
+  scopeBtn: { marginTop: 12, height: CONTROL.md, borderRadius: RADIUS.ctrl, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  scopeBtnText: { fontSize: 14, letterSpacing: 1.5, fontWeight: WEIGHT.semibold },
   more: {
-    marginTop: 18, height: 44, borderRadius: 10, borderWidth: 1,
+    marginTop: 18, height: CONTROL.md, borderRadius: RADIUS.ctrl, borderWidth: 1,
     alignItems: 'center', justifyContent: 'center',
   },
   moreText: { fontSize: 14, letterSpacing: 1 },

@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '../src/theme/ThemeProvider';
-import { serif, FONT, mono } from '../src/theme/tokens';
+import { serif, FONT, mono, RADIUS, WEIGHT, SPACE, CONTROL } from '../src/theme/tokens';
 import {
   getWordDetail,
   markMastered,
@@ -96,6 +96,8 @@ export default function WordScreen() {
             <SoundIcon color={c.ac} />
           </TouchableOpacity>
         </View>
+        {/* 朱笔横痕：这个词被「批」过一次的痕迹，也是详情页与复习卡共用的识别符。 */}
+        <View style={[styles.stroke, { backgroundColor: c.ac }]} />
         {detail.phonetic_uk ? (
           <Text style={[styles.ipa, { color: c.tx3 }]}>{detail.phonetic_uk}</Text>
         ) : null}
@@ -149,10 +151,10 @@ export default function WordScreen() {
         </View>
         {examples.length > 0 ? (
           examples.map((ex, i) => (
-            <View key={i} style={[styles.exItem, { borderLeftColor: c.ac }]}>
-              <Text style={[styles.exEn, { color: c.tx1 }]}>{ex.sentence_en}</Text>
+            <View key={i} style={[styles.exItem, { borderLeftColor: c.bd }]}>
+              <Text style={[styles.exEn, { color: c.tx2 }]}>{ex.sentence_en}</Text>
               {ex.sentence_zh ? (
-                <Text style={[styles.exZh, { color: c.tx2 }]}>{ex.sentence_zh}</Text>
+                <Text style={[styles.exZh, { color: c.tx3 }]}>{ex.sentence_zh}</Text>
               ) : null}
             </View>
           ))
@@ -216,11 +218,11 @@ function SoundIcon({ color }: { color: string }) {
     <View style={{ width: 19, height: 19, alignItems: 'center', justifyContent: 'center' }}>
       <View
         style={{
-          width: 19, height: 19, borderRadius: 9.5,
+          width: 19, height: 19, borderRadius: RADIUS.pill,
           borderWidth: 1.5, borderColor: color, alignItems: 'center', justifyContent: 'center',
         }}
       >
-        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: color }} />
+        <View style={{ width: 8, height: 8, borderRadius: RADIUS.pill, backgroundColor: color }} />
       </View>
     </View>
   );
@@ -230,35 +232,37 @@ const styles = StyleSheet.create({
   screen: { flex: 1, paddingTop: 52 },
   top: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 18, paddingBottom: 12, borderBottomWidth: 1,
+    paddingHorizontal: SPACE.xl, paddingBottom: 12, borderBottomWidth: 1,
   },
   back: { fontSize: 15, width: 56 },
-  title: { fontSize: 13, letterSpacing: 3, textTransform: 'uppercase', fontWeight: '600', flex: 1, textAlign: 'center' },
-  body: { paddingHorizontal: 24, paddingTop: 28, paddingBottom: 24, flexGrow: 1 },
+  title: { fontSize: 13, letterSpacing: 1.1, textTransform: 'uppercase', fontWeight: WEIGHT.semibold, flex: 1, textAlign: 'center' },
+  body: { paddingHorizontal: SPACE.xl, paddingTop: 28, paddingBottom: 24, flexGrow: 1 },
   wordRow: { flexDirection: 'row', alignItems: 'center' },
-  word: { fontFamily: serif, fontSize: FONT.word, letterSpacing: -0.8 },
-  sound: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginLeft: 14 },
+  word: { fontFamily: serif, fontSize: FONT.detailWord, letterSpacing: -0.8 },
+  stroke: { width: 168, height: 3, borderRadius: RADIUS.bar, opacity: 0.8, marginTop: 8 },
+  sound: { width: 40, height: 40, borderRadius: RADIUS.pill, alignItems: 'center', justifyContent: 'center', marginLeft: 14 },
   ipa: { fontFamily: mono, fontSize: FONT.ipa, marginTop: 12, letterSpacing: 0.8 },
-  posChip: { alignSelf: 'flex-start', marginTop: 16, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
-  posText: { fontSize: 11, letterSpacing: 1, fontWeight: '600', textTransform: 'uppercase' },
-  mk: { width: 7, height: 7, borderRadius: 1 },
-  morphBox: { marginTop: 14, padding: 16, borderRadius: 10, borderWidth: 1 },
+  posChip: { alignSelf: 'flex-start', marginTop: 16, paddingHorizontal: 10, paddingVertical: 4, borderRadius: RADIUS.chip },
+  posText: { fontSize: 11, letterSpacing: 1, fontWeight: WEIGHT.semibold, textTransform: 'uppercase' },
+  mk: { width: 7, height: 7, borderRadius: RADIUS.mark },
+  morphBox: { marginTop: 14, padding: 16, borderRadius: RADIUS.ctrl, borderWidth: 1 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 18 },
-  chip: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 },
+  chip: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: RADIUS.chip },
   chipText: { fontSize: 12, letterSpacing: 0.5 },
   exHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 26 },
-  secTitle: { fontSize: 13, letterSpacing: 4, fontWeight: '600' },
-  exItem: { marginTop: 12, paddingLeft: 12, borderLeftWidth: 2 },
+  secTitle: { fontSize: 13, letterSpacing: 1.1, fontWeight: WEIGHT.semibold },
+  // 例句是语料不是人的批注 —— 用中性界行（1px bd），不用朱砂。朱砂只标人的痕迹。
+  exItem: { marginTop: 12, paddingLeft: 12, borderLeftWidth: 1 },
   exEn: { fontFamily: serif, fontStyle: 'italic', fontSize: FONT.quote, lineHeight: 20 },
   exZh: { fontSize: 13, lineHeight: 19, marginTop: 6 },
   exEmpty: { fontSize: 13, marginTop: 14, fontStyle: 'italic' },
   savedTag: { fontSize: 12, letterSpacing: 1 },
   input: {
-    marginTop: 12, minHeight: 44, borderRadius: 10, borderWidth: 1,
+    marginTop: 12, minHeight: 44, borderRadius: RADIUS.ctrl, borderWidth: 1,
     paddingHorizontal: 14, paddingVertical: 11, fontSize: 14.5, lineHeight: 21,
   },
   inputMulti: { minHeight: 72, textAlignVertical: 'top' },
-  footer: { paddingHorizontal: 18, paddingBottom: 24, paddingTop: 12, borderTopWidth: 1 },
-  masterBtn: { height: 50, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  masterText: { fontSize: 15, letterSpacing: 3, fontWeight: '600' },
+  footer: { paddingHorizontal: SPACE.xl, paddingBottom: 24, paddingTop: 12, borderTopWidth: 1 },
+  masterBtn: { height: CONTROL.lg, borderRadius: RADIUS.ctrl, alignItems: 'center', justifyContent: 'center' },
+  masterText: { fontSize: 15, letterSpacing: 1.5, fontWeight: WEIGHT.semibold },
 });

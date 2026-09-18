@@ -1,101 +1,133 @@
-// 今日（首页）：刻度环展示新词配额进度，待复习 / 新词可用概览，开始学习 / 熟词校准入口。
+// 今日（首页）：刻度环展示当日新词配额进度；复习 / 新词双列数据；朱砂主 CTA；熟词校准入口。
 import React, { useCallback, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useTheme } from '../../src/theme/ThemeProvider';
-import { serif, type Tokens } from '../../src/theme/tokens';
+import { RADIUS, SPACE, CONTROL, WEIGHT, type Tokens } from '../../src/theme/tokens';
 import { ScaleRing } from '../../src/features/home/ScaleRing';
-import { getHomeSummary, setStudyScope } from '../../src/db/queries';
+import { Btn, Chev } from '../../src/components/ui';
+import { getHomeSummary, getMasteredCount, setStudyScope } from '../../src/db/queries';
+
+// 每题约 30 秒 —— 「预计 N 分钟」是估算值，不是承诺值，所以取整到分钟。
+const SEC_PER_WORD = 30;
 
 export default function TodayScreen() {
   const { colors: c } = useTheme();
   const router = useRouter();
   const [s, setS] = useState(() => getHomeSummary());
+  const [mastered, setMastered] = useState(() => getMasteredCount());
 
   useFocusEffect(
     useCallback(() => {
       setS(getHomeSummary());
+      setMastered(getMasteredCount());
     }, [])
   );
 
-  const nothing = s.reviewDue === 0 && s.newAvailable === 0;
+  const remaining = Math.max(0, s.dailyNewLimit - s.newDone); // 今日待学（配额剩余）
+  const todayNew = Math.min(s.newAvailable, remaining); // 今日实际会学到的新词
+  const todayWords = s.reviewDue + todayNew;
+  const minutes = Math.round((todayWords * SEC_PER_WORD) / 60);
+  const nothing = s.reviewDue === 0 && todayNew === 0;
 
   return (
-    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}>
-      <Text style={[styles.kicker, { color: c.tx3 }]}>今 日 · TODAY</Text>
-
+    <ScrollView contentContainerStyle={[styles.wrap, { backgroundColor: c.bg }]}>
       <View style={styles.ringWrap}>
-        <ScaleRing total={s.dailyNewLimit} done={s.newDone} />
+        <ScaleRing
+          total={s.dailyNewLimit}
+          done={s.newDone}
+          centerValue={String(remaining)}
+          centerLabel="今 日 待 学"
+        />
       </View>
 
-      <View style={styles.statRow}>
-        <Stat label="待复习" value={String(s.reviewDue)} colors={c} />
-        <View style={[styles.div, { backgroundColor: c.bd }]} />
-        <Stat label="新词可用" value={String(s.newAvailable)} colors={c} />
+      <View style={styles.grid2}>
+        <Stat label="复 习" value={s.reviewDue} colors={c} />
+        <Stat label="新 词" value={s.newAvailable} colors={c} />
+      </View>
+
+      <View style={{ marginTop: SPACE.xxxl }}>
+        <Btn
+          title={nothing ? '今 日 已 清 空' : '开 始 学 习'}
+          disabled={nothing}
+          onPress={() => router.push('/review')}
+        />
+        <Text style={[styles.sub, { color: c.tx3 }]}>
+          {nothing ? '今天没有待学的词 · 明日再来' : `预计 ${minutes} 分钟 · 今日 ${todayWords} 词`}
+        </Text>
       </View>
 
       {s.isScoped ? (
         <TouchableOpacity
-          activeOpacity={0.8}
+          activeOpacity={0.6}
           onPress={() => {
             setStudyScope(null);
             setS(getHomeSummary());
           }}
-          style={[styles.scope, { borderColor: c.bd }]}
+          style={[styles.scope, { borderColor: c.bd2 }]}
         >
-          <Text style={[styles.scopeText, { color: c.tx2 }]}>学习范围：{s.scopeName}</Text>
+          <Text style={[styles.scopeText, { color: c.tx2 }]}>只背 · {s.scopeName}</Text>
           <Text style={[styles.scopeClear, { color: c.ac }]}>✕ 背全部</Text>
         </TouchableOpacity>
-      ) : (
-        <Text style={[styles.scopeHint, { color: c.tx3 }]}>学习范围：全部词库 · 可在「词库」选某纲只背它</Text>
-      )}
+      ) : null}
 
-      <TouchableOpacity
-        activeOpacity={0.85}
-        disabled={nothing}
-        onPress={() => router.push('/review')}
-        style={[styles.cta, { backgroundColor: c.ac, opacity: nothing ? 0.4 : 1 }]}
-      >
-        <Text style={[styles.ctaText, { color: c.acon }]}>{nothing ? '今 日 已 清 空' : `开 始 学 习 · ${s.scopeName}`}</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        activeOpacity={0.6}
-        onPress={() => router.push('/calibration')}
-        style={styles.calib}
-      >
-        <Text style={[styles.calibText, { color: c.tx2 }]}>熟词校准</Text>
-        <Text style={[styles.calibArrow, { color: c.ac }]}>→</Text>
-      </TouchableOpacity>
+      <View style={{ marginTop: SPACE.xxl }}>
+        <View style={[styles.card, { backgroundColor: c.sf, borderColor: c.bd }]}>
+          <TouchableOpacity
+            activeOpacity={0.6}
+            onPress={() => router.push('/calibration')}
+            style={styles.row}
+          >
+            <Text style={[styles.rowName, { color: c.tx1 }]}>熟词校准</Text>
+            <Text style={[styles.rowValue, { color: c.tx3 }]}>已掌握 {mastered} 词</Text>
+            <Chev />
+          </TouchableOpacity>
+        </View>
+      </View>
     </ScrollView>
   );
 }
 
-function Stat({ label, value, colors: c }: { label: string; value: string; colors: Tokens }) {
+function Stat({ label, value, colors: c }: { label: string; value: number; colors: Tokens }) {
   return (
-    <View style={styles.stat}>
-      <Text style={[styles.statValue, { color: c.tx1, fontFamily: serif }]}>{value}</Text>
-      <Text style={[styles.statLabel, { color: c.tx3 }]}>{label}</Text>
+    <View style={[styles.stat, { backgroundColor: c.sf, borderColor: c.bd }]}>
+      <Text style={[styles.statK, { color: c.tx3 }]}>{label}</Text>
+      <View style={styles.statVRow}>
+        <Text style={[styles.statV, { color: c.tx1 }]}>{value}</Text>
+        <Text style={[styles.statU, { color: c.tx3 }]}>词</Text>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, paddingTop: 64, paddingHorizontal: 24, paddingBottom: 40, alignItems: 'center' },
-  kicker: { fontSize: 10.5, letterSpacing: 3, textTransform: 'uppercase', fontWeight: '600', alignSelf: 'flex-start' },
-  ringWrap: { marginTop: 36, marginBottom: 8 },
-  statRow: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
-  stat: { alignItems: 'center', paddingHorizontal: 22 },
-  statValue: { fontSize: 30, lineHeight: 34 },
-  statLabel: { fontSize: 12, marginTop: 4, letterSpacing: 1 },
-  div: { width: 1, height: 28 },
-  scope: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 20, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 10, borderWidth: 1, width: '100%' },
-  scopeText: { fontSize: 13, letterSpacing: 0.5 },
-  scopeClear: { fontSize: 13, letterSpacing: 1, fontWeight: '600' },
-  scopeHint: { marginTop: 20, fontSize: 12, lineHeight: 17, letterSpacing: 0.3, textAlign: 'center' },
-  cta: { marginTop: 18, width: '100%', height: 54, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  ctaText: { fontSize: 16, letterSpacing: 4, fontWeight: '600' },
-  calib: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 22 },
-  calibText: { fontSize: 14, letterSpacing: 1 },
-  calibArrow: { fontSize: 15 },
+  wrap: { flexGrow: 1, paddingHorizontal: SPACE.xl, paddingBottom: SPACE.huge },
+  ringWrap: { marginTop: SPACE.xxxl, alignSelf: 'center' },
+
+  grid2: { flexDirection: 'row', gap: SPACE.md, marginTop: SPACE.xxl },
+  stat: { flex: 1, borderRadius: RADIUS.card, borderWidth: 1, paddingTop: SPACE.xxxl, paddingHorizontal: SPACE.xl, paddingBottom: SPACE.xl },
+  statK: { fontSize: 10, letterSpacing: 2, fontWeight: WEIGHT.semibold },
+  statVRow: { flexDirection: 'row', alignItems: 'baseline', marginTop: SPACE.md },
+  statV: { fontSize: 31, lineHeight: 36, letterSpacing: -0.3, fontWeight: WEIGHT.semibold, fontVariant: ['tabular-nums'] },
+  statU: { fontSize: 12, marginLeft: 3, fontWeight: WEIGHT.medium },
+
+  sub: { fontSize: 12.5, letterSpacing: 0.2, textAlign: 'center', marginTop: SPACE.md },
+
+  scope: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: SPACE.lg,
+    paddingHorizontal: SPACE.lg,
+    height: CONTROL.md,
+    borderRadius: RADIUS.ctrl,
+    borderWidth: 1,
+  },
+  scopeText: { fontSize: 13, letterSpacing: 0.5, fontWeight: WEIGHT.medium },
+  scopeClear: { fontSize: 13, letterSpacing: 0.5, fontWeight: WEIGHT.semibold },
+
+  card: { borderRadius: RADIUS.card, borderWidth: 1, paddingHorizontal: SPACE.xl },
+  row: { flexDirection: 'row', alignItems: 'center', gap: SPACE.lg, minHeight: SPACE.touch },
+  rowName: { flex: 1, fontSize: 15, fontWeight: WEIGHT.medium },
+  rowValue: { fontSize: 12.5, fontWeight: WEIGHT.medium, fontVariant: ['tabular-nums'] },
 });

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../src/theme/ThemeProvider';
+import { RADIUS, WEIGHT, SPACE, CONTROL } from '../src/theme/tokens';
 import { importCustomList } from '../src/db/queries';
 
 export default function ImportScreen() {
@@ -96,19 +97,19 @@ const styles = StyleSheet.create({
   screen: { flex: 1, paddingTop: 52 },
   top: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 18, paddingBottom: 12, borderBottomWidth: 1,
+    paddingHorizontal: SPACE.xl, paddingBottom: 12, borderBottomWidth: 1,
   },
   back: { fontSize: 15, width: 48 },
-  title: { fontSize: 13, letterSpacing: 3, textTransform: 'uppercase', fontWeight: '600', flex: 1, textAlign: 'center' },
-  body: { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 40 },
+  title: { fontSize: 13, letterSpacing: 1.1, textTransform: 'uppercase', fontWeight: WEIGHT.semibold, flex: 1, textAlign: 'center' },
+  body: { paddingHorizontal: SPACE.xl, paddingTop: 20, paddingBottom: 40 },
   label: { fontSize: 12, letterSpacing: 0.5, marginBottom: 8 },
-  nameInput: { height: 44, borderRadius: 10, borderWidth: 1, paddingHorizontal: 14, fontSize: 15 },
-  textInput: { height: 200, borderRadius: 10, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, lineHeight: 22 },
-  btn: { marginTop: 18, height: 50, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  btnText: { fontSize: 15, letterSpacing: 3, fontWeight: '600' },
-  result: { marginTop: 22, borderRadius: 10, borderWidth: 1, padding: 16 },
-  resultLine: { fontSize: 14, fontWeight: '600', fontVariant: ['tabular-nums'] },
+  nameInput: { height: CONTROL.md, borderRadius: RADIUS.ctrl, borderWidth: 1, paddingHorizontal: 14, fontSize: 15 },
+  textInput: { height: 200, borderRadius: RADIUS.ctrl, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, lineHeight: 22 },
+  btn: { marginTop: 18, height: CONTROL.lg, borderRadius: RADIUS.ctrl, alignItems: 'center', justifyContent: 'center' },
+  btnText: { fontSize: 15, letterSpacing: 1.5, fontWeight: WEIGHT.semibold },
+  result: { marginTop: SPACE.xxl, borderRadius: RADIUS.card, borderWidth: 1, padding: SPACE.lg },
+  resultLine: { fontSize: 14, fontWeight: WEIGHT.semibold, fontVariant: ['tabular-nums'] },
   miss: { fontSize: 12, lineHeight: 18, marginTop: 8, fontVariant: ['tabular-nums'] },
-  viewBtn: { marginTop: 14, height: 42, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  viewBtn: { marginTop: 14, height: CONTROL.md, borderRadius: RADIUS.ctrl, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   viewText: { fontSize: 14, letterSpacing: 1 },
 });

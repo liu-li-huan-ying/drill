@@ -89,3 +89,36 @@ export function schedToDb(sched: Sched, wordId: number, mastered: number, now: n
     mastered,
   };
 }
+
+// ── 四档间隔预览 ──────────────────────────────────────────────────────────
+// 评分条上写的间隔必须是这张卡真实的下次间隔 —— 设计体系里「条长即间隔」，
+// 写死的固定文案会让条长编码变成假的（不同卡的实际间隔差着数量级）。
+export interface IntervalPreview {
+  label: string; // 人类可读：'10 分钟' / '1 天' / '3 个月'
+  minutes: number; // 分钟数，供条长按对数刻度换算
+}
+
+// 毫秒 → 人类可读间隔。刻意只给一位有效数字：这是量级提示，不是精确时刻。
+function formatInterval(ms: number): string {
+  const min = ms / 60000;
+  if (min < 60) return `${Math.max(1, Math.round(min))} 分钟`;
+  const h = min / 60;
+  if (h < 24) return `${Math.round(h)} 小时`;
+  const d = h / 24;
+  if (d < 30) return `${Math.round(d)} 天`;
+  const mo = d / 30;
+  if (mo < 12) return `${Math.round(mo)} 个月`;
+  return `${(d / 365).toFixed(1)} 年`;
+}
+
+// 给定一张卡的当前状态，预览四档评分（1..4）各自会把它推到多久之后。
+// 新卡（state='new'）走 gradeNewCard —— 与 recordGrade 的分支保持一致，否则预览会骗人。
+export function previewIntervals(card: DbCard, now: number): IntervalPreview[] {
+  const grades: Grade[] = [1, 2, 3, 4];
+  return grades.map((g) => {
+    const sched = card.state === 'new' ? gradeNewCard(g, now) : gradeCard(card, g, now);
+    const ms = Math.max(0, sched.card.due.getTime() - now);
+    return { label: formatInterval(ms), minutes: ms / 60000 };
+  });
+}
+

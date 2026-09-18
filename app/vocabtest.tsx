@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../src/theme/ThemeProvider';
-import { serif, mono } from '../src/theme/tokens';
+import { serif, mono, FONT, RADIUS, WEIGHT, SPACE, CONTROL } from '../src/theme/tokens';
 import { getVocabTestSample, markMastered } from '../src/db/queries';
 import { speak } from '../src/lib/speak';
 
@@ -123,28 +123,28 @@ export default function VocabTestScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, paddingTop: 52 },
-  top: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 22, paddingBottom: 14, borderBottomWidth: 1 },
-  progress: { fontSize: 12, letterSpacing: 2, fontVariant: ['tabular-nums'] },
+  top: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: SPACE.xl, paddingBottom: 14, borderBottomWidth: 1 },
+  progress: { fontSize: 12, letterSpacing: 1.1, fontVariant: ['tabular-nums'] },
   end: { fontSize: 14, letterSpacing: 1 },
-  explain: { paddingHorizontal: 24, paddingTop: 18 },
+  explain: { paddingHorizontal: SPACE.xl, paddingTop: 18 },
   explainText: { fontSize: 13, lineHeight: 19, letterSpacing: 0.5 },
-  cardArea: { flex: 1, paddingHorizontal: 20, justifyContent: 'center' },
-  card: { borderRadius: 12, borderWidth: 1, paddingVertical: 40, alignItems: 'center' },
-  ul: { fontSize: 10.5, letterSpacing: 2, textTransform: 'uppercase', fontWeight: '500' },
-  word: { fontSize: 42, marginTop: 18, letterSpacing: -0.8 },
+  cardArea: { flex: 1, paddingHorizontal: SPACE.xl, justifyContent: 'center' },
+  card: { borderRadius: RADIUS.card, borderWidth: 1, paddingVertical: 40, alignItems: 'center' },
+  ul: { fontSize: 10.5, letterSpacing: 1.1, textTransform: 'uppercase', fontWeight: WEIGHT.semibold },
+  word: { fontSize: FONT.test, marginTop: 18, letterSpacing: -0.8 },
   ipa: { fontSize: 13, marginTop: 12, letterSpacing: 0.8 },
   sound: { marginTop: 26 },
-  soundDot: { width: 44, height: 44, borderRadius: 22, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
-  soundInner: { width: 8, height: 8, borderRadius: 4 },
-  actions: { flexDirection: 'row', gap: 12, paddingHorizontal: 20, paddingBottom: 34 },
-  btnKnow: { flex: 1, height: 52, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  btnKnowText: { fontSize: 15, letterSpacing: 3, fontWeight: '600' },
-  btnUnknown: { flex: 1, height: 52, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  btnUnknownText: { fontSize: 15, letterSpacing: 3 },
+  soundDot: { width: 44, height: 44, borderRadius: RADIUS.pill, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+  soundInner: { width: 8, height: 8, borderRadius: RADIUS.pill },
+  actions: { flexDirection: 'row', gap: SPACE.md, paddingHorizontal: SPACE.xl, paddingBottom: SPACE.xxxl },
+  btnKnow: { flex: 1, height: CONTROL.lg, borderRadius: RADIUS.ctrl, alignItems: 'center', justifyContent: 'center' },
+  btnKnowText: { fontSize: 15, letterSpacing: 1.5, fontWeight: WEIGHT.semibold },
+  btnUnknown: { flex: 1, height: CONTROL.lg, borderRadius: RADIUS.ctrl, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  btnUnknownText: { fontSize: 15, letterSpacing: 1.5 },
   doneWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
-  doneKicker: { fontSize: 11, letterSpacing: 3, textTransform: 'uppercase', fontWeight: '600' },
+  doneKicker: { fontSize: 11, letterSpacing: 1.1, textTransform: 'uppercase', fontWeight: WEIGHT.semibold },
   est: { fontSize: 56, marginTop: 10, letterSpacing: -1 },
   doneSub: { fontSize: 13, marginTop: 12, lineHeight: 19, textAlign: 'center', letterSpacing: 0.5 },
-  doneBtn: { marginTop: 32, height: 50, width: 200, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  doneBtnText: { fontSize: 15, letterSpacing: 3, fontWeight: '600' },
+  doneBtn: { marginTop: 32, height: CONTROL.lg, width: 200, borderRadius: RADIUS.ctrl, alignItems: 'center', justifyContent: 'center' },
+  doneBtnText: { fontSize: 15, letterSpacing: 1.5, fontWeight: WEIGHT.semibold },
 });

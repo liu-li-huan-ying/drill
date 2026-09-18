@@ -8,7 +8,7 @@ import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import { useTheme } from '../src/theme/ThemeProvider';
-import { type Tokens } from '../src/theme/tokens';
+import { type Tokens, RADIUS, WEIGHT, SPACE } from '../src/theme/tokens';
 import { exportBackupData, restoreBackup, type BackupData } from '../src/db/queries';
 import { EXPECTED_DB_VERSION } from '../src/db/Database';
 
@@ -144,18 +144,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 18,
+    paddingHorizontal: SPACE.xl,
     paddingBottom: 12,
     borderBottomWidth: 1,
   },
   back: { fontSize: 15, width: 56 },
-  title: { fontSize: 13, letterSpacing: 3, textTransform: 'uppercase', fontWeight: '600', flex: 1, textAlign: 'center' },
-  body: { padding: 24, paddingBottom: 40 },
-  action: { borderRadius: 12, borderWidth: 1, padding: 18, marginBottom: 14 },
-  actionTitle: { fontSize: 16, fontWeight: '600' },
+  title: { fontSize: 13, letterSpacing: 1.1, textTransform: 'uppercase', fontWeight: WEIGHT.semibold, flex: 1, textAlign: 'center' },
+  body: { padding: SPACE.xl, paddingBottom: 40 },
+  action: { borderRadius: RADIUS.card, borderWidth: 1, padding: 18, marginBottom: 14 },
+  actionTitle: { fontSize: 16, fontWeight: WEIGHT.semibold },
   actionSub: { fontSize: 12, marginTop: 6, lineHeight: 17 },
   spinner: { marginTop: 18 },
-  msg: { marginTop: 8, borderRadius: 10, borderWidth: 1, padding: 14 },
+  msg: { marginTop: 8, borderRadius: RADIUS.ctrl, borderWidth: 1, padding: 14 },
   msgText: { fontSize: 13, lineHeight: 18 },
   note: { fontSize: 12, lineHeight: 18, marginTop: 18, letterSpacing: 0.5 },
 });

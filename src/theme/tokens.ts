@@ -45,10 +45,13 @@ export const mono = 'SF Mono, Roboto Mono, DejaVu Sans Mono, monospace';
 
 // 字号阶梯（sp）
 export const FONT = {
-  word: 42, // 复习/新词卡单词
+  cardWord: 48, // 复习卡正面单词（臣服原则：单词是唯一主角）
+  detailWord: 34, // 详情页单词
   test: 36, // 校准词
   wordSm: 27, // 背面单词 / 统计数字
   title: 25, // 页面标题（含中文）
+  hero: 46, // 统计页连续天数等 hero 数字
+  ring: 58, // 首页刻度环中心数字
   def: 16.5, // 中文释义
   quote: 14, // 英文例句（斜体）
   body: 15, // 列表
@@ -56,10 +59,10 @@ export const FONT = {
   ipa: 13, // 音标
 };
 
-// 四档评分：条长即下次间隔（dp）
-export const RATING_BARS = [14, 26, 42, 66] as const;
+// 四档评分：条长即下次间隔。条长按「实际间隔的对数刻度」在 min..max 之间取值，
+// 端点固定、中间单调 —— 这样不同卡的条长比例是真实的，而不是四条固定宽度。
 export const RATING_LABELS = ['重来', '困难', '良好', '简单'] as const;
-export const RATING_INTERVALS = ['10 分钟', '1 天', '4 天', '12 天'] as const;
+export const RATING_BAR = { min: 14, max: 66 } as const;
 
 // ────────────────────────────────────────────────────────────
 // 尺度系统（体系第二支柱）
@@ -72,14 +75,15 @@ export const RATING_INTERVALS = ['10 分钟', '1 天', '4 天', '12 天'] as con
 // 每个文件各写各的 → 同一 App 内界面互不相认。以下尺度是唯一取值来源。
 // ────────────────────────────────────────────────────────────
 
-// 圆角：只此六档。圆形一律用 pill，不再出现 20/22/9.5 这类随直径手算的值。
+// 圆角：只此七档。圆形一律用 pill，不再出现 20/22/9.5 这类随直径手算的值。
 export const RADIUS = {
   mark: 1, // 方块标记 .mk（朱批印记）
   bar: 2, // 进度条 / 细条
+  xs: 4, // 打卡日历格、小方块
   chip: 6, // 小标签、词性角标
   ctrl: 10, // 按钮、输入框
   card: 12, // 卡片（v3 原型定案；旧值 10 偏硬、12 起才有「纸的柔」）
-  pill: 999, // 圆形 / 胶囊：声波钮、头像
+  pill: 999, // 圆形 / 胶囊：声波钮、头像、圆点
 } as const;
 
 // 间距：4dp 基础网格。现有 10/14/18/22 一律就近归并到偶数档。
@@ -113,10 +117,32 @@ export const MOTION = {
   sheet: 280, // 浮层进出
 } as const;
 
-// 字重：只两级。衬线内容用 regular，操作与强调标签用 medium。
+// 字重：三级（2026-09-18 定案，**推翻**此前「中文层级不靠字重」的结论）。
+// 正文长文用 regular；标签 / 按钮 / 标题 / 数字 / tab 标签用 semibold ——
+// 中文 Regular 在屏显下细弱显廉价，而靠拉宽字距装层级只会更散，两者叠加就是廉价感来源。
 export const WEIGHT = {
   regular: '400',
-  medium: '500',
+  medium: '500', // 列表项、次要值、tab 未选
+  semibold: '600', // 标签、按钮、标题、数字、tab 选中
+} as const;
+
+// 抬升（纸感）：卡片是「压在纸上的另一张纸」——1px 描边 + 极短阴影，不用大投影。
+// 暗色下不投影（纸落在墨上，靠描边分层），由组件按 scheme 决定是否应用。
+export const SHADOW = {
+  card: {
+    shadowColor: '#171512',
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
+  },
+  overlay: {
+    shadowColor: '#171512',
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 3,
+  },
 } as const;
 
 // 层级：材质靠「描边 + 极轻抬升」表达，不靠色彩、不靠大阴影。

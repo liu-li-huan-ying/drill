@@ -134,13 +134,22 @@ export function setStudyScope(tagId: number | null): void {
 
 // 记录一次评分：更新 cards、写入 review_logs、累计 daily_stats。
 // 新卡首次评分从空卡开始（首评决定首次 due）。
-export function recordGrade(item: QueueItem, rating: Grade): void {
+// 返回一份「评分前快照」——撤销要靠它把三张表一起还原（见 undoGrade）。
+export interface GradeSnapshot {
+  word_id: number;
+  cardBefore: DbCard;
+  logId: number;
+  date: string;
+  wasNew: boolean;
+}
+
+export function recordGrade(item: QueueItem, rating: Grade): GradeSnapshot | null {
   const now = Date.now();
   const prev = getDb().getFirstSync<DbCard>(
     'SELECT * FROM cards WHERE word_id = ?',
     [item.word_id]
   );
-  if (!prev) return;
+  if (!prev) return null;
 
   const wasNew = prev.state === 'new';
   const sched = wasNew
@@ -158,7 +167,7 @@ export function recordGrade(item: QueueItem, rating: Grade): void {
       next.last_review_at, item.word_id,
     ]
   );
-  getDb().runSync(
+  const log = getDb().runSync(
     'INSERT INTO review_logs (card_id, reviewed_at, rating, state) VALUES (?,?,?,?)',
     [item.word_id, now, rating, next.state]
   );
@@ -171,7 +180,44 @@ export function recordGrade(item: QueueItem, rating: Grade): void {
        new_count = new_count + ?, review_count = review_count + ?`,
     [k, wasNew ? 1 : 0, wasNew ? 0 : 1, wasNew ? 1 : 0, wasNew ? 0 : 1]
   );
+
+  return { word_id: item.word_id, cardBefore: prev, logId: log.lastInsertRowId, date: k, wasNew };
 }
+
+// 撤销一次评分：把 cards 还原到评分前，删掉刚写的 review_logs，回退 daily_stats 计数。
+// 计数归零的当日行必须删掉 —— 否则它会算作「打过卡的一天」，把连续天数灌水。
+export function undoGrade(snap: GradeSnapshot): void {
+  const db = getDb();
+  const c = snap.cardBefore;
+  db.runSync(
+    `UPDATE cards SET state=?, due=?, stability=?, difficulty=?, retrievability=?,
+       reps=?, lapses=?, elapsed_days=?, scheduled_days=?, last_review_at=?
+     WHERE word_id=?`,
+    [
+      c.state, c.due, c.stability, c.difficulty, c.retrievability,
+      c.reps, c.lapses, c.elapsed_days, c.scheduled_days,
+      c.last_review_at, snap.word_id,
+    ]
+  );
+  db.runSync('DELETE FROM review_logs WHERE id = ?', [snap.logId]);
+  db.runSync(
+    `UPDATE daily_stats SET
+       new_count = MAX(0, new_count - ?),
+       review_count = MAX(0, review_count - ?)
+     WHERE date = ?`,
+    [snap.wasNew ? 1 : 0, snap.wasNew ? 0 : 1, snap.date]
+  );
+  db.runSync(
+    'DELETE FROM daily_stats WHERE date = ? AND new_count <= 0 AND review_count <= 0',
+    [snap.date]
+  );
+}
+
+// 单卡状态（供评分条做四档间隔预览）。
+export function getCard(wordId: number): DbCard | null {
+  return getDb().getFirstSync<DbCard>('SELECT * FROM cards WHERE word_id = ?', [wordId]) ?? null;
+}
+
 
 // 标记一个词为「已掌握」：从学习计划中移除（mastered=1）。用于熟词校准与详情页。
 export function markMastered(wordId: number): void {
@@ -388,6 +434,66 @@ export function getDailyHistory(days = 7): { date: string; new_count: number; re
   return out;
 }
 
+// ── 日历类统计 ────────────────────────────────────────────────────────────
+// 看板要按「周 / 月」做日历运算，集中取一次全部打卡日，避免反复扫表。
+function learnedDates(): string[] {
+  return getDb()
+    .getAllSync<{ date: string }>('SELECT date FROM daily_stats ORDER BY date ASC')
+    .map((r) => r.date);
+}
+
+// 'YYYY-MM-DD' → 星期几（0=周日）。与打卡日历表头「日 一 二 三 四 五 六」同一套。
+function weekdayOf(key: string): number {
+  const [y, m, d] = key.split('-').map(Number);
+  return new Date(y, m - 1, d).getDay();
+}
+
+// 历史最长连续打卡天数（不只算当前这段）。
+export function getLongestStreak(): number {
+  let best = 0;
+  let run = 0;
+  let prev = '';
+  for (const d of learnedDates()) {
+    run = prev && shiftDateKey(prev, 1) === d ? run + 1 : 1;
+    if (run > best) best = run;
+    prev = d;
+  }
+  return best;
+}
+
+// 本周打卡进度（周日为一周之始）。分母固定 7 —— 「本周」是已经过完的那部分吗，不是，
+// 它是一整周，还没到的日子就是没打卡。
+export function getWeekProgress(): { done: number; total: number } {
+  const todayKey = dateKey(Date.now(), getSettings().day_cutoff_hour);
+  const dates = new Set(learnedDates());
+  const start = shiftDateKey(todayKey, -weekdayOf(todayKey));
+  let done = 0;
+  for (let i = 0; i < 7; i++) if (dates.has(shiftDateKey(start, i))) done++;
+  return { done, total: 7 };
+}
+
+// 今日的年 / 月（0 起）/ 日（受每日分界影响），供日历定位「今天」。
+export function todayParts(): { year: number; month0: number; day: number } {
+  const [y, m, d] = dateKey(Date.now(), getSettings().day_cutoff_hour).split('-').map(Number);
+  return { year: y, month0: m - 1, day: d };
+}
+
+// 某月的每日学习量（新学 + 复习），0 = 未打卡。用于月度打卡日历。
+export function getMonthHistory(year: number, month0: number): { day: number; total: number }[] {
+  const days = new Date(year, month0 + 1, 0).getDate();
+  const mm = String(month0 + 1).padStart(2, '0');
+  const byDay = new Map<number, number>();
+  getDb()
+    .getAllSync<{ date: string; new_count: number; review_count: number }>(
+      'SELECT date, new_count, review_count FROM daily_stats WHERE date >= ? AND date <= ?',
+      [`${year}-${mm}-01`, `${year}-${mm}-${String(days).padStart(2, '0')}`]
+    )
+    .forEach((r) => byDay.set(Number(r.date.slice(8, 10)), r.new_count + r.review_count));
+  const out: { day: number; total: number }[] = [];
+  for (let d = 1; d <= days; d++) out.push({ day: d, total: byDay.get(d) ?? 0 });
+  return out;
+}
+
 // 留存率：基于复习日志的四档评分，rating>=3 视为「正确」（Good/Easy），否则未掌握。
 export function getRetention(): { total: number; correct: number; rate: number } {
   const row = getDb().getFirstSync<{ total: number; correct: number }>(
@@ -595,6 +701,11 @@ export function resetMastered(): void {
 }
 
 // ── 自定义词库导入 ───────────────────────────────────────────────────────
+// 自定义 tag 的落库颜色。取设计令牌的朱砂值——词库列表按「单色体系」渲染，
+// 内置 tag 那些 Material 主色（蓝/红/橙/黄…）在界面上已被忽略，这里也不再写旧值 #C0452F。
+// 保留字段是为了兼容既有库与其备份（导入导出会带上它）。
+const TAG_COLOR_CUSTOM = '#A8382A';
+
 // 解析纯文本（换行/空格/逗号/顿号/分号分隔、小写归一）为单词集合，
 // 在 words 表精确匹配；匹配到的建（或复用）自定义 tag 并关联、补建 cards。
 // 返回命中数、未收录词、tag 信息，供页面反馈。
@@ -622,7 +733,7 @@ export function importCustomList(
     getDb().runSync('INSERT INTO tags(name,kind,color,sort) VALUES(?,?,?,?)', [
       tagName,
       'custom',
-      '#C0452F',
+      TAG_COLOR_CUSTOM,
       90,
     ]);
     tagId = getDb().getFirstSync<{ id: number }>(

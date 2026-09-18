@@ -44,3 +44,6 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# 本轮开发临时脚本与打包产物（脚本名以 .tmp_ 开头，不进版本库）
+.tmp_*
