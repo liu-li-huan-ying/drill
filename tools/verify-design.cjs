@@ -37,6 +37,15 @@ const code = (f) =>
 const results = [];
 const check = (name, pass, detail) => results.push([!!pass, name, detail || '']);
 
+// 按「下一个 export」切片而不是按 `\n}` 匹配：props 的解构参数以 `}) {` 收尾，
+// 那个 `\n}` 会被惰性匹配当成分界（实测截断在参数表上）。
+const between = (s, from, to) => {
+  const a = s.indexOf(from);
+  if (a < 0) return '';
+  const b = to ? s.indexOf(to, a + from.length) : -1;
+  return s.slice(a, b < 0 ? s.length : b);
+};
+
 // ── 1. 令牌纪律 ────────────────────────────────────────────────────────
 const HEX_OK = ['src/theme/tokens.ts', 'src/db/queries.ts']; // 令牌本身 + 落库色常量
 const hexBad = files.filter((f) => !HEX_OK.includes(f) && /#[0-9a-fA-F]{3,8}\b/.test(code(f)));
@@ -128,6 +137,43 @@ check(
     /useReducedMotion/.test(read('src/lib/motion.ts')) &&
     /reduce/.test(tabL),
   '8 屏 PageEnter / reduce-motion 分支'
+);
+
+// ── 5b. 返回不露白：容器层 + 原生根视图 + 纸底不淡入（v3.11） ────────────
+// 主人反馈「单词页 / 选辞书页侧滑返回还会出现白光」。v3.6 只钉了**卡片内容**与
+// tab 侧，漏掉的两处才是返回时露白的地方：
+//   ① `ScreenStack` 容器自己没有底色 —— 原生栈返回时要**重新挂载**上一屏的视图，
+//      那几帧里 `contentStyle`（管的是屏幕内容）根本还不存在；
+//   ② `PageEnter` 把 backgroundColor 一起淡入 —— 整屏半透明的那 240ms 透出下层。
+const uiCode5 = code('src/components/ui/index.tsx');
+const pageEnter = between(uiCode5, 'export function PageEnter', 'export function');
+check(
+  '转场底色：卡片 + 场景 + **两个容器层**',
+  /contentStyle: \{ backgroundColor: c\.bg \}/.test(root) && // 原生栈卡片
+    /flex: 1, backgroundColor: c\.bg/.test(root) && // ← stack 容器层（v3.11 补）
+    /sceneStyle: \{ backgroundColor: c\.bg \}/.test(tabL) &&
+    /flex: 1, backgroundColor: c\.bg/.test(tabL), // tabs 容器层
+  'Stack 容器 + contentStyle + Tabs 容器 + sceneStyle'
+);
+check(
+  '纸底不参与淡入（PageEnter 拆两层）',
+  /const \{ backgroundColor/.test(pageEnter) &&
+    /<View style=\{\[\{ flex: 1 \}, backgroundColor/.test(pageEnter) &&
+    /<Animated\.View[^>]*style=\{\[rest, \{ opacity: v \}\]\}>/.test(pageEnter) &&
+    !/style, \{ opacity: v \}/.test(pageEnter), // 旧的「整屏一起淡」不许复活
+  '纸先铺好，墨后落'
+);
+const appJson = JSON.parse(read('app.json'));
+const paperBg = (read('src/theme/tokens.ts').match(/bg: '(#[0-9A-Fa-f]{6})'/) || [])[1];
+check(
+  '原生根视图底色是纸（不露白）',
+  appJson?.expo?.android?.backgroundColor === paperBg,
+  `android.backgroundColor = ${appJson?.expo?.android?.backgroundColor}（纸色 ${paperBg}）`
+);
+check(
+  '卡片位移与内容淡入同一时长',
+  /animationDuration: reduce \? 0 : MOTION\.enter/.test(root) && !/animationDuration: \d/.test(root),
+  '原生卡片与 PageEnter 同为 MOTION.enter，无裸数字'
 );
 
 check('完成屏可滚动（短屏不裁）', /<ScrollView/.test(read('src/features/review/DoneView.tsx')), 'DoneView');
@@ -228,12 +274,6 @@ const NUM_SCREENS = [
 const uiCode = code('src/components/ui/index.tsx');
 // 按「下一个 export」切片而不是按 `\n}` 匹配：props 的解构参数以 `}) {` 收尾，
 // 那个 `\n}` 会被惰性匹配当成分界（实测截断在参数表上）。
-const between = (s, from, to) => {
-  const a = s.indexOf(from);
-  if (a < 0) return '';
-  const b = to ? s.indexOf(to, a + from.length) : -1;
-  return s.slice(a, b < 0 ? s.length : b);
-};
 const numBlock = between(uiCode, 'export function Num(', 'export function NumUnit(');
 const numUnitBlock = between(uiCode, 'export function NumUnit(', 'export function SoundIcon(');
 

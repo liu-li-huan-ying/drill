@@ -25,6 +25,12 @@ import { fmtNum } from '../../lib/num';
  * 内容若同时向上浮，合成运动就是**斜向**的 —— 横向来自系统、竖向来自我们，
  * 两股力方向不同，看起来正是「业余」。让内容在原地「显影落定」，
  * 只补系统缺的那半拍：卡片到达的同时内容才逐渐清晰，而不是一块硬纸板被推过来。
+ *
+ * ⚠️ **纸底不参与淡入**（v3.11 修）：旧写法把 `style` 整个塞进淡入层，于是
+ * `backgroundColor`（纸色）也跟着从 0 淡到 1 —— 那 240ms 里整屏是**半透明**的，
+ * 透出来的就是容器 / 原生根视图，而它是白的。侧滑返回看到的那一闪白光，一半来自这里。
+ * 现在把底色单独提到外层、不参与动画：**纸先铺好，墨（内容）后落** ——
+ * 这与完成页「先落印、后显字」是同一个次序语义：底是既成事实，内容是正在发生的事。
  */
 export function PageEnter({
   children,
@@ -52,10 +58,16 @@ export function PageEnter({
     return () => anim.stop();
   }, [reduce, v]);
 
+  // 从入参样式里把底色摘出来：它归外层（不参与动画），其余（flex / padding）归内容层。
+  const flat = StyleSheet.flatten(style) as (ViewStyle & { backgroundColor?: string }) | undefined;
+  const { backgroundColor, ...rest } = flat ?? {};
+
   return (
-    <Animated.View testID="page-enter" style={[{ flex: 1 }, style, { opacity: v }]}>
-      {children}
-    </Animated.View>
+    <View style={[{ flex: 1 }, backgroundColor != null ? { backgroundColor } : null]}>
+      <Animated.View testID="page-enter" style={[rest, { opacity: v }]}>
+        {children}
+      </Animated.View>
+    </View>
   );
 }
 

@@ -7,6 +7,8 @@ import { ThemeProvider, useTheme } from '../src/theme/ThemeProvider';
 import { RADIUS, SPACE, WEIGHT, TRACK, serif } from '../src/theme/tokens';
 import { initDatabase } from '../src/db/Database';
 import { ensureCards } from '../src/db/queries';
+import { MOTION } from '../src/theme/tokens';
+import { useReducedMotion } from '../src/lib/motion';
 
 // 启动屏 = **全应用第一枚印章**（P2.3）。首启要拷贝资产词库，这一屏会停留一会儿，
 // 与其放一个转圈，不如让品牌在这里先盖一次：朱底纸字的方章 + 竖排「背呗」，
@@ -55,17 +57,25 @@ const styles = StyleSheet.create({
 // ios_from_right：Android 上给出 iOS 风格的右入、iOS 上即平台默认，两端一致。
 function RootStack() {
   const { colors: c } = useTheme();
+  const reduce = useReducedMotion();
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        animation: 'ios_from_right',
-        // **白光的根因在这里**：原生栈的卡片默认底色是白（Android 上是窗口色），
-        // 而卡片的底色会先于页面的 JS 内容渲染出来 —— 推进来的那一瞬、以及被上层页面遮住的边缘，
-        // 露出的都是这块白。把它钉成纸色/墨色，换页时透出来的就永远是「同一张纸」。
-        contentStyle: { backgroundColor: c.bg },
-      }}
-    >
+    // **容器层纸底**（与 `(tabs)/_layout.tsx` 同一层，stack 这一侧此前一直缺）：
+    // `contentStyle` 钉的是「屏幕内容」的底色，而 `ScreenStack` 容器自己没有底色 ——
+    // Android 原生栈会把上一屏的视图**摘掉**，返回时要重新挂上，那几帧里屏幕内容还不存在，
+    // 透出来的就是原生根视图（默认白）。这一层纸底才是「任何一帧都不露白」的兜底。
+    <View style={{ flex: 1, backgroundColor: c.bg }}>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          animation: 'ios_from_right',
+          // 卡片位移与内容淡入是**同一个动作的两半**：一个 300 一个 240 就会「卡片已到位、
+          // 内容还在淡」。这里把原生卡片的时长钉成与 `PageEnter` 同为 `MOTION.enter`。
+          // 「减弱动效」时归零 —— 不是变慢，是直接到位。
+          animationDuration: reduce ? 0 : MOTION.enter,
+          // 屏幕内容底色：卡片底默认是白（Android 上取窗口色），推进来 / 被遮住的边缘露出的都是它。
+          contentStyle: { backgroundColor: c.bg },
+        }}
+      >
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="review" />
       <Stack.Screen name="calibration" />
@@ -75,7 +85,8 @@ function RootStack() {
       <Stack.Screen name="notes" />
       <Stack.Screen name="import" />
       <Stack.Screen name="backup" />
-    </Stack>
+      </Stack>
+    </View>
   );
 }
 
