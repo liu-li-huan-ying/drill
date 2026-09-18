@@ -317,29 +317,66 @@ check(
 
 // 打卡日历印章化：格子不再是「填色方块」，量级落在**印记**上。
 //
-// 2026-09-18 改写（旧断言保护的正是被主人推翻的做法）：
-// 第一版把浓度编码成**印面大小**（6 → 10.8dp）。主人的反驳一句到位：
-// 「大小绝对是要一样大的，不然大大小小放一起很不好看」。这条异议背后是更硬的编码原则 ——
-// **重复出现、且必须并排比较的元素，不能用尺寸编码差异**：日历里 30 格是一排读数，
-// 尺寸一多样，眼睛比的是「哪个更大」，而不是「哪天的墨更重」；何况相邻两档只差 1.6dp，
-// 比大小本身也不成立。于是改成**同尺寸 + 墨量分档**（细边朱文 / 粗边朱文 / 满墨白文）。
+// 2026-09-18 第三次改写 —— 前两版断言保护的正是被主人推翻的做法：
+//   第一版把浓度编码成**印面大小**（6 → 10.8dp）。主人的反驳一句到位：
+//     「大小绝对是要一样大的，不然大大小小放一起很不好看」。异议背后是更硬的编码原则 ——
+//     **重复出现、且必须并排比较的元素，不能用尺寸编码差异**：日历里 30 格是一排读数，
+//     尺寸一多样，眼睛比的是「哪个更大」，而不是「哪天的墨更重」；何况相邻两档只差 1.6dp，
+//     比大小本身也不成立。于是改成「同尺寸 + 墨量分档」（细边 / 粗边 / 满墨）。
+//   第二版在 9dp 印面上三档只差 1dp。主人：「现在这个小框有点小，放大空间是够的」——
+//     **读不出来的分辨率不是分辨率，是噪声。**
+//   第三版（现行）：印面放大到 22dp，复用完成屏那枚「今日已毕」章的形制
+//     （朱底 + 纸色内框 + 一个纸色的字），浓度改用**印面完整度**表达。
 //
-// 判据因此从「有 stampSize 这个函数」反过来变成「全屏只有一个尺寸取值」。
-// 旧断言会替坏设计站岗 —— 这是这条断言必须改写而不只是补一条的原因。
+// 判据的核心只有一句：**磨损必须是「一处伤口，三个深度」**。
+// 曾试过「断框 + 麻点 + 残字 + 两处缺角」一起上：单枚看是「有细节」，30 枚并排是一片脏；
+// 而 L1（背得最少）恰恰是**最常见**的一档 —— 最常见的那一档必须最好看。
+// 三种不同手法各表达一档还有一个额外代价：读者要学三次，还学不出「哪个更多」。
+//
+// 旧断言会替坏设计站岗 —— 这是这两条断言必须**改写**而不只是补一条的原因。
 const statsCode = code('app/(tabs)/stats.tsx');
 const stampSizeArgs = statsCode.match(/\bsize=\{[^}]*\}/g) || [];
+const wearBlock = between(uiCode, 'const SEAL_WEAR', 'function FrameBar');
+const biteOf = (lv) => {
+  const m = wearBlock.match(new RegExp(`\\b${lv}: \\{ bite: ([\\d.]+)`));
+  return m ? Number(m[1]) : NaN;
+};
 check(
-  '打卡印记尺寸唯一（浓度靠墨量，不靠大小）',
-  /stampInk\(/.test(statsCode) &&
+  '打卡印记尺寸唯一（浓度靠印面完整度，不靠大小）',
+  /sealWear\(/.test(statsCode) &&
     stampSizeArgs.length > 0 &&
     stampSizeArgs.every((s) => s === 'size={STAMP.size}') &&
-    /StampInk/.test(uiCode) &&
+    /SealWear/.test(uiCode) &&
     /\(\[1, 2, 3\] as const\)/.test(statsCode) &&
     // 「按档位算尺寸」这个做法整体删掉：令牌里不许再有 stampSize，
-    // 否则下一个改这屏的人会顺手把它用回来。
+    // 否则下一个改这屏的人会顺手把它用回来。第二代的「墨量」命名同理。
     !/stampSize/.test(statsCode) &&
-    !/stampSize/.test(tokText),
-  `印记 size 参数只有 ${'size={STAMP.size}'} 一种（共 ${stampSizeArgs.length} 处）/ 图例三档与日历同源`
+    !/stampSize/.test(tokText) &&
+    !/stampInk|StampInk/.test(statsCode + uiCode + tokText),
+  `印记 size 参数只有 ${'size={STAMP.size}'} 一种（共 ${stampSizeArgs.length} 处）/ 「印面递增」「墨量」两代命名零残留`
+);
+
+check(
+  '印面磨损：一处伤口三深度（同手法三量级，不是三种手法）',
+  wearBlock !== '' &&
+    biteOf(3) === 0 &&
+    biteOf(2) > 0 &&
+    biteOf(1) > biteOf(2) &&
+    // 「一处伤口」= 缺角只在右下这一处（right+bottom 同时贴 0）；出现第二处角就退回「一片脏」
+    (uiCode.match(/right: 0, bottom: 0/g) || []).length === 1 &&
+    // 印面上的字：22dp 只放得下一个字，「今日已毕」四个字放不下
+    /char: '毕'/.test(tokText) &&
+    /STAMP\.char/.test(statsCode),
+  `bite 3→${biteOf(3)} / 2→${biteOf(2)} / 1→${biteOf(1)}；缺角 1 处；印面字 = STAMP.char`
+);
+
+// 印面一旦放大，日历格必须跟着放得下：槽高不小于印面，且令牌里的 size 与 slot 成对。
+const stampSize = Number((tokText.match(/export const STAMP = \{ size: (\d+)/) || [0, 0])[1]);
+const stampSlot = Number((tokText.match(/size: \d+, slot: (\d+)/) || [0, 0])[1]);
+check(
+  '印记尺寸真的够大（≥18dp，槽高 ≥ 印面）',
+  stampSize >= 18 && stampSlot >= stampSize,
+  `size ${stampSize}dp / slot ${stampSlot}dp（改版前 9 / 11 —— 真机上分不出三档）`
 );
 
 // 一周以**周一**为始，且三处同一套约定（日历表头 / 本周柱状图 / 本周进度）。
@@ -475,6 +512,34 @@ check(
     /stripPos/.test(read('src/components/Definition.tsx')) &&
     /numbered[\s\S]{0,80}stripPos=\{Boolean\(detail\.pos\)\}/.test(code('app/word.tsx')),
   'parseSense + stripPos + numbered'
+);
+
+// 释义列表的排版（2026-09-18，主人：「多个意思的列表很丑陋格式」）。
+// 「丑陋」的根因是可测的两处错位叠加，两条都要钉住：
+//   ① 序号缺 lineHeight —— 序号默认行高约 19，正文 25，两者的首行基线差一截；
+//   ② 义项间距只挂在正文上 —— 序号不跟着下移，第 2 条起序号浮在自己正文的上方。
+// 配套两条纪律：序号 / 词性 / 领域标签**共用同一档字号**（它们是一行里的同一个前缀，
+// 尺寸一多样前缀就散成两个记号）；只有一个义项时不编号
+// （30,565 词里 9,932 个词只有 1 条义项 —— 接近三分之一的页面在挂一个没有信息的「1」）。
+const defCode = code('src/components/Definition.tsx');
+check(
+  '释义列表：序号共基线 + 间距挂在行上 + 前缀同号 + 单义项不编号',
+  /lineHeight: style\?\.lineHeight/.test(defCode) &&
+    /\[styles\.row, \{ marginTop: gap \}\]/.test(defCode) &&
+    /alignItems: 'flex-start'/.test(defCode) &&
+    /flex: listed \? 1 : undefined, marginTop: listed \? 0 : gap/.test(defCode) &&
+    /const tagSize = Math\.round\(\(style\?\.fontSize \?\? FONT\.def\) \* TAG_RATIO/.test(defCode) &&
+    /const listed = Boolean\(numbered\) && senses\.length > 1/.test(defCode),
+  '序号带正文 lineHeight / 间距挂行上 / 一个 tagSize（序号=词性=标签）/ 单义项不编号'
+);
+
+// 死参数不准回来。`rule`（界行）被 `numbered` 分支挡在前面，**从未画出来过**；
+// `center` 连调用方都没有。留着它们等于留两个拧了不动的旋钮，
+// 下一个改这屏的人会以为它们是可用的档位。
+check(
+  '释义组件无死参数（rule / center）',
+  !/\brule\b/.test(defCode) && !/\bcenter\b/.test(defCode),
+  'rule / center 零残留'
 );
 
 // ── 7. 可见性（对比度）────────────────────────────────────────────────

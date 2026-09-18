@@ -28,7 +28,8 @@ export default function ImportScreen() {
         <TouchableOpacity activeOpacity={0.6} onPress={() => router.back()}>
           <Text style={[styles.back, { color: c.tx2 }]}>‹ 返回</Text>
         </TouchableOpacity>
-        <Text style={[styles.title, { color: c.tx1 }]}>自 定 义 词 库</Text>        <View style={{ width: 48 }} />
+        <Text style={[styles.title, { color: c.tx1 }]}>自 定 义 词 库</Text>
+        <View style={{ width: 48 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.body}>

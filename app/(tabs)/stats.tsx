@@ -11,8 +11,8 @@ import { View, Text, ScrollView, Animated, StyleSheet } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { useTheme } from '../../src/theme/ThemeProvider';
 import {
-  serif, FONT, RADIUS, SPACE, WEIGHT, TRACK, STAMP, MOTION, stampInk,
-  type StampInk, type Tokens,
+  serif, FONT, RADIUS, SPACE, WEIGHT, TRACK, STAMP, MOTION, sealWear,
+  type SealWear, type Tokens,
 } from '../../src/theme/tokens';
 import { useGutter } from '../../src/lib/layout';
 import { easeSettle, useReducedMotion } from '../../src/lib/motion';
@@ -125,21 +125,21 @@ export default function StatsScreen() {
             {cells.map((d, i) => {
               if (d == null) return <View key={`e${i}`} style={styles.calOuter} />;
               const future = d > s.todayDay;
-              // 量级 → 墨量档（同尺寸，1 细边朱文 / 2 粗边朱文 / 3 满墨白文；见 tokens 的 STAMP）。
-              const ink = future ? 0 : stampInk(s.month[d - 1].total, maxMonth);
+              // 当日学习量 → 印面完整度档（同尺寸；1 斑驳战损 / 2 稍斑驳残缺 / 3 完美无瑕）。
+              const wear = future ? 0 : sealWear(s.month[d - 1].total, maxMonth);
               return (
                 <View key={d} style={styles.calOuter}>
                   <View style={styles.calDay}>
-                    <Text style={[styles.calDayText, { color: ink === 0 ? c.tx3 : c.tx1 }]}>
+                    <Text style={[styles.calDayText, { color: wear === 0 ? c.tx3 : c.tx1 }]}>
                       {d}
                     </Text>
                     {/* 印记槽：打卡日落一枚朱印，未打卡留空槽 —— 槽高恒定，行高才不跳。
                         未打卡**不画印**（不是画一枚空印）：给 30 个空槽描一圈虚线，
                         等于凭空多塞 30 个元素，而空白的克制本身就是「还没盖」的表达。 */}
                     <View style={styles.stampSlot}>
-                      {ink === 0 ? null : (
+                      {wear === 0 ? null : (
                         <DayStamp
-                          ink={ink}
+                          wear={wear}
                           delay={(cadence.get(d) ?? 0) * 16}
                           replay={replay}
                           paper={c.sf}
@@ -157,14 +157,14 @@ export default function StatsScreen() {
             </Text>
             {/* 图例用与格子**同一种印记、同一条分档规则**：图例画色块、格子画印记，
                 读者就得自己做一次映射 —— 图例的意义正是免掉这一步。
-                三枚样本的**尺寸完全一样**，变的只有墨量（细边 → 粗边 → 满墨）：
-                尺寸一多样，眼睛去比的就是「哪个更大」，而不是「哪天的墨更重」——
+                三枚样本的**尺寸完全一样**，变的只有印面完整度（缺角深 → 缺角浅 → 四角齐全）：
+                尺寸一多样，眼睛去比的就是「哪个更大」，而不是「哪天的印更全」——
                 而相邻两档只差 1.6dp，比大小本身也分不出来（见 tokens 的 STAMP）。 */}
             <View style={styles.lgnd}>
               <Text style={[styles.lgndText, { color: c.tx3 }]}>少</Text>
-              {([1, 2, 3] as const).map((ink) => (
-                <View key={ink} style={styles.lgndSlot}>
-                  <Seal size={STAMP.size} ink={ink} paper={c.sf} />
+              {([1, 2, 3] as const).map((wear) => (
+                <View key={wear} style={styles.lgndSlot}>
+                  <Seal size={STAMP.size} wear={wear} char={STAMP.char} paper={c.sf} />
                 </View>
               ))}
               <Text style={[styles.lgndText, { color: c.tx3 }]}>多</Text>
@@ -292,18 +292,18 @@ function compute() {
  * 日历格里的那枚印。进场时**钤**下去（比例从 1.3 压到 1 + 淡入），不是淡入一个色块。
  *
  * 三件事各有各的理由：
- *   ① 用 `Seal` 原子而不是自己画方块 —— 墨量分档（细边 / 粗边 / 满墨）是印章的语汇，
- *      必须与图例、与其它地方的朱印同源，否则日历里的印会变成一个孤立的样式。
+ *   ① 用 `Seal` 原子而不是自己画方块 —— 印面完整度分档（缺角深 / 浅 / 齐全）是印章的语汇，
+ *      必须与图例、与完成屏那枚「今日已毕」同源，否则日历里的印会变成一个孤立的样式。
  *   ② `delay` 错峰（见 cadence）：一枚一枚盖上，才是「我这个月盖了这么多天」。
  *   ③ `replay` 每次聚焦 +1：tab 屏不重挂载，没有它这个仪式只在首次进入时演一次。
  */
 function DayStamp({
-  ink,
+  wear,
   delay,
   replay,
   paper,
 }: {
-  ink: StampInk;
+  wear: SealWear;
   delay: number;
   replay: number;
   paper: string;
@@ -330,7 +330,7 @@ function DayStamp({
         transform: [{ scale: v.interpolate({ inputRange: [0, 1], outputRange: [1.3, 1] }) }],
       }}
     >
-      <Seal size={STAMP.size} ink={ink} paper={paper} />
+      <Seal size={STAMP.size} wear={wear} char={STAMP.char} paper={paper} />
     </Animated.View>
   );
 }
@@ -390,7 +390,9 @@ const styles = StyleSheet.create({
   footText: { flexShrink: 1, fontSize: 10.5, letterSpacing: TRACK.body },
   lgnd: { flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 0 },
   lgndText: { fontSize: 9.5, letterSpacing: TRACK.body },
-  lgndSlot: { width: STAMP.slot, height: STAMP.slot, alignItems: 'center', justifyContent: 'center' },
+  // 图例槽跟印面同宽（不是跟印记槽同宽）：图例只有印、没有日期数字，
+  // 用 slot 那 2dp 只会让图例白占宽度，而窄屏上这一行还要和左边的说明文字分地方。
+  lgndSlot: { width: STAMP.size, height: STAMP.size, alignItems: 'center', justifyContent: 'center' },
 
   bars: { flexDirection: 'row', alignItems: 'flex-end', gap: SPACE.sm, height: 78, borderBottomWidth: 1, marginTop: SPACE.xs },
   barCol: { flex: 1, alignItems: 'center', justifyContent: 'flex-end' },

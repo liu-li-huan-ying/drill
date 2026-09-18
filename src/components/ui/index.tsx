@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme/ThemeProvider';
 import { useSideInset } from '../../lib/layout';
 import { ease, useReducedMotion } from '../../lib/motion';
-import { RADIUS, SPACE, CONTROL, WEIGHT, MOTION, FONT, TRACK, STAMP, serif, type StampInk } from '../../theme/tokens';
+import { RADIUS, SPACE, CONTROL, WEIGHT, MOTION, FONT, TRACK, STAMP, serif, type SealWear } from '../../theme/tokens';
 import { fmtNum } from '../../lib/num';
 
 /**
@@ -181,75 +181,139 @@ export function Progress({ ratio, style }: { ratio: number; style?: StyleProp<Vi
 }
 
 /**
- * 朱印：**尺寸恒定，浓度靠墨量**（见 tokens 的 STAMP 注释）。
+ * 印面磨损规格 —— **一处伤口，三个深度**（理由见 tokens 的 STAMP 注释）。
  *
- *   ink 1 细边朱文（只有轮廓）/ 2 粗边朱文 / 3 满墨白文（印面全朱 + 纸色内框，默认）
+ * 全部是确定值，不是随机数：30 个格子必须读出「三档」，读出随机纹理就是读出了噪声。
+ * 值是比例：`bite` 相对印面边长，`wound` 相对字腔，`spot` 以印面左上角为原点。
  *
- * 「未打卡」不在这里表达 —— 那由调用方决定**不渲染**。给空槽描一圈虚线等于往日历里
- * 凭空塞 30 个元素，而空白的克制本身就是「还没盖」最好的说法。
+ *   3 完美无瑕      四角齐全，字完整
+ *   2 稍斑驳残缺    右下缺一角，只咬到印边
+ *   1 斑驳战损      右下缺角咬穿内框的角，并蹭掉「毕」的右下；另有一粒小磕碰
+ */
+const SEAL_WEAR: Record<
+  SealWear,
+  { bite: number; wound?: readonly [number, number, number, number]; spot?: readonly [number, number] }
+> = {
+  3: { bite: 0 },
+  2: { bite: 0.24 },
+  1: { bite: 0.4, wound: [0.62, 0.62, 0.38, 0.22], spot: [0.64, 0.18] },
+};
+
+/** 内框的一根线。**拆成四根而不是一个 border 盒子** —— 只有拆开，缺角才咬得断它。 */
+function FrameBar({ l, t, w, h, color }: { l: number; t: number; w: number; h: number; color: string }) {
+  return <View style={{ position: 'absolute', left: l, top: t, width: w, height: h, backgroundColor: color }} />;
+}
+
+/**
+ * 朱印：**尺寸恒定，浓度靠印面完整度**（见 tokens 的 STAMP 注释）。
  *
- * `paper` 是印下面那张「纸」的颜色。白文印的内框是**纸色实体**，不是描边：
- * 印压在卡面上就该取卡面色（`c.sf`），取错（比如永远取 `c.bg`）会让内框比周围暗一档，
+ *   wear 3 完美无瑕（默认）→ 品牌章、图例的「多」、日历里背得最多的那天
+ *   wear 2 稍斑驳残缺
+ *   wear 1 斑驳战损
+ *
+ * `char` 传一个字就在印面上刻一个字（白文：**纸色实体**压在朱底上，不是描边）。
+ * 不传就是一枚空的满墨白文印 —— 品牌章走这一路。
+ *
+ * `paper` 是印下面那张「纸」的颜色。内框与字都是纸色实体，印压在卡面上就该取卡面色
+ * （`c.sf`）：取错（比如永远取 `c.bg`）会让内框比周围暗一档，
  * 于是读成「一个空心框」而不是「白文印」。默认取页面底色。
  */
 export function Seal({
   size = 16,
-  ink = 3,
+  wear = 3,
+  char,
   paper,
   style,
 }: {
   size?: number;
-  ink?: StampInk;
+  wear?: SealWear;
+  char?: string;
   paper?: string;
   style?: StyleProp<ViewStyle>;
 }) {
   const { colors: c } = useTheme();
-  // 边宽以 9dp 的印面（STAMP.size）为基准单位：换尺寸时整枚印等比缩放，
-  // 「墨量」在任何尺寸下的**相对**视觉重量才不变。
-  const u = size / STAMP.size;
   const paperColor = paper ?? c.bg;
-  const base: StyleProp<ViewStyle> = {
-    width: size,
-    height: size,
-    borderRadius: RADIUS.mark + 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  };
-
-  if (ink === 3) {
-    // 满墨白文：印面整块朱，内嵌一道纸色细框 —— 这不是「装饰内框」，
-    // 而是白文印真实的结构：朱色是底，「字」是纸。
-    const inset = Math.round(size * 0.22);
-    return (
-      <View style={[base, { backgroundColor: c.ac }, style]}>
-        <View
-          style={{
-            position: 'absolute',
-            top: inset,
-            left: inset,
-            right: inset,
-            bottom: inset,
-            borderWidth: 1,
-            borderColor: paperColor,
-            borderRadius: RADIUS.mark,
-          }}
-        />
-      </View>
-    );
-  }
+  // 一切子尺寸都由 size 派生（基准单位取 STAMP.size），换尺寸时整枚印等比缩放 ——
+  // 「磨损到什么程度」在任何尺寸下的**相对**视觉重量才不会变。
+  const u = size / STAMP.size;
+  // 内框内缩：有字时 17%（框退成印边，给字让位），无字时 22%（框本身就是要读的东西，
+  // 这时它是印面上唯一的形 —— 品牌章走这一路，与改版前逐像素一致）。
+  const inset = Math.max(2, Math.round(size * (char ? 0.17 : 0.22)));
+  const fw = Math.max(1, Math.round(0.9 * u)); // 框线粗细
+  const box = size - inset * 2; // 内框外沿边长
+  const cavity = box - fw * 2; // 字腔净空
+  const spec = SEAL_WEAR[wear];
+  const bite = Math.round(size * spec.bite);
 
   return (
     <View
       style={[
-        base,
         {
-          borderWidth: (ink === 1 ? 1 : 1.9) * u,
-          borderColor: c.ac,
-          backgroundColor: 'transparent',
+          width: size,
+          height: size,
+          // 圆角**不随尺寸缩放**：朱印的角本来就近乎直角，2dp 在 16dp 与 22dp 上都是同一档，
+          // 跟着尺寸缩反而会让小印的角看起来更尖（也与改版前的品牌章不一致）。
+          borderRadius: RADIUS.mark + 1,
+          backgroundColor: c.ac,
+          overflow: 'hidden',
         },
         style,
       ]}
-    />
+    >
+      <FrameBar l={inset} t={inset} w={box} h={fw} color={paperColor} />
+      <FrameBar l={inset} t={inset + box - fw} w={box} h={fw} color={paperColor} />
+      <FrameBar l={inset} t={inset} w={fw} h={box} color={paperColor} />
+      <FrameBar l={inset + box - fw} t={inset} w={fw} h={box} color={paperColor} />
+
+      {char ? (
+        <View style={[styles.sealCavity, { top: inset + fw, left: inset + fw, width: cavity, height: cavity }]}>
+          <Text
+            style={{
+              color: paperColor,
+              fontFamily: serif,
+              fontSize: size * 0.46,
+              lineHeight: Math.round(size * 0.46 * 1.12),
+            }}
+          >
+            {char}
+          </Text>
+          {/* 残字：朱色块横切纸色的字 —— 与底色同色，读成「被磨掉」而不是「多了一块」。 */}
+          {spec.wound ? (
+            <View
+              style={{
+                position: 'absolute',
+                left: cavity * spec.wound[0],
+                top: cavity * spec.wound[1],
+                width: cavity * spec.wound[2],
+                height: cavity * spec.wound[3],
+                backgroundColor: c.ac,
+              }}
+            />
+          ) : null}
+        </View>
+      ) : null}
+
+      {/* 缺角：纸色块从右下角咬进来。块贴在印内，露出印外的那部分由父层的
+          overflow:'hidden' 连同圆角一起裁掉，留下的可见咬口正好是 bite 见方。 */}
+      {bite > 0 ? (
+        <View style={{ position: 'absolute', right: 0, bottom: 0, width: bite, height: bite, backgroundColor: paperColor }} />
+      ) : null}
+
+      {/* 小磕碰：印泥没盖匀留下的那一粒。L1 只此一粒 —— 再多就把「战损」读成「脏」。 */}
+      {spec.spot ? (
+        <View
+          style={{
+            position: 'absolute',
+            left: size * spec.spot[0],
+            top: size * spec.spot[1],
+            width: Math.max(2, Math.round(1.6 * u)),
+            height: Math.max(2, Math.round(1.6 * u)),
+            backgroundColor: paperColor,
+            borderRadius: RADIUS.mark,
+          }}
+        />
+      ) : null}
+    </View>
   );
 }
 
@@ -557,6 +621,8 @@ const styles = StyleSheet.create({
   // flexShrink 取 1 而不是 0：0 会让数字**溢出**容器（比裁字更糟，会把旁边的单位顶出去），
   // 1 则是「先缩字、缩到 minimumFontScale 为止」—— 这正是 P0.1 要的「不折行、不被截断」。
   num: { fontVariant: ['tabular-nums'], flexShrink: 1 },
+  // 字腔：绝对定位在内框之内，不参与印面的居中 —— 否则磨损的相对坐标会跟着尺寸漂。
+  sealCavity: { position: 'absolute', alignItems: 'center', justifyContent: 'center' },
   sealMark: {
     width: 30,
     borderRadius: RADIUS.xs,

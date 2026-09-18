@@ -141,7 +141,6 @@ export function ReviewCard({
           <DefinitionView
             raw={item.definition_zh}
             accent={c.ac}
-            rule={c.bd}
             numbered
             style={{ color: c.tx1, fontSize: FONT.def, lineHeight: 26 }}
           />
@@ -149,7 +148,6 @@ export function ReviewCard({
           <DefinitionView
             raw={item.definition_en}
             accent={c.ac}
-            rule={c.bd}
             numbered
             blockStyle={{ marginTop: 8 }}
             style={{ color: c.tx2, fontSize: 13, lineHeight: 20 }}
