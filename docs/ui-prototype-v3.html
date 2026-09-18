@@ -8,7 +8,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%}
-body{background:#0E0D0C;font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased;color:#1B1917}
+body{background:#0E0D0C;font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased;color:var(--tx1)}
 
 /* ══ 令牌 ══ 亮=纸(宣纸) · 暗=墨(碑拓) ══
    朱砂取沉稳的印泥红而非亮橙红；纸白偏暖；暗色朱砂提亮但仍压住饱和度 */
@@ -17,10 +17,8 @@ body.paper{--bg:#F7F4ED;--sf:#FDFCFA;--pg:#EFEBE3;--tx1:#171512;--tx2:#6E675E;--
   --sh:0 1px 3px rgba(23,21,18,.05),0 2px 8px rgba(23,21,18,.035);--shs:0 1px 2px rgba(23,21,18,.04)}
 body.ink{--bg:#131211;--sf:#1B1A18;--pg:#0D0C0B;--tx1:#F0EBE2;--tx2:#A69E93;--tx3:#736C62;--tx4:#4E4941;--bd:#2A2722;--bd2:#494337;--ac:#D0684F;--acsf:#2D201B;--acon:#131211;--b1:#2D201B;--b1t:#D0684F;--b2:#252320;--b3:#232522;--b4:#212420;
   --sh:none;--shs:none}
-body.ink{--bg:#131211;--sf:#1B1A18;--pg:#0D0C0B;--tx1:#F0EBE2;--tx2:#A69E93;--tx3:#736C62;--tx4:#4E4941;--bd:#2A2722;--bd2:#494337;--ac:#D0684F;--acsf:#2D201B;--acon:#131211;--b1:#2D201B;--b1t:#D0684F;--b2:#252320;--b3:#232522;--b4:#212420;
-  --sh:none;--shs:none}
 
-.app{width:100%;max-width:430px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;background:var(--bg);position:relative;overflow:hidden}
+.app{width:100%;max-width:430px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;background:var(--bg);color:var(--tx1);position:relative;overflow:hidden}
 
 .ser{font-family:"Iowan Old Style","Palatino Linotype",Georgia,"Times New Roman","Noto Serif","Source Han Serif SC","Songti SC",SimSun,serif}
 .tnum{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
@@ -33,7 +31,7 @@ body.ink{--bg:#131211;--sf:#1B1A18;--pg:#0D0C0B;--tx1:#F0EBE2;--tx2:#A69E93;--tx
 .brand .seal{width:16px;height:16px;border-radius:2px;background:var(--ac);position:relative}
 .brand .seal::after{content:"";position:absolute;inset:3.5px;border:1px solid var(--bg);border-radius:1px}
 .brand .nm{font-size:16.5px;letter-spacing:2px;color:var(--tx1)}
-.iconbtn{width:44px;height:44px;border:none;background:none;display:flex;align-items:center;justify-content:center;color:var(--tx2)}
+.iconbtn{width:48px;height:48px;border:none;background:none;display:flex;align-items:center;justify-content:center;color:var(--tx2)}
 .iconbtn:active{opacity:.5}
 
 /* ══ 屏 ══ */
@@ -70,7 +68,7 @@ body.v3 .stat{border:1px solid var(--bd);padding:30px 20px 20px}
 .stat .v small{font-size:12px;color:var(--tx3);letter-spacing:0;margin-left:3px;font-family:inherit}
 
 /* ══ 按钮 ══ */
-.bt{display:flex;align-items:center;justify-content:center;height:54px;border-radius:10px;font-size:15px;font-weight:500;letter-spacing:3px;border:none;font-family:inherit;width:100%;transition:transform .12s ease,opacity .12s ease}
+.bt{display:flex;align-items:center;justify-content:center;height:54px;border-radius:10px;font-size:15px;font-weight:500;letter-spacing:1.5px;border:none;font-family:inherit;width:100%;transition:transform .12s ease,opacity .12s ease}
 .bt.a{background:var(--ac);color:var(--acon)}
 .bt.o{background:var(--sf);border:1px solid var(--bd2);color:var(--tx1)}
 .bt:active{transform:scale(.985);opacity:.9}
@@ -87,8 +85,8 @@ body.v3 .fce{border:1px solid var(--bd)}
 .fce .hd{display:flex;align-items:center;justify-content:space-between}
 .fce .ct{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:16px 0}
 .fce .ct .w{font-size:48px;line-height:1.15;letter-spacing:-.6px;text-align:center}
-.fce .ct .ipa{font-family:"SF Mono",Consolas,monospace;font-size:12.5px;color:var(--tx3);letter-spacing:1.2px;margin-top:18px}
-.soundbtn{width:46px;height:46px;border-radius:23px;border:1px solid var(--bd2);background:var(--bg);display:flex;align-items:center;justify-content:center;margin-top:26px}
+.fce .ct .ipa{font-family:"SF Mono",Consolas,monospace;font-size:12.5px;color:var(--tx3);letter-spacing:1.2px;margin-top:14px}
+.soundbtn{width:48px;height:48px;border-radius:24px;border:1px solid var(--bd2);background:var(--bg);display:flex;align-items:center;justify-content:center;margin-top:26px}
 .soundbtn:active{opacity:.6}
 .fce .hint{font-size:12px;color:var(--tx4);text-align:center;letter-spacing:1px;padding-bottom:4px}
 
@@ -98,11 +96,11 @@ body.v3 .fce{border:1px solid var(--bd)}
 .mei{position:absolute;top:24px;right:24px;writing-mode:vertical-rl;font-size:11px;letter-spacing:3.5px;color:var(--ac);font-family:"Iowan Old Style",Georgia,"Songti SC",SimSun,serif;opacity:.9}
 
 .fce.b .w2{font-size:25px;letter-spacing:-.2px}
-.fce .sec{margin-top:22px}
+.fce .sec{margin-top:20px}
 .fce .sec>.k{font-size:10px;letter-spacing:1.6px;color:var(--tx3);font-weight:500;margin-bottom:12px}
-.def{padding:7px 0;font-size:15.5px;line-height:1.72;color:var(--tx1);font-family:"Iowan Old Style",Georgia,"Source Han Serif SC","Noto Serif CJK SC","Songti SC",SimSun,serif}
+.def{padding:7px 0;font-size:15.5px;line-height:1.7;color:var(--tx1);font-family:"Iowan Old Style",Georgia,"Source Han Serif SC","Noto Serif CJK SC","Songti SC",SimSun,serif}
 .def .pos{font-size:9.5px;letter-spacing:1.4px;color:var(--ac);margin-right:9px;text-transform:uppercase;font-weight:500}
-.quote{font-size:14px;font-style:italic;color:var(--tx2);line-height:1.72;font-family:"Iowan Old Style",Georgia,serif}
+.quote{font-size:14px;font-style:italic;color:var(--tx2);line-height:1.7;font-family:"Iowan Old Style",Georgia,serif}
 .quote .zh{font-style:normal;font-family:-apple-system,"PingFang SC",sans-serif;font-size:12.5px;color:var(--tx3);display:block;margin-top:8px;letter-spacing:.3px}
 
 .hair{height:1px;background:var(--bd);margin:20px 0}
@@ -122,7 +120,7 @@ body.v3 .fce{border:1px solid var(--bd)}
 
 .undo{display:none;margin-top:11px;height:46px;background:var(--acsf);border-radius:10px;align-items:center;justify-content:space-between;padding:0 6px 0 16px;font-size:13px;color:var(--tx2)}
 .undo.on{display:flex;animation:enter .22s ease}
-.undo button{border:none;background:none;color:var(--ac);font-family:inherit;font-size:13px;font-weight:500;height:44px;padding:0 12px;letter-spacing:.5px}
+.undo button{border:none;background:none;color:var(--ac);font-family:inherit;font-size:13px;font-weight:500;height:48px;padding:0 12px;letter-spacing:.5px}
 
 /* ══ 列表 ══ */
 .row{display:flex;align-items:center;gap:14px;min-height:58px}
@@ -138,16 +136,20 @@ body.v3 .fce{border:1px solid var(--bd)}
 
 /* ══ 完成屏：收尾 · 成就感 ══ */
 .done{display:flex;flex-direction:column;align-items:center;padding:52px 0 8px;text-align:center}
-.sealbig{width:66px;height:66px;border-radius:7px;background:var(--ac);position:relative;margin-bottom:30px;box-shadow:var(--shs)}
+.sealbig{width:66px;height:66px;border-radius:7px;background:var(--ac);position:relative;margin-bottom:30px;box-shadow:var(--shs);animation:stamp .52s cubic-bezier(.22,1,.36,1) both}
 .sealbig::after{content:"";position:absolute;inset:15px;border:2px solid var(--bg);border-radius:2px}
-.done .t{font-size:23px;letter-spacing:5px}
+@keyframes stamp{0%{transform:scale(.72) rotate(-4deg);opacity:0}55%{opacity:1}100%{transform:none;opacity:1}}
+.done .t{font-size:23px;letter-spacing:3px}
 .done .d{font-size:13px;color:var(--tx3);margin-top:13px;letter-spacing:.5px}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%;margin:38px 0 30px}
-.grid3>div{background:var(--sf);border-radius:12px;padding:20px 6px;box-shadow:var(--sh)}
+.grid3>div{background:var(--sf);border-radius:12px;padding:20px 6px;box-shadow:var(--sh);animation:rise .5s cubic-bezier(.32,.72,.28,1) both}
+.grid3>div:nth-child(2){animation-delay:.07s}
+.grid3>div:nth-child(3){animation-delay:.14s}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 body.v3 .grid3>div{border:1px solid var(--bd)}
 .grid3 .v{font-size:26px;line-height:1.1}
 .grid3 .k{font-size:10px;letter-spacing:1.6px;color:var(--tx3);margin-top:9px}
-.bt2{height:50px;width:100%;border:none;background:none;color:var(--tx3);font-size:13.5px;letter-spacing:2px;font-family:inherit}
+.bt2{height:50px;width:100%;border:none;background:none;color:var(--tx3);font-size:13.5px;letter-spacing:1.5px;font-family:inherit}
 .bt2:active{opacity:.6}
 
 /* ══ 学习进度线 ══ */
@@ -168,10 +170,10 @@ body.v3 .grid3>div{border:1px solid var(--bd)}
 .tabbar::before{content:'';position:absolute;left:0;right:0;top:-22px;height:22px;background:linear-gradient(to top,var(--bg),rgba(0,0,0,0));pointer-events:none}
 .tabbar .rule{position:absolute;top:-1px;left:0;width:30px;height:4px;margin-left:-15px;opacity:0;transform:translate3d(var(--x,50px),0,0);transition:transform .38s cubic-bezier(.32,.72,.28,1),opacity .28s ease;pointer-events:none}
 .tabbar .rule.on{opacity:1}
-.tabbar button{border:none;background:none;font-family:inherit;height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;color:var(--tx3);font-size:11px;letter-spacing:1.1px;-webkit-tap-highlight-color:transparent;transition:color .26s ease}
-.tabbar button:active{opacity:.55}
+.tabbar button{border:none;background:none;font-family:inherit;height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;color:var(--tx3);font-size:11px;letter-spacing:.8px;-webkit-tap-highlight-color:transparent;transition:color .26s ease}
+.tabbar button:active{opacity:.55;transform:scale(.96)}
 .tabbar button .ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;transition:color .26s ease,transform .34s cubic-bezier(.32,.72,.28,1)}
-.tabbar button.on{color:var(--tx1);letter-spacing:1.6px}
+.tabbar button.on{color:var(--tx1);letter-spacing:1.1px}
 .tabbar button.on .ic{color:var(--ac);transform:translateY(-1px) scale(1.06)}
 
 /* ══ 浮层 ══ */
@@ -189,7 +191,7 @@ body.v3 .grid3>div{border:1px solid var(--bd)}
 .pr .d{font-size:12.5px;color:var(--tx2);line-height:1.72;margin-top:6px}
 .pr .j{font-size:12px;color:var(--tx3);line-height:1.68;margin-top:7px}
 .pr .j b{color:var(--tx2);font-weight:500}
-.close{width:100%;height:52px;border-radius:10px;border:1px solid var(--bd2);background:var(--sf);color:var(--tx1);font-family:inherit;font-size:14px;letter-spacing:2px;margin-top:10px}
+.close{width:100%;height:52px;border-radius:10px;border:1px solid var(--bd2);background:var(--sf);color:var(--tx1);font-family:inherit;font-size:14px;letter-spacing:1.5px;margin-top:10px}
 </style>
 </head>
 <body class="paper v3">
@@ -243,7 +245,7 @@ body.v3 .grid3>div{border:1px solid var(--bd)}
       <div class="flipwrap">
         <div class="flip" id="flip" onclick="doFlip()">
           <div class="fce">
-            <div class="hd"><span class="ul">复习 12 / 47</span><span class="ul">ephemeral</span></div>
+            <div class="hd"><span class="ul">复习 12 / 47</span></div>
             <div class="mei">易 忘</div>
             <div class="ct">
               <div class="w ser">ephemeral</div>
