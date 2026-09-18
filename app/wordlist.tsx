@@ -68,7 +68,7 @@ export default function WordListScreen() {
           onPress={() => router.dismissAll()}
           style={[styles.scopeBtn, { backgroundColor: c.acsf, borderColor: c.bd }]}
         >
-          <Text style={[styles.scopeBtnText, { color: c.ac }]}>✓ 已设为学习范围 · 去首页 ›</Text>
+          <Text style={[styles.scopeBtnText, { color: c.ac }]}>✓ 在 背 · 去 首 页</Text>
         </TouchableOpacity>
       ) : (
         <TouchableOpacity
@@ -77,9 +77,9 @@ export default function WordListScreen() {
             setStudyScope(tagId);
             setScoped(true);
           }}
-          style={[styles.scopeBtn, { backgroundColor: c.ac }]}
+          style={[styles.scopeBtn, { backgroundColor: c.ac, borderColor: c.ac }]}
         >
-          <Text style={[styles.scopeBtnText, { color: c.acon }]}>只 背 这 一 纲 →</Text>
+          <Text style={[styles.scopeBtnText, { color: c.acon }]}>只 背 这 一 纲</Text>
         </TouchableOpacity>
       )}
 
@@ -126,7 +126,21 @@ const styles = StyleSheet.create({
   word: { fontSize: 17, fontFamily: serif },
   ipa: { fontSize: FONT.ipa, fontFamily: mono, marginTop: 3 },
   def: { fontSize: 13, flex: 1, textAlign: 'right' },
-  scopeBtn: { marginTop: 12, minHeight: CONTROL.md, borderRadius: RADIUS.ctrl, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  // 动作按钮**不顶满整行**（2026-09-18 主人反馈「左边顶到头右边顶到尾，超级无敌长的丑按钮」）：
+  // 这屏的主行动不是它（这屏是「翻词表」），一个从左边距拉到右边距的长条会把浏览页
+  // 读成「一屏只有一个按钮」，也正是初学者的通病 —— 把容器宽度当按钮宽度。
+  // 居中等宽 = 「本页的一个动作」，视线从标题落下来正好接住；两态给同一 minWidth，切换不跳。
+  scopeBtn: {
+    alignSelf: 'center',
+    marginTop: SPACE.lg,
+    minWidth: 200,
+    paddingHorizontal: SPACE.xxxl,
+    minHeight: CONTROL.md,
+    borderRadius: RADIUS.ctrl,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   scopeBtnText: { fontSize: 14, letterSpacing: 1.5, fontWeight: WEIGHT.semibold },
   more: {
     marginTop: 18, minHeight: CONTROL.md, borderRadius: RADIUS.ctrl, borderWidth: 1,

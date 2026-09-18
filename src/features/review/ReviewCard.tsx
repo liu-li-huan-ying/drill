@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { View, Text, TouchableOpacity, Animated, ScrollView, StyleSheet, type ViewStyle } from 'react-native';
 import { useTheme } from '../../theme/ThemeProvider';
-import { serif, mono, FONT, MOTION, RADIUS, SPACE, WEIGHT, SHADOW } from '../../theme/tokens';
+import { serif, mono, FONT, MOTION, RADIUS, SPACE, WEIGHT } from '../../theme/tokens';
 import { ease, useReducedMotion } from '../../lib/motion';
 import { speak } from '../../lib/speak';
 import { DefinitionView } from '../../components/Definition';
@@ -32,7 +32,7 @@ export function ReviewCard({
   intervals: IntervalPreview[];
   onRate: (rating: number) => void;
 }) {
-  const { colors: c, scheme } = useTheme();
+  const { colors: c } = useTheme();
   const reduce = useReducedMotion();
   const spin = useRef(new Animated.Value(0)).current;
   // 背面长释义滚动：记录按下的位置/时间，抬手时判断是否「轻点」（非滚动）以翻转回正面。
@@ -66,11 +66,8 @@ export function ReviewCard({
   // 白文朱印：只标「这张卡为什么现在出现」——首次接触 / 曾经失手。没有第三种含义就不盖章。
   const seal = item.isNew ? '新词' : item.state === 'relearning' ? '易忘' : '';
 
-  const faceStyle = [
-    styles.face,
-    { backgroundColor: c.sf, borderColor: c.bd },
-    scheme === 'light' ? (SHADOW.card as ViewStyle) : null,
-  ];
+  // 卡面抬升只靠「面比底亮一档 + 1px 描边」——不投影（原因见 tokens.ts 里 SHADOW 的删除说明）。
+  const faceStyle = [styles.face, { backgroundColor: c.sf, borderColor: c.bd }];
 
   return (
     <View style={styles.wrap}>
@@ -210,7 +207,7 @@ function SoundIcon({ color, size = 15 }: { color: string; size?: number }) {
   );
 }
 
-// 纸感抬升走 tokens 的 SHADOW.card —— 卡片是压在纸上的另一张纸。
+// 纸感抬升靠「面比底亮一档 + 描边」，不用投影 —— 卡片是压在纸上的另一张纸，不是浮着的塑料板。
 const styles = StyleSheet.create({
   // perspective 放在容器上，让 iOS 的 3D 翻转有正确的纵深感（rotateY 在 JS 驱动下生效）。
   // 该 prop 在 RN 运行时支持，但当前 @types 未收录，故在 wrap 上做局部断言。

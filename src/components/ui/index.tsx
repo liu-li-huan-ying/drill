@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme/ThemeProvider';
 import { useSideInset } from '../../lib/layout';
 import { ease, useReducedMotion } from '../../lib/motion';
-import { RADIUS, SPACE, CONTROL, WEIGHT, MOTION, SHADOW, serif } from '../../theme/tokens';
+import { RADIUS, SPACE, CONTROL, WEIGHT, MOTION, serif } from '../../theme/tokens';
 
 /**
  * 纵深屏的内容入场（栈屏专用，**不要用在 tab 屏**：tab 的场景自己已有交叉淡入，套两层会发飘）。
@@ -85,7 +85,7 @@ export function BrandBar() {
   );
 }
 
-/** 卡片：压在纸上的一张纸 —— 1px 描边 + 极轻抬升（暗色不投影，靠描边分层）。 */
+/** 卡片：压在纸上的一张纸 —— 靠「面比底亮一档 + 1px 描边」表达抬升，不投影（见 tokens 里的长注释）。 */
 export function Card({
   children,
   style,
@@ -95,13 +95,12 @@ export function Card({
   style?: StyleProp<ViewStyle>;
   pad?: number;
 }) {
-  const { colors: c, scheme } = useTheme();
+  const { colors: c } = useTheme();
   return (
     <View
       style={[
         styles.card,
         { backgroundColor: c.sf, borderColor: c.bd, padding: pad },
-        scheme === 'light' ? (SHADOW.card as ViewStyle) : null,
         style,
       ]}
     >

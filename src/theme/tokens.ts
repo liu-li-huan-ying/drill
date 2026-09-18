@@ -149,29 +149,16 @@ export const WEIGHT = {
   semibold: '600', // 标签、按钮、标题、数字、tab 选中
 } as const;
 
-// 抬升（纸感）：卡片是「压在纸上的另一张纸」——1px 描边 + 极短阴影，不用大投影。
-// 暗色下不投影（纸落在墨上，靠描边分层），由组件按 scheme 决定是否应用。
-export const SHADOW = {
-  card: {
-    shadowColor: '#171512',
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 1,
-  },
-  overlay: {
-    shadowColor: '#171512',
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 3,
-  },
-} as const;
-
-// 层级：材质靠「描边 + 极轻抬升」表达，不靠色彩、不靠大阴影。
-// 值为 elevation（Android）；iOS 走同档极轻 shadow。
-export const LAYER = {
-  flat: 0, // 页面底：无抬升
-  card: 1, // 卡片：1px 描边
-  overlay: 3, // 浮层：描边 + 抬升
-} as const;
+// 抬升（纸感）：卡片是「压在纸上的另一张纸」，**只靠两件事**表达 ——
+//   ① 面比底亮一档（亮：sf `#FDFCFA` 压在 bg `#F7F4ED` 上；暗：sf `#1B1A18` 浮在 bg `#131211` 上）
+//   ② 1px 描边（`--bd`）
+//
+// ── 为什么全项目不用投影（2026-09-18 定案，主人反馈「统计 / 设置切换时各个框的阴影显示很久」）
+//   · Android 的 `elevation` 是**平台投影**，不是可调样式：RN 只映射 `shadowColor`（API 28+），
+//     `shadowOpacity / shadowRadius / shadowOffset` 在安卓上**被忽略**。也就是说设计稿里写的
+//     「5% 极轻阴影」在真机上根本不存在，落地的是平台自己那层重得多的黑边。
+//   · 更要命的是它**不随祖先的 opacity 交叉淡入消隐**：tab 切换时两层场景叠着淡入淡出，
+//     投影由平台在阴影层单独绘制，旧屏卡片的投影会滞留在新屏上 —— 看起来就是「阴影显示很久」。
+//   · 结果「一套令牌两端表现不一致」：iOS 有柔和阴影、Android 是一层滞后的黑边。
+//   · 而且纸本来就没有会动的影子 —— 抬升语义用「面底色分级 + 描边」表达，与 §9.3 版框同源。
+// 故删掉 `SHADOW` / `LAYER` 两个令牌（后者只是 elevation 的档位命名，随之一并作废）。
