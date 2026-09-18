@@ -25,6 +25,7 @@ export default function SettingsScreen() {
 
   const [newLimit, setNewLimit] = useState(s.daily_new_limit);
   const [reviewLimit, setReviewLimit] = useState(s.daily_review_limit);
+  const [quiz, setQuiz] = useState(s.quiz_mode === 1);
   const [saved, setSaved] = useState(false);
   const [mastered, setMastered] = useState(() => getMasteredCount());
 
@@ -32,6 +33,12 @@ export default function SettingsScreen() {
     saveSettings({ daily_new_limit: newLimit, daily_review_limit: reviewLimit });
     setSaved(true);
     setTimeout(() => setSaved(false), 1500);
+  };
+
+  // 复习方式即时生效（不用等「保存设置」）：它是一个开关，不是一份待提交的表单。
+  const pickQuiz = (on: boolean) => {
+    setQuiz(on);
+    saveSettings({ quiz_mode: on ? 1 : 0 });
   };
 
   // 重置后直接重读计数 —— 原来的 tick 计数器只是为了骗 React 重渲染，属于多余的间接层。
@@ -54,6 +61,30 @@ export default function SettingsScreen() {
         <View style={styles.saveWrap}>
           <Btn title={saved ? '已保存' : '保存设置'} onPress={save} />
         </View>
+      </Card>
+
+      <Label style={styles.group}>复 习 方 式</Label>
+      <Card>
+        <Label>背的时候怎么判定</Label>
+        <View style={styles.quizRow}>
+          <Btn
+            title="选择题"
+            variant={quiz ? 'solid' : 'outline'}
+            onPress={() => pickQuiz(true)}
+            style={styles.quizBtn}
+          />
+          <Btn
+            title="自己评分"
+            variant={quiz ? 'outline' : 'solid'}
+            onPress={() => pickQuiz(false)}
+            style={styles.quizBtn}
+          />
+        </View>
+        <Text style={[styles.note, { color: c.tx3 }]}>
+          {quiz
+            ? '四选一：一个正确答案 + 三个同词性的干扰项，两种题型（看词选义 / 看义选词）轮换。答错就记为「重来」，一分钟内会再来一次。首次见面的新词仍是先看释义。'
+            : '翻到背面自己评四档。省力的那一档永远最好按 —— 这就是为什么它容易把每张卡都评成「会了」。'}
+        </Text>
       </Card>
 
       <Label style={styles.group}>外 观</Label>
@@ -181,6 +212,8 @@ const styles = StyleSheet.create({
   tight: { marginTop: 0 },
 
   seg: { flexDirection: 'row', gap: SPACE.sm },
+  quizRow: { flexDirection: 'row', gap: SPACE.sm, marginTop: SPACE.md },
+  quizBtn: { flex: 1 },
   segItem: {
     flex: 1,
     minHeight: CONTROL.sm,

@@ -1,17 +1,19 @@
 // 复习会话：构建今日队列（先到期的复习 + 当日新词）→ 翻转看释义 → 四档评分 → 写回 → 推进。
 // 评分仅在翻转后开放；评分可撤销一次（还原 cards / 删除 review_logs / 回退 daily_stats）。
 // 队列走完（或主动「结束本轮」）→ 完成屏。
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useTheme } from '../src/theme/ThemeProvider';
-import { SPACE, CONTROL, WEIGHT, RADIUS, TRACK } from '../src/theme/tokens';
+import { SPACE, CONTROL, WEIGHT, RADIUS, TRACK, FONT, serif } from '../src/theme/tokens';
 import { PageEnter, Progress, Num } from '../src/components/ui';
 import { ReviewCard } from '../src/features/review/ReviewCard';
+import { ChoiceQuiz } from '../src/features/review/ChoiceQuiz';
 import { DoneView } from '../src/features/review/DoneView';
 import {
   getCard,
   getDailyHistory,
+  getSettings,
   getStreak,
   planSession,
   recordGrade,
@@ -31,6 +33,11 @@ const NO_PREVIEW: IntervalPreview[] = [
   { label: '', minutes: 8 },
 ];
 
+// 会话内重学窗口。learning / relearning 的卡还没「毕业」，必须在**本次会话**里再出现一次；
+// 被推到这个窗口之外（几天后）的就不在本次会话里等 —— 那是明天的事。
+// FSRS 默认学习步长为 1 分钟 / 10 分钟，20 分钟足够宽。
+const RELEARN_WINDOW_MS = 20 * 60 * 1000;
+
 export default function ReviewScreen() {
   const { colors: c } = useTheme();
   const side = useSideInset();
@@ -46,11 +53,21 @@ export default function ReviewScreen() {
     null
   );
   const run = useRef({ startedAt: 0, done: 0, correct: 0 });
+  // 待重来池：评完后还没「毕业」的卡（learning / relearning）连同它的到期时间放这儿，
+  // 到期后再接回队列。旧代码没有这个池 —— 队列一次性生成、idx 只往前推，
+  // 于是「1 分钟后再见」从来没有兑现过：**选什么都是「过了」**。
+  const relearn = useRef<{ item: QueueItem; due: number }[]>([]);
+  // 队列走完、但还有没到期的重学卡时的等待态（at = 最近一张的到期时刻）。
+  const [waiting, setWaiting] = useState<{ count: number; at: number } | null>(null);
+  const [quizMode, setQuizMode] = useState(true);
 
   const build = useCallback(() => {
     const { reviews, news } = planSession();
     const q = [...reviews, ...news];
     run.current = { startedAt: Date.now(), done: 0, correct: 0 };
+    relearn.current = [];
+    setWaiting(null);
+    setQuizMode(getSettings().quiz_mode === 1);
     setQueue(q);
     setIdx(0);
     setFlipped(false);
@@ -73,20 +90,6 @@ export default function ReviewScreen() {
     return card ? previewIntervals(card, Date.now()) : NO_PREVIEW;
   }, [current]);
 
-  const rate = (r: number) => {
-    const item = queue[idx];
-    if (!item) return;
-    const snap = recordGrade(item, r as Grade);
-    run.current.done += 1;
-    if (r >= 3) run.current.correct += 1; // Good / Easy 记为「答对」
-    if (snap) setUndo({ snap, label: intervals[r - 1]?.label ?? '', rating: r, at: idx });
-
-    const next = idx + 1;
-    setFlipped(false);
-    if (next >= queue.length) finish();
-    else setIdx(next);
-  };
-
   const finish = () => {
     const d = run.current.done;
     setSummary({
@@ -96,12 +99,104 @@ export default function ReviewScreen() {
     });
   };
 
+  // 记一次评分：写库 + 计数 + 撤销快照，并把「还没毕业」的卡放进待重来池。
+  const grade = (r: number) => {
+    const item = queue[idx];
+    if (!item) return;
+    const snap = recordGrade(item, r as Grade);
+    run.current.done += 1;
+    if (r >= 3) run.current.correct += 1; // Good / Easy 记为「答对」
+    if (snap) setUndo({ snap, label: intervals[r - 1]?.label ?? '', rating: r, at: idx });
+
+    // learning / relearning 的卡还没毕业 → 到期后必须再出现一次。
+    // 这就是「1 分钟重学」真正生效的地方：没有这一步，选哪一档都是「今天就到这儿了」。
+    const card = getCard(item.word_id);
+    if (
+      card &&
+      (card.state === 'learning' || card.state === 'relearning') &&
+      card.due - Date.now() <= RELEARN_WINDOW_MS
+    ) {
+      relearn.current.push({ item, due: card.due });
+    }
+  };
+
+  const advance = () => {
+    const now = Date.now();
+    // 已到期的重学卡先消化：接到队尾，进度条随之变长 —— 用户看得见「它还会回来」。
+    const due = relearn.current.filter((r) => r.due <= now);
+    if (due.length) {
+      relearn.current = relearn.current.filter((r) => r.due > now);
+      setQueue((q) => [...q, ...due.map((d) => d.item)]);
+      setIdx((i) => i + 1);
+      setFlipped(false);
+      return;
+    }
+    const next = idx + 1;
+    if (next < queue.length) {
+      setFlipped(false);
+      setIdx(next);
+      return;
+    }
+    // 队列走完但还有没到期的重学卡 → 进入等待态，等它到期（等的就是那一分钟）。
+    if (relearn.current.length) {
+      setWaiting({ count: relearn.current.length, at: Math.min(...relearn.current.map((r) => r.due)) });
+      return;
+    }
+    finish();
+  };
+
+  // 等待到期：把到期的重学卡接回队列；还没到期就再等一轮。
+  useEffect(() => {
+    if (!waiting) return;
+    const t = setTimeout(() => {
+      const now = Date.now();
+      const due = relearn.current.filter((r) => r.due <= now);
+      if (!due.length) {
+        setWaiting(relearn.current.length ? { count: relearn.current.length, at: Math.min(...relearn.current.map((r) => r.due)) } : null);
+        return;
+      }
+      relearn.current = relearn.current.filter((r) => r.due > now);
+      setWaiting(null);
+      setQueue((q) => [...q, ...due.map((d) => d.item)]);
+      setIdx((i) => i + 1);
+      setFlipped(false);
+    }, Math.max(300, waiting.at - Date.now()));
+    return () => clearTimeout(t);
+  }, [waiting]);
+
+  // 等待屏的倒计时要真的走：写死一句「等一下」会让人以为卡住了，
+  // 而这里显示的正是遗忘曲线本身 —— 隔多久再来，是调度算出来的，不是我们定的。
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    if (!waiting) return;
+    const t = setInterval(() => setTick((n) => n + 1), 1000);
+    return () => clearInterval(t);
+  }, [waiting]);
+
+  /** 自评模式：评分即推进。 */
+  const rate = (r: number) => {
+    grade(r);
+    advance();
+  };
+
+  // 选择题模式：判定是客观的（答对 Good / 答错 Again）。
+  // 刻意**不在这里推进** —— 先让学习者看清对错与正确答案，由「继续」推进。
+  // 判定权从学习者手里拿回来，才是「怎么选都算学会」的正解。
+  const answerQuiz = (correct: boolean) => grade(correct ? 3 : 1);
+
+  // 选择题只用于「验证记忆」，不用于「首次见面」：
+  // 一个从没见过的词，四选一只是瞎猜，那不是测试，是掷骰子。
+  const useQuiz = quizMode && !!current && current.state !== 'new';
+
   const doUndo = () => {
     if (!undo) return;
     undoGrade(undo.snap);
     run.current.done = Math.max(0, run.current.done - 1);
     if (undo.rating >= 3) run.current.correct = Math.max(0, run.current.correct - 1);
     const back = undo.at;
+    // 撤销也要撤掉重学安排：这张卡的调度已还原成评分前，不该再被拉回队列。
+    relearn.current = relearn.current.filter((r) => r.item.word_id !== undo.snap.word_id);
+    setWaiting(null);
     setUndo(null);
     setSummary(null); // 从完成屏退回时也走这里
     setIdx(back);
@@ -148,8 +243,26 @@ export default function ReviewScreen() {
       <Progress ratio={total > 0 ? (idx + 1) / total : 0} style={styles.prog} />
 
       <View style={styles.cardArea}>
-        {current ? (
-          <ReviewCard
+        {waiting ? (
+          <View style={styles.waitBox}>
+            <Text style={[styles.waitTitle, { color: c.tx1 }]}>还有 {waiting.count} 张要重来</Text>
+            <Num
+              value={Math.max(0, Math.ceil((waiting.at - Date.now()) / 1000))}
+              style={[styles.waitCount, { color: c.ac }]}
+            />
+            <Text style={[styles.waitHint, { color: c.tx2 }]}>
+              秒后继续 —— 刚背过的词会再出现一次，这个间隔就是遗忘曲线（重来 1 分钟 / 一般 6
+              分钟 / 记住了 10 分钟）。不想等可以结束本轮，它们明天还会来。
+            </Text>
+            <TouchableOpacity activeOpacity={0.6} onPress={finish} style={styles.waitGiveUp}>
+              <Text style={[styles.waitGiveUpText, { color: c.tx3 }]}>不等了，结束本轮</Text>
+            </TouchableOpacity>
+          </View>
+        ) : current ? (
+          useQuiz ? (
+            <ChoiceQuiz item={current} onAnswer={answerQuiz} onContinue={advance} />
+          ) : (
+            <ReviewCard
             item={current}
             flipped={flipped}
             onFlip={() => {
@@ -159,6 +272,7 @@ export default function ReviewScreen() {
             intervals={intervals}
             onRate={rate}
           />
+          )
         ) : null}
       </View>
 
@@ -210,4 +324,12 @@ const styles = StyleSheet.create({
 
   endRound: { minHeight: CONTROL.lg, alignItems: 'center', justifyContent: 'center', marginBottom: SPACE.sm },
   endRoundText: { fontSize: 13.5, letterSpacing: TRACK.body, fontWeight: WEIGHT.medium },
+
+  // 等待重学：这一屏本身就是「遗忘曲线在工作」的证据，所以要写清楚在等什么。
+  waitBox: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: SPACE.xl, gap: SPACE.md },
+  waitTitle: { fontFamily: serif, fontSize: FONT.title, fontWeight: WEIGHT.semibold },
+  waitCount: { fontFamily: serif, fontSize: FONT.hero, fontWeight: WEIGHT.semibold, letterSpacing: TRACK.tight },
+  waitHint: { fontSize: FONT.body, lineHeight: 22, textAlign: 'center' },
+  waitGiveUp: { minHeight: CONTROL.sm, justifyContent: 'center', paddingHorizontal: SPACE.lg },
+  waitGiveUpText: { fontSize: FONT.body, letterSpacing: TRACK.body },
 });

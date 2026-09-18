@@ -176,6 +176,38 @@ check(
   '原生卡片与 PageEnter 同为 MOTION.enter，无裸数字'
 );
 
+// ── 5c. 遗忘曲线真的生效（v3.12） ────────────────────────────────────────
+// 主人反馈「一分钟重新学完全没有生效，怎么选都会觉得是学会了单词」。
+// 根因不在 FSRS：队列由 planSession() 一次性生成、idx 只往前推，
+// 于是「1 分钟后再见」从来没有兑现过。判据：评到 learning/relearning 的卡
+// 必须回到本次会话的队列里，而不是只在数据库里改一个 due。
+const rev = code('app/review.tsx');
+check(
+  '会话内重学（learning 的卡会回到队列，不是只改 due）',
+  /RELEARN_WINDOW_MS/.test(rev) &&
+    /relearn\.current\.push\(\{ item, due: card\.due \}\)/.test(rev) &&
+    /setQueue\(\(q\) => \[\.\.\.q, \.\.\.due\.map/.test(rev) &&
+    /state === 'learning' \|\| card\.state === 'relearning'/.test(rev),
+  '待重来池 + 到期接回队尾 + 等待态'
+);
+check(
+  '判定权不在学习者手里（选择题客观判分）',
+  /const answerQuiz = \(correct: boolean\) => grade\(correct \? 3 : 1\)/.test(rev) &&
+    // 首次见面的新词不测验：一个没见过的词四选一只是瞎猜，那不是测试。
+    /quizMode && !!current && current\.state !== 'new'/.test(rev),
+  '答对=Good / 答错=Again；新卡仍走「先看释义」'
+);
+const quizCode = code('src/features/review/ChoiceQuiz.tsx');
+const distBlock = between(code('src/db/queries.ts'), 'function posPrefix', 'export function getDistractors');
+check(
+  '干扰项：同词性按**释义前缀**取（pos 列全 NULL，不能按列取）',
+  /posPrefix/.test(code('src/db/queries.ts')) &&
+    /LIKE \?/.test(code('src/db/queries.ts')) &&
+    !/w\.pos = \?/.test(code('src/db/queries.ts')) && // words.pos 全表 NULL，按它取会永远取不到
+    /getDistractors\(item, 3\)/.test(quizCode),
+  '1 正确 + 3 同词性干扰'
+);
+
 check('完成屏可滚动（短屏不裁）', /<ScrollView/.test(read('src/features/review/DoneView.tsx')), 'DoneView');
 check('长词自适应（不挤出卡外）', /adjustsFontSizeToFit/.test(read('src/features/review/ReviewCard.tsx')), 'numberOfLines=2');
 check('刻度环按视口定尺', /size=\{ringSize\}/.test(read('app/(tabs)/index.tsx')), 'ringSize');

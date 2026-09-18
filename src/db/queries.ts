@@ -25,6 +25,10 @@ export interface Settings {
   desired_retention: number;
   day_cutoff_hour: number;
   study_tag: number | null; // 学习范围：限定只背某标签；null = 全部词库
+  // 复习方式：0 = 自评四档，1 = 选择题（默认）。
+  // 默认选择题的理由见 `ChoiceQuiz`：自评里「我记得了」永远是最省力的那一档，
+  // 于是每一张卡都被评成学会 —— 遗忘曲线在数据上跑着，在体验上等于没有。
+  quiz_mode: number;
 }
 
 const BASE_SELECT = `
@@ -75,6 +79,7 @@ export function getSettings(): Settings {
       map.study_tag !== undefined && map.study_tag !== '' && !Number.isNaN(Number(map.study_tag))
         ? Number(map.study_tag)
         : null,
+    quiz_mode: parseInt(map.quiz_mode ?? '1', 10) === 0 ? 0 : 1,
   };
 }
 
@@ -721,10 +726,64 @@ export function getCalibrationSample(n: number): QueueItem[] {
 
 // ── 设置：保存部分配置 / 重置已掌握 ──────────────────────────────────────
 export function saveSettings(p: Partial<Settings>): void {
+  // 用 upsert 而不是 UPDATE：新增的设置项（如 quiz_mode）在老库里没有对应行，
+  // 只 UPDATE 会静默失败 —— 开关看着能点，值从来没写进去。
   for (const [k, v] of Object.entries(p)) {
     if (v === undefined) continue;
-    getDb().runSync('UPDATE settings SET value=? WHERE key=?', [String(v), k]);
+    getDb().runSync(
+      'INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=?',
+      [k, String(v), String(v)]
+    );
   }
+}
+
+// ── 选择题干扰项 ──────────────────────────────────────────────────────────
+export interface ChoiceOption {
+  word_id: number;
+  word: string;
+  definition_zh: string;
+  pos: string | null;
+}
+
+// 三个随机干扰项：**同词性优先**。
+// 拿一个名词的释义去干扰动词，学习者一眼就排除了 —— 那样的选项只是凑数，测不出「记不记得」。
+//
+// 词性从**释义文本**里取，不用 `words.pos` 列：该列全表为 NULL（30,565 词无一例外），
+// 词性一直写在释义开头（实测 99.7% 的释义以 `n.` / `vt.` / `a.` 这类前缀起头）。
+// 顺着数据事实取，而不是顺着列名想当然 —— 否则这段会变成一段永远走不到的代码。
+function posPrefix(def: string | null): string | null {
+  const m = /^([a-z]{1,6})\.\s/.exec(def ?? '');
+  return m ? m[1] : null;
+}
+
+export function getDistractors(target: QueueItem, n = 3): ChoiceOption[] {
+  const scope = getStudyScope();
+  const tagFilter =
+    scope.tagId != null ? ' AND w.id IN (SELECT word_id FROM word_tags WHERE tag_id = ?)' : '';
+  const tagArgs: any[] = scope.tagId != null ? [scope.tagId] : [];
+  const base = `SELECT w.id AS word_id, w.word, w.definition_zh, w.pos FROM words w
+     WHERE w.id <> ? AND w.definition_zh IS NOT NULL AND w.definition_zh <> '' ${tagFilter}`;
+
+  const prefix = posPrefix(target.definition_zh);
+  const same: any[] = prefix
+    ? getDb().getAllSync<any>(base + ' AND w.definition_zh LIKE ? ORDER BY RANDOM() LIMIT ?', [
+        target.word_id,
+        ...tagArgs,
+        `${prefix}. %`,
+        n,
+      ])
+    : [];
+  // 同词性凑不满三个时（那 0.3% 无前缀的释义）用随机补齐。
+  const need = n - same.length;
+  const rest: any[] = need > 0
+    ? getDb().getAllSync<any>(base + ' ORDER BY RANDOM() LIMIT ?', [target.word_id, ...tagArgs, need])
+    : [];
+  return [...same, ...rest].map((r) => ({
+    word_id: r.word_id,
+    word: r.word,
+    definition_zh: r.definition_zh,
+    pos: r.pos,
+  }));
 }
 
 // 重置「已掌握」：把所有 mastered=1 的词放回学习池（保留原有 FSRS 状态）。
