@@ -7,9 +7,11 @@ import { serif, FONT, RADIUS, WEIGHT, SPACE, CONTROL } from '../../src/theme/tok
 import { getTags, getWordCount, searchWords, getStudyScope, type WordRow } from '../../src/db/queries';
 import { splitSenses } from '../../src/components/Definition';
 import { Label, Chev } from '../../src/components/ui';
+import { useGutter } from '../../src/lib/layout';
 
 export default function LibraryScreen() {
   const { colors: c } = useTheme();
+  const gutter = useGutter();
   const router = useRouter();
   const tags = getTags();
   const total = getWordCount();
@@ -23,7 +25,10 @@ export default function LibraryScreen() {
     router.push({ pathname: '/word', params: { wordId: String(w.word_id) } });
 
   return (
-    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}>
+    <ScrollView
+      style={{ backgroundColor: c.bg }}
+      contentContainerStyle={[styles.container, { backgroundColor: c.bg, paddingHorizontal: gutter }]}
+    >
       <Label>词 库 · LIBRARY</Label>
       <Text style={[styles.head, { color: c.tx1 }]}>已装载 {total} 词</Text>
 
@@ -106,7 +111,7 @@ const styles = StyleSheet.create({
   head: { fontSize: FONT.title, marginTop: 10, fontFamily: serif, fontWeight: WEIGHT.semibold },
   search: {
     flexDirection: 'row', alignItems: 'center', marginTop: 18,
-    height: CONTROL.md, borderRadius: RADIUS.ctrl, borderWidth: 1, paddingHorizontal: SPACE.md,
+    minHeight: CONTROL.md, borderRadius: RADIUS.ctrl, borderWidth: 1, paddingHorizontal: SPACE.md,
   },
   searchIcon: { fontSize: 18, marginRight: 8 },
   searchInput: { flex: 1, fontSize: 15, paddingVertical: 0 },

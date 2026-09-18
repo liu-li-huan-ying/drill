@@ -7,9 +7,13 @@ import { useTheme } from '../src/theme/ThemeProvider';
 import { serif, mono, FONT, RADIUS, WEIGHT, SPACE, CONTROL } from '../src/theme/tokens';
 import { getCalibrationSample, markMastered, type QueueItem } from '../src/db/queries';
 import { speak } from '../src/lib/speak';
+import { useSideInset, useTopPad, useBottomPad } from '../src/lib/layout';
 
 export default function CalibrationScreen() {
   const { colors: c } = useTheme();
+  const side = useSideInset();
+  const topPad = useTopPad();
+  const bottomPad = useBottomPad();
   const router = useRouter();
   const [sample] = useState<QueueItem[]>(() => getCalibrationSample(20));
   const [idx, setIdx] = useState(0);
@@ -31,7 +35,7 @@ export default function CalibrationScreen() {
 
   if (done) {
     return (
-      <View style={[styles.screen, { backgroundColor: c.bg }]}>
+      <View style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
         <View style={styles.doneWrap}>
           <Text style={[styles.doneTitle, { color: c.tx1, fontFamily: serif }]}>校准完成</Text>
           <Text style={[styles.doneSub, { color: c.tx2 }]}>
@@ -47,7 +51,7 @@ export default function CalibrationScreen() {
 
   const current = sample[idx];
   return (
-    <View style={[styles.screen, { backgroundColor: c.bg }]}>
+    <View style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
       <View style={[styles.top, { borderBottomColor: c.bd }]}>
         <Text style={[styles.progress, { color: c.tx3 }]}>
           {idx + 1} / {sample.length}
@@ -82,7 +86,7 @@ export default function CalibrationScreen() {
         </View>
       </View>
 
-      <View style={styles.actions}>
+      <View style={[styles.actions, { paddingBottom: bottomPad }]}>
         <TouchableOpacity activeOpacity={0.85} onPress={() => decide(true)} style={[styles.btnKnow, { backgroundColor: c.ac }]}>
           <Text style={[styles.btnKnowText, { color: c.acon }]}>认 识</Text>
         </TouchableOpacity>
@@ -103,7 +107,7 @@ export default function CalibrationScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, paddingTop: 52 },
+  screen: { flex: 1 },
   top: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: SPACE.xl, paddingBottom: 14, borderBottomWidth: 1 },
   progress: { fontSize: 12, letterSpacing: 1.1, fontVariant: ['tabular-nums'] },
   end: { fontSize: 14, letterSpacing: 1 },
@@ -118,15 +122,15 @@ const styles = StyleSheet.create({
   soundDot: { width: 44, height: 44, borderRadius: RADIUS.pill, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
   soundInner: { width: 8, height: 8, borderRadius: RADIUS.pill },
   actions: { flexDirection: 'row', gap: SPACE.md, paddingHorizontal: SPACE.xl, paddingBottom: SPACE.md },
-  btnKnow: { flex: 1, height: CONTROL.lg, borderRadius: RADIUS.ctrl, alignItems: 'center', justifyContent: 'center' },
+  btnKnow: { flex: 1, minHeight: CONTROL.lg, borderRadius: RADIUS.ctrl, alignItems: 'center', justifyContent: 'center' },
   btnKnowText: { fontSize: 15, letterSpacing: 1.5, fontWeight: WEIGHT.semibold },
-  btnUnknown: { flex: 1, height: CONTROL.lg, borderRadius: RADIUS.ctrl, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  btnUnknown: { flex: 1, minHeight: CONTROL.lg, borderRadius: RADIUS.ctrl, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   btnUnknownText: { fontSize: 15, letterSpacing: 1.5 },
   skip: { alignItems: 'center', paddingBottom: 34 },
   skipText: { fontSize: 12, letterSpacing: 1 },
   doneWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
   doneTitle: { fontSize: 32, letterSpacing: -0.5 },
   doneSub: { fontSize: 14, marginTop: 12, letterSpacing: 1 },
-  doneBtn: { marginTop: 32, height: CONTROL.lg, width: 200, borderRadius: RADIUS.ctrl, alignItems: 'center', justifyContent: 'center' },
+  doneBtn: { marginTop: 32, minHeight: CONTROL.lg, width: 200, borderRadius: RADIUS.ctrl, alignItems: 'center', justifyContent: 'center' },
   doneBtnText: { fontSize: 15, letterSpacing: 1.5, fontWeight: WEIGHT.semibold },
 });

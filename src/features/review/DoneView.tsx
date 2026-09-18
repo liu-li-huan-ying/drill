@@ -2,9 +2,10 @@
 // 朱印「今日已毕」落印（缩放 + 微旋 → 归位），三格数据，然后两条出口。
 // 出口的强弱是刻意的：先给「看看你坚持了多久」（正反馈），再给「回到今日」（安静退出）。
 import React, { useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, Animated, Easing, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Animated, Easing, ScrollView, StyleSheet } from 'react-native';
 import { useTheme } from '../../theme/ThemeProvider';
 import { serif, FONT, RADIUS, SPACE, CONTROL, WEIGHT, type Tokens } from '../../theme/tokens';
+import { useBottomPad } from '../../lib/layout';
 import { Btn } from '../../components/ui';
 
 const SEAL = 72;
@@ -30,6 +31,7 @@ export function DoneView({
   onUndo?: () => void;
 }) {
   const { colors: c } = useTheme();
+  const bottomPad = useBottomPad();
   const stamp = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -44,13 +46,16 @@ export function DoneView({
   // 一个字都没评 → 不做庆祝。给一张空成绩单盖「今日已毕」是撒谎。
   if (words === 0) {
     return (
-      <View style={[styles.wrap, styles.wrapEmpty]}>
+      <ScrollView
+        contentContainerStyle={[styles.wrap, { paddingBottom: bottomPad }]}
+        showsVerticalScrollIndicator={false}
+      >
         <Text style={[styles.title, { color: c.tx1, fontFamily: serif }]}>今 日 已 清 空</Text>
         <Text style={[styles.sub, { color: c.tx3 }]}>没有到期的复习，也没有待学的新词</Text>
         <View style={styles.emptyBtn}>
           <Btn title="回 到 今 日" onPress={onHome} style={{ alignSelf: 'stretch' }} />
         </View>
-      </View>
+      </ScrollView>
     );
   }
 
@@ -65,7 +70,10 @@ export function DoneView({
   const deltaText = delta === 0 ? '与昨日持平' : `比昨日${delta > 0 ? '多' : '少'} ${Math.abs(delta)} 词`;
 
   return (
-    <View style={styles.wrap}>
+    <ScrollView
+      contentContainerStyle={[styles.wrap, { paddingBottom: bottomPad }]}
+      showsVerticalScrollIndicator={false}
+    >
       <Animated.View style={[styles.seal, { backgroundColor: c.ac }, style]}>
         <View style={[styles.sealFrame, { borderColor: c.bg }]} />
         <View style={styles.sealGrid}>
@@ -102,7 +110,7 @@ export function DoneView({
           <Text style={[styles.bt2Text, { color: c.ac }]}>撤 销 上 一 次 评 分</Text>
         </TouchableOpacity>
       ) : null}
-    </View>
+    </ScrollView>
   );
 }
 
@@ -116,8 +124,16 @@ function Cell({ value, label, colors: c }: { value: string; label: string; color
 }
 
 const styles = StyleSheet.create({
-  wrap: { flex: 1, alignItems: 'center', paddingTop: SPACE.huge, paddingHorizontal: SPACE.xxl },
-  wrapEmpty: { justifyContent: 'center', paddingTop: 0 },
+  // 完成屏的内容高度随机型变（短屏 640dp / 长屏 900dp）。
+  // 用 flexGrow + justifyContent:center：**空间富余时整体居中**（不再顶头+底部一大片空），
+  // **空间不足时可滚动**（短屏不会把「撤销上一次评分」裁掉 —— 那是不可替代的出口）。
+  wrap: {
+    flexGrow: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: SPACE.xl,
+    paddingHorizontal: SPACE.xxl,
+  },
 
   seal: {
     width: SEAL,
@@ -147,7 +163,7 @@ const styles = StyleSheet.create({
   cellV: { fontSize: FONT.wordSm, lineHeight: 31, fontWeight: WEIGHT.semibold, fontVariant: ['tabular-nums'] },
   cellK: { fontSize: 10, letterSpacing: 1.6, marginTop: SPACE.sm, fontWeight: WEIGHT.semibold },
 
-  bt2: { height: CONTROL.lg, justifyContent: 'center', alignItems: 'center', alignSelf: 'stretch' },
+  bt2: { minHeight: CONTROL.lg, justifyContent: 'center', alignItems: 'center', alignSelf: 'stretch' },
   bt2Text: { fontSize: 13.5, letterSpacing: 1.5, fontWeight: WEIGHT.medium },
   emptyBtn: { alignSelf: 'stretch', marginTop: SPACE.xxxl },
 });

@@ -21,6 +21,7 @@ import {
 } from '../src/db/queries';
 import { previewIntervals, type IntervalPreview } from '../src/srs/fsrs';
 import type { Grade } from 'ts-fsrs';
+import { useSideInset, useTopPad, useBottomPad } from '../src/lib/layout';
 
 // 预览尚未取到时的占位（只影响首帧，条长会立刻被真实值替换）。
 const NO_PREVIEW: IntervalPreview[] = [
@@ -32,6 +33,9 @@ const NO_PREVIEW: IntervalPreview[] = [
 
 export default function ReviewScreen() {
   const { colors: c } = useTheme();
+  const side = useSideInset();
+  const topPad = useTopPad();
+  const bottomPad = useBottomPad();
   const router = useRouter();
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [idx, setIdx] = useState(0);
@@ -110,7 +114,7 @@ export default function ReviewScreen() {
     const todayTotal = (hist[1]?.new_count ?? 0) + (hist[1]?.review_count ?? 0);
     const ydayTotal = (hist[0]?.new_count ?? 0) + (hist[0]?.review_count ?? 0);
     return (
-      <View style={[styles.screen, { backgroundColor: c.bg }]}>
+      <View style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
         <DoneView
           words={summary.words}
           minutes={summary.minutes}
@@ -128,7 +132,7 @@ export default function ReviewScreen() {
   // ── 学习中 ────────────────────────────────────────────────────────────
   const total = queue.length;
   return (
-    <View style={[styles.screen, { backgroundColor: c.bg }]}>
+    <View style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
       <View style={styles.top}>
         <Text style={[styles.ul, { color: c.tx3 }]}>
           复习 {idx + 1} / {total}
@@ -164,7 +168,7 @@ export default function ReviewScreen() {
       <TouchableOpacity
         activeOpacity={0.6}
         onPress={() => (run.current.done > 0 ? finish() : router.back())}
-        style={styles.endRound}
+        style={[styles.endRound, { marginBottom: bottomPad }]}
       >
         <Text style={[styles.endRoundText, { color: c.tx3 }]}>结 束 本 轮</Text>
       </TouchableOpacity>
@@ -173,7 +177,7 @@ export default function ReviewScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, paddingTop: 52 },
+  screen: { flex: 1 },
   top: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: SPACE.xl },
   ul: { fontSize: 10, letterSpacing: 2, fontWeight: WEIGHT.semibold, fontVariant: ['tabular-nums'] },
   prog: { marginTop: SPACE.lg, marginHorizontal: SPACE.xl },
@@ -187,14 +191,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginHorizontal: SPACE.lg,
     marginBottom: SPACE.sm,
-    height: CONTROL.md,
+    minHeight: CONTROL.md,
     borderRadius: RADIUS.ctrl,
     paddingLeft: SPACE.lg,
   },
   undoText: { fontSize: 13, letterSpacing: 0.3, fontWeight: WEIGHT.medium },
-  undoBtn: { height: CONTROL.md, paddingHorizontal: SPACE.md, justifyContent: 'center' },
+  undoBtn: { minHeight: CONTROL.md, paddingHorizontal: SPACE.md, justifyContent: 'center' },
   undoBtnText: { fontSize: 13, letterSpacing: 0.5, fontWeight: WEIGHT.semibold },
 
-  endRound: { height: CONTROL.lg, alignItems: 'center', justifyContent: 'center', marginBottom: SPACE.sm },
+  endRound: { minHeight: CONTROL.lg, alignItems: 'center', justifyContent: 'center', marginBottom: SPACE.sm },
   endRoundText: { fontSize: 13.5, letterSpacing: 1.5, fontWeight: WEIGHT.medium },
 });

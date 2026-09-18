@@ -41,8 +41,14 @@ export function RatingBar({
           <View style={styles.barWrap}>
             <View style={{ width: widthOf(mins[i]), height: 2, borderRadius: RADIUS.mark, backgroundColor: bar[i] }} />
           </View>
-          <Text style={[styles.label, { color: txt[i] }]}>{label}</Text>
-          <Text style={[styles.interval, { color: c.tx2 }]}>{intervals[i]?.label ?? ''}</Text>
+          <Text numberOfLines={1} style={[styles.label, { color: txt[i] }]}>
+            {label}
+          </Text>
+          {/* 间隔文案在窄屏（320dp 四等分 ≈ 62dp/格）+ 系统大字号下会就换行，四格高度被撑破。
+              单行 + 必要时缩字，保证四格的基线永远齐平。 */}
+          <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75} style={[styles.interval, { color: c.tx2 }]}>
+            {intervals[i]?.label ?? ''}
+          </Text>
         </TouchableOpacity>
       ))}
     </View>

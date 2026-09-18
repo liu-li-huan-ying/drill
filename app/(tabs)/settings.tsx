@@ -7,6 +7,7 @@ import { useTheme } from '../../src/theme/ThemeProvider';
 import { RADIUS, SPACE, CONTROL, WEIGHT } from '../../src/theme/tokens';
 import { Card, Btn, RowItem, Label } from '../../src/components/ui';
 import { getSettings, getMasteredCount, saveSettings, resetMastered } from '../../src/db/queries';
+import { useGutter } from '../../src/lib/layout';
 
 const THEME_MODES = ['system', 'light', 'dark'] as const;
 const THEME_LABELS: Record<(typeof THEME_MODES)[number], string> = {
@@ -17,6 +18,7 @@ const THEME_LABELS: Record<(typeof THEME_MODES)[number], string> = {
 
 export default function SettingsScreen() {
   const { colors: c, themeMode, setThemeMode } = useTheme();
+  const gutter = useGutter();
   const router = useRouter();
   const s = getSettings();
 
@@ -38,7 +40,10 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}>
+    <ScrollView
+      style={{ backgroundColor: c.bg }}
+      contentContainerStyle={[styles.container, { backgroundColor: c.bg, paddingHorizontal: gutter }]}
+    >
       <Card style={styles.first}>
         <Label>额 度</Label>
         <View style={[styles.list, { borderColor: c.bd }]}>
@@ -178,7 +183,7 @@ const styles = StyleSheet.create({
   seg: { flexDirection: 'row', gap: SPACE.sm },
   segItem: {
     flex: 1,
-    height: CONTROL.sm,
+    minHeight: CONTROL.sm,
     borderRadius: RADIUS.chip,
     borderWidth: 1,
     alignItems: 'center',

@@ -5,9 +5,12 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '../src/theme/ThemeProvider';
 import { RADIUS, WEIGHT, SPACE, CONTROL } from '../src/theme/tokens';
 import { importCustomList } from '../src/db/queries';
+import { useSideInset, useTopPad } from '../src/lib/layout';
 
 export default function ImportScreen() {
   const { colors: c } = useTheme();
+  const side = useSideInset();
+  const topPad = useTopPad();
   const router = useRouter();
   const [name, setName] = useState('');
   const [raw, setRaw] = useState('');
@@ -19,7 +22,7 @@ export default function ImportScreen() {
   };
 
   return (
-    <View style={[styles.screen, { backgroundColor: c.bg }]}>
+    <View style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
       <View style={[styles.top, { borderBottomColor: c.bd }]}>
         <TouchableOpacity activeOpacity={0.6} onPress={() => router.back()}>
           <Text style={[styles.back, { color: c.tx2 }]}>‹ 返回</Text>
@@ -94,7 +97,7 @@ export default function ImportScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, paddingTop: 52 },
+  screen: { flex: 1 },
   top: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: SPACE.xl, paddingBottom: 12, borderBottomWidth: 1,
@@ -103,13 +106,13 @@ const styles = StyleSheet.create({
   title: { fontSize: 13, letterSpacing: 1.1, textTransform: 'uppercase', fontWeight: WEIGHT.semibold, flex: 1, textAlign: 'center' },
   body: { paddingHorizontal: SPACE.xl, paddingTop: 20, paddingBottom: 40 },
   label: { fontSize: 12, letterSpacing: 0.5, marginBottom: 8 },
-  nameInput: { height: CONTROL.md, borderRadius: RADIUS.ctrl, borderWidth: 1, paddingHorizontal: 14, fontSize: 15 },
+  nameInput: { minHeight: CONTROL.md, borderRadius: RADIUS.ctrl, borderWidth: 1, paddingHorizontal: 14, fontSize: 15 },
   textInput: { height: 200, borderRadius: RADIUS.ctrl, borderWidth: 1, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, lineHeight: 22 },
-  btn: { marginTop: 18, height: CONTROL.lg, borderRadius: RADIUS.ctrl, alignItems: 'center', justifyContent: 'center' },
+  btn: { marginTop: 18, minHeight: CONTROL.lg, borderRadius: RADIUS.ctrl, alignItems: 'center', justifyContent: 'center' },
   btnText: { fontSize: 15, letterSpacing: 1.5, fontWeight: WEIGHT.semibold },
   result: { marginTop: SPACE.xxl, borderRadius: RADIUS.card, borderWidth: 1, padding: SPACE.lg },
   resultLine: { fontSize: 14, fontWeight: WEIGHT.semibold, fontVariant: ['tabular-nums'] },
   miss: { fontSize: 12, lineHeight: 18, marginTop: 8, fontVariant: ['tabular-nums'] },
-  viewBtn: { marginTop: 14, height: CONTROL.md, borderRadius: RADIUS.ctrl, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  viewBtn: { marginTop: 14, minHeight: CONTROL.md, borderRadius: RADIUS.ctrl, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   viewText: { fontSize: 14, letterSpacing: 1 },
 });

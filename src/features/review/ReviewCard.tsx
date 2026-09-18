@@ -71,8 +71,12 @@ export function ReviewCard({
       >
         {seal ? <SealMark text={seal} style={styles.seal} /> : null}
         <View style={styles.frontBody}>
-          {/* 不设 numberOfLines：长词换行也比被省略号吃掉好 —— 单词是这一屏唯一的主角。 */}
-          <Text style={[styles.word, { color: c.tx1 }]}>{item.word}</Text>
+          {/* 长词不再任其换 3–4 行把音标和喇叭挤出卡外：最多两行，超出就等比缩字。
+              minimumFontScale 0.45 —— 缩到 22sp 仍是全屏最大的字，主角地位不受影响，
+              但「卡面装不下自己」这种事从此不会发生（小屏 + 系统大字号的组合最容易踩）。 */}
+          <Text numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.45} style={[styles.word, { color: c.tx1 }]}>
+            {item.word}
+          </Text>
           <View style={[styles.stroke, { backgroundColor: c.ac }]} />
           {phonetic ? <Text style={[styles.ipa, { color: c.tx3 }]}>{phonetic}</Text> : null}
           <TouchableOpacity

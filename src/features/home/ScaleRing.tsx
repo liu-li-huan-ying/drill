@@ -9,10 +9,13 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../../theme/ThemeProvider';
 import { serif, WEIGHT, FONT, RADIUS } from '../../theme/tokens';
 
+/** 基准直径：设计稿按 196dp 画，其余尺寸按比例缩放（环心数字、字距、条间距都跟着走）。 */
+const BASE = 196;
+
 export function ScaleRing({
   total,
   done,
-  size = 196,
+  size = BASE,
   centerValue,
   centerLabel,
 }: {
@@ -24,6 +27,10 @@ export function ScaleRing({
 }) {
   const { colors: c } = useTheme();
 
+  // 环心数字按环径等比缩放 —— 否则小环上 58sp 的数字会把环塞满，大环上又显得空。
+  const k = size / BASE;
+  const numSize = Math.round(FONT.ring * k);
+
   const n = Math.max(1, Math.min(40, total)); // 段数 = 当日配额
   const seg = 360 / n;
   const gap = seg * 0.16; // 段间留隙（原型 20 段时约 2.8°）
@@ -31,7 +38,7 @@ export function ScaleRing({
   const per = Math.max(1, Math.ceil(visible / 9)); // 单根横条跨弧 ≤ 9°
   const sub = visible / per;
 
-  const stroke = 9;
+  const stroke = Math.max(7, Math.round(size * 0.046));
   const r = size * 0.388; // 196 → 76，与原型一致
   const mid = size / 2;
   const barLen = (r * (sub * Math.PI)) / 180 + 0.6;
@@ -65,7 +72,14 @@ export function ScaleRing({
       ))}
 
       <View style={{ alignItems: 'center' }}>
-        <Text style={[styles.num, { color: c.tx1, fontFamily: serif }]}>{centerValue}</Text>
+        <Text
+          style={[
+            styles.num,
+            { color: c.tx1, fontFamily: serif, fontSize: numSize, lineHeight: numSize, letterSpacing: -1.2 * k, marginBottom: 12 * k },
+          ]}
+        >
+          {centerValue}
+        </Text>
         <Text style={[styles.cap, { color: c.tx3 }]}>{centerLabel}</Text>
       </View>
     </View>
@@ -74,10 +88,6 @@ export function ScaleRing({
 
 const styles = StyleSheet.create({
   num: {
-    fontSize: FONT.ring,
-    lineHeight: FONT.ring,
-    letterSpacing: -1.2,
-    marginBottom: 12,
     fontWeight: WEIGHT.semibold,
     fontVariant: ['tabular-nums'],
   },

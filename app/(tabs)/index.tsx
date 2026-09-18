@@ -1,18 +1,21 @@
 // 今日（首页）：刻度环展示当日新词配额进度；复习 / 新词双列数据；朱砂主 CTA；熟词校准入口。
 import React, { useCallback, useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useTheme } from '../../src/theme/ThemeProvider';
 import { RADIUS, SPACE, CONTROL, WEIGHT, type Tokens } from '../../src/theme/tokens';
 import { ScaleRing } from '../../src/features/home/ScaleRing';
 import { Btn, Chev } from '../../src/components/ui';
 import { getHomeSummary, getMasteredCount, setStudyScope } from '../../src/db/queries';
+import { useGutter } from '../../src/lib/layout';
 
 // 每题约 30 秒 —— 「预计 N 分钟」是估算值，不是承诺值，所以取整到分钟。
 const SEC_PER_WORD = 30;
 
 export default function TodayScreen() {
   const { colors: c } = useTheme();
+  const gutter = useGutter();
+  const { width, height } = useWindowDimensions();
   const router = useRouter();
   const [s, setS] = useState(() => getHomeSummary());
   const [mastered, setMastered] = useState(() => getMasteredCount());
@@ -30,12 +33,23 @@ export default function TodayScreen() {
   const minutes = Math.round((todayWords * SEC_PER_WORD) / 60);
   const nothing = s.reviewDue === 0 && todayNew === 0;
 
+  // 刻度环按视口定尺寸：高度要留给下面的数据卡 / 主 CTA / 校准行，环不能自己吃掉半屏。
+  // 取「宽度放得下」与「不超过屏高 1/4」的较小者，再夹在 156–216 之间 ——
+  // 短屏（16:9）不让 CTA 被挤下去，长屏（20:9）也不让它显得小气。
+  const ringSize = Math.round(
+    Math.min(Math.max(Math.min(width - 2 * gutter - 48, height * 0.25), 156), 216)
+  );
+
   return (
-    <ScrollView contentContainerStyle={[styles.wrap, { backgroundColor: c.bg }]}>
+    <ScrollView
+      style={{ backgroundColor: c.bg }}
+      contentContainerStyle={[styles.wrap, { backgroundColor: c.bg, paddingHorizontal: gutter }]}
+    >
       <View style={styles.ringWrap}>
         <ScaleRing
           total={s.dailyNewLimit}
           done={s.newDone}
+          size={ringSize}
           centerValue={String(remaining)}
           centerLabel="今 日 待 学"
         />
@@ -119,7 +133,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: SPACE.lg,
     paddingHorizontal: SPACE.lg,
-    height: CONTROL.md,
+    minHeight: CONTROL.md,
     borderRadius: RADIUS.ctrl,
     borderWidth: 1,
   },

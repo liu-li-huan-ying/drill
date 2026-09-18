@@ -17,6 +17,7 @@ import type { Morphology } from '../src/lib/morphology';
 import { DefinitionView } from '../src/components/Definition';
 import { MorphologyView } from '../src/components/Morphology';
 import { speak } from '../src/lib/speak';
+import { useSideInset, useTopPad, useBottomPad } from '../src/lib/layout';
 
 // 考纲代号 → 中文展示名（与 build_dict.py 的 EXAM_LABELS 对应）。
 const EXAM_LABELS: Record<string, string> = {
@@ -26,6 +27,9 @@ const EXAM_LABELS: Record<string, string> = {
 
 export default function WordScreen() {
   const { colors: c } = useTheme();
+  const side = useSideInset();
+  const topPad = useTopPad();
+  const bottomPad = useBottomPad();
   const router = useRouter();
   const params = useLocalSearchParams();
   const wordId = Number(params.wordId);
@@ -51,7 +55,7 @@ export default function WordScreen() {
 
   if (!detail) {
     return (
-      <View style={[styles.screen, { backgroundColor: c.bg }]}>
+      <View style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
         <View style={[styles.top, { borderBottomColor: c.bd }]}>
           <TouchableOpacity activeOpacity={0.6} onPress={() => router.back()}>
             <Text style={[styles.back, { color: c.tx2 }]}>‹ 返回</Text>
@@ -80,7 +84,7 @@ export default function WordScreen() {
     .filter(Boolean);
 
   return (
-    <View style={[styles.screen, { backgroundColor: c.bg }]}>
+    <View style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
       <View style={[styles.top, { borderBottomColor: c.bd }]}>
         <TouchableOpacity activeOpacity={0.6} onPress={() => router.back()}>
           <Text style={[styles.back, { color: c.tx2 }]}>‹ 返回</Text>
@@ -195,7 +199,7 @@ export default function WordScreen() {
         <View style={{ flex: 1 }} />
       </ScrollView>
 
-      <View style={[styles.footer, { borderTopColor: c.bd }]}>
+      <View style={[styles.footer, { borderTopColor: c.bd, paddingBottom: bottomPad }]}>
         <TouchableOpacity
           style={[
             styles.masterBtn,
@@ -229,7 +233,7 @@ function SoundIcon({ color }: { color: string }) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, paddingTop: 52 },
+  screen: { flex: 1 },
   top: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: SPACE.xl, paddingBottom: 12, borderBottomWidth: 1,
@@ -262,7 +266,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 11, fontSize: 14.5, lineHeight: 21,
   },
   inputMulti: { minHeight: 72, textAlignVertical: 'top' },
-  footer: { paddingHorizontal: SPACE.xl, paddingBottom: 24, paddingTop: 12, borderTopWidth: 1 },
-  masterBtn: { height: CONTROL.lg, borderRadius: RADIUS.ctrl, alignItems: 'center', justifyContent: 'center' },
+  footer: { paddingHorizontal: SPACE.xl, paddingBottom: SPACE.xl, paddingTop: SPACE.md, borderTopWidth: 1 },
+  masterBtn: { minHeight: CONTROL.lg, borderRadius: RADIUS.ctrl, alignItems: 'center', justifyContent: 'center' },
   masterText: { fontSize: 15, letterSpacing: 1.5, fontWeight: WEIGHT.semibold },
 });

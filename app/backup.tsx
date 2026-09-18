@@ -11,6 +11,7 @@ import { useTheme } from '../src/theme/ThemeProvider';
 import { type Tokens, RADIUS, WEIGHT, SPACE } from '../src/theme/tokens';
 import { exportBackupData, restoreBackup, type BackupData } from '../src/db/queries';
 import { EXPECTED_DB_VERSION } from '../src/db/Database';
+import { useSideInset, useTopPad } from '../src/lib/layout';
 
 interface BackupFile {
   app: 'drill';
@@ -22,6 +23,8 @@ interface BackupFile {
 
 export default function BackupScreen() {
   const { colors: c } = useTheme();
+  const side = useSideInset();
+  const topPad = useTopPad();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
@@ -86,7 +89,7 @@ export default function BackupScreen() {
   };
 
   return (
-    <View style={[styles.screen, { backgroundColor: c.bg }]}>
+    <View style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
       <View style={[styles.top, { borderBottomColor: c.bd }]}>
         <TouchableOpacity activeOpacity={0.6} onPress={() => router.back()}>
           <Text style={[styles.back, { color: c.tx2 }]}>‹ 返回</Text>
@@ -139,7 +142,7 @@ function Action({
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, paddingTop: 52 },
+  screen: { flex: 1 },
   top: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -6,9 +6,12 @@ import { useTheme } from '../src/theme/ThemeProvider';
 import { serif, FONT, mono, RADIUS, SPACE } from '../src/theme/tokens';
 import { getNotes, getNoteCount, type NoteRow } from '../src/db/queries';
 import { splitSenses } from '../src/components/Definition';
+import { useSideInset, useTopPad } from '../src/lib/layout';
 
 export default function NotesScreen() {
   const { colors: c } = useTheme();
+  const side = useSideInset();
+  const topPad = useTopPad();
   const router = useRouter();
 
   const [q, setQ] = useState('');
@@ -23,7 +26,7 @@ export default function NotesScreen() {
     router.push({ pathname: '/word', params: { wordId: String(id) } });
 
   return (
-    <View style={[styles.screen, { backgroundColor: c.bg }]}>
+    <View style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
       <View style={[styles.top, { borderBottomColor: c.bd }]}>
         <TouchableOpacity activeOpacity={0.6} onPress={() => router.back()}>
           <Text style={[styles.back, { color: c.tx2 }]}>‹ 返回</Text>
@@ -98,7 +101,7 @@ export default function NotesScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, paddingTop: 52 },
+  screen: { flex: 1 },
   top: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: SPACE.xl, paddingBottom: 12, borderBottomWidth: 1,
@@ -108,7 +111,7 @@ const styles = StyleSheet.create({
   total: { fontSize: 12, fontVariant: ['tabular-nums'], width: 56, textAlign: 'right' },
   searchWrap: { paddingHorizontal: SPACE.xl, paddingTop: 14 },
   search: {
-    flexDirection: 'row', alignItems: 'center', height: 42,
+    flexDirection: 'row', alignItems: 'center', minHeight: 42,
     borderRadius: RADIUS.ctrl, borderWidth: 1, paddingHorizontal: 14,
   },
   searchInput: { flex: 1, fontSize: 14.5, paddingVertical: 0 },

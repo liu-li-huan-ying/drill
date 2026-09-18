@@ -4,11 +4,12 @@
 // 这里刻意不再重复首页已有的「今日新词 / 今日复习」——统计屏回答的是「我坚持了多久、走得怎么样」，
 // 今日待办属于首页。词库总量同理，它是语料事实不是进度事实。
 import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { useTheme } from '../../src/theme/ThemeProvider';
 import { serif, FONT, RADIUS, SPACE, WEIGHT, type Tokens } from '../../src/theme/tokens';
 import { mix } from '../../src/lib/color';
+import { useGutter } from '../../src/lib/layout';
 import {
   getStreak,
   getLongestStreak,
@@ -34,6 +35,14 @@ const STATE_META: Record<string, { label: string; key: keyof Tokens }> = {
 
 export default function StatsScreen() {
   const { colors: c } = useTheme();
+  const gutter = useGutter();
+  const { width } = useWindowDimensions();
+
+  // 打卡日历的宽度：用满卡片可用宽（窄屏自动收窄），上限 336dp。
+  // 上限的判据不是「好看」，是**语义**：格子是「印记」不是按钮 ——
+  // 7 列 + 5dp 内衬下，336dp 对应单格边长 43dp，正好压在 48dp 触控目标之下；
+  // 再宽就会被读成「可点的按钮」，与「这天打过卡」的陈述性语义冲突。
+  const calW = Math.min(336, width - 2 * gutter - 2 * SPACE.xl);
   const [s, setS] = useState(compute);
 
   // 与首页一致：每次聚焦重算（tab 切换不重挂载，故需主动刷新）。
@@ -56,7 +65,10 @@ export default function StatsScreen() {
   ];
 
   return (
-    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: c.bg }]}>
+    <ScrollView
+      style={{ backgroundColor: c.bg }}
+      contentContainerStyle={[styles.container, { backgroundColor: c.bg, paddingHorizontal: gutter }]}
+    >
       {/* 连续天数：整屏的主角，用最大字号 */}
       <View style={[styles.streak, { backgroundColor: c.sf, borderColor: c.bd }]}>
         <Text style={[styles.k, { color: c.tx3 }]}>连 续 学 习</Text>
@@ -78,14 +90,14 @@ export default function StatsScreen() {
       <Card colors={c}>
         <Text style={[styles.kCard, { color: c.tx3 }]}>打 卡 记 录</Text>
         <View style={styles.calWrap}>
-          <View style={styles.calRow}>
+          <View style={[styles.calRow, { maxWidth: calW }]}>
             {WEEKDAYS.map((w) => (
               <View key={w} style={styles.calOuter}>
                 <Text style={[styles.calhdText, { color: c.tx3 }]}>{w}</Text>
               </View>
             ))}
           </View>
-          <View style={styles.calRow}>
+          <View style={[styles.calRow, { maxWidth: calW }]}>
             {cells.map((d, i) => {
               if (d == null) return <View key={`e${i}`} style={styles.calOuter} />;
               const total = s.month[d - 1].total;
@@ -277,7 +289,7 @@ const styles = StyleSheet.create({
   // 日历：整体收窄到 252dp 居中，格子才是「印记」不是「按钮」。
   // 7 列用「外格 1/7 宽 + 内衬」实现，不用 gap —— 百分比宽度叠加 gap 会溢出换行，第 7 天掉到下一行。
   calWrap: { marginTop: SPACE.xs },
-  calRow: { flexDirection: 'row', flexWrap: 'wrap', maxWidth: 252, alignSelf: 'center', width: '100%' },
+  calRow: { flexDirection: 'row', flexWrap: 'wrap', alignSelf: 'center', width: '100%' },
   calOuter: { width: `${100 / 7}%`, padding: 2.5, alignItems: 'center', justifyContent: 'center' },
   calhdText: { fontSize: 10, fontWeight: WEIGHT.semibold },
   calDay: {

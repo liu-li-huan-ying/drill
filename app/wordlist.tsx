@@ -6,11 +6,14 @@ import { useTheme } from '../src/theme/ThemeProvider';
 import { serif, FONT, mono, RADIUS, WEIGHT, SPACE, CONTROL } from '../src/theme/tokens';
 import { getTagWords, getTagWordCount, setStudyScope, getStudyScope, type WordRow } from '../src/db/queries';
 import { splitSenses } from '../src/components/Definition';
+import { useSideInset, useTopPad } from '../src/lib/layout';
 
 const PAGE = 150;
 
 export default function WordListScreen() {
   const { colors: c } = useTheme();
+  const side = useSideInset();
+  const topPad = useTopPad();
   const router = useRouter();
   const params = useLocalSearchParams();
   const tagId = Number(params.tagId);
@@ -47,7 +50,7 @@ export default function WordListScreen() {
     router.push({ pathname: '/word', params: { wordId: String(w.word_id) } });
 
   return (
-    <View style={[styles.screen, { backgroundColor: c.bg }]}>
+    <View style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
       <View style={[styles.top, { borderBottomColor: c.bd }]}>
         <TouchableOpacity activeOpacity={0.6} onPress={() => router.back()}>
           <Text style={[styles.back, { color: c.tx2 }]}>‹ 返回</Text>
@@ -105,7 +108,7 @@ export default function WordListScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, paddingTop: 52 },
+  screen: { flex: 1 },
   top: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: SPACE.xl, paddingBottom: 12, borderBottomWidth: 1,
@@ -122,10 +125,10 @@ const styles = StyleSheet.create({
   word: { fontSize: 17, fontFamily: serif },
   ipa: { fontSize: FONT.ipa, fontFamily: mono, marginTop: 3 },
   def: { fontSize: 13, flex: 1, textAlign: 'right' },
-  scopeBtn: { marginTop: 12, height: CONTROL.md, borderRadius: RADIUS.ctrl, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  scopeBtn: { marginTop: 12, minHeight: CONTROL.md, borderRadius: RADIUS.ctrl, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   scopeBtnText: { fontSize: 14, letterSpacing: 1.5, fontWeight: WEIGHT.semibold },
   more: {
-    marginTop: 18, height: CONTROL.md, borderRadius: RADIUS.ctrl, borderWidth: 1,
+    marginTop: 18, minHeight: CONTROL.md, borderRadius: RADIUS.ctrl, borderWidth: 1,
     alignItems: 'center', justifyContent: 'center',
   },
   moreText: { fontSize: 14, letterSpacing: 1 },

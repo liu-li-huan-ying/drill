@@ -7,7 +7,8 @@ import { View, Text, TouchableOpacity, Animated, Easing, StyleSheet } from 'reac
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../src/theme/ThemeProvider';
 import { BrandBar } from '../../src/components/ui';
-import { RADIUS, SPACE, WEIGHT } from '../../src/theme/tokens';
+import { useSideInset, CONTENT_MAX } from '../../src/lib/layout';
+import { RADIUS, MOTION, SPACE, WEIGHT } from '../../src/theme/tokens';
 
 const RULE_W = 30; // 朱痕宽度
 const TITLES: Record<string, string> = {
@@ -15,6 +16,13 @@ const TITLES: Record<string, string> = {
   library: '词库',
   stats: '统计',
   settings: '设置',
+};
+
+// tab 切换：内容不「瞬间替换」，而是**按索引方向平移 50dp + 交叉淡入**，
+// 与朱痕的滑动同一条曲线、同一个时长 —— 两者是同一个动作的两半，时长不一致就会「光标追着内容跑」。
+const SWITCH = {
+  animation: 'timing' as const,
+  config: { duration: MOTION.tab, easing: Easing.bezier(0.32, 0.72, 0.28, 1) },
 };
 
 /** 四个线性图标（纯 View 绘制，项目无 SVG 依赖）：册页 / 书 / 柱 / 旋钮。 */
@@ -96,19 +104,22 @@ function Icon({ name, color }: { name: string; color: string }) {
 function TabBar({ state, navigation }: { state: any; navigation: any }) {
   const { colors: c } = useTheme();
   const insets = useSafeAreaInsets();
+  // 宽屏时四个 tab 也收进内容列 —— 800dp 宽的栏里塞 4 个 200dp 的格子会散掉，
+  // 而且栏与内容不对齐，视觉上像两个无关的东西叠在一起。手机上 side = 0，完全不变。
+  const side = useSideInset();
   const [width, setWidth] = useState(0);
   const slide = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (!width) return;
-    const cell = width / state.routes.length;
+    const cell = (width - 2 * side) / state.routes.length;
     Animated.timing(slide, {
-      toValue: (state.index + 0.5) * cell - RULE_W / 2,
-      duration: 380,
+      toValue: side + (state.index + 0.5) * cell - RULE_W / 2,
+      duration: MOTION.tab,
       easing: Easing.bezier(0.32, 0.72, 0.28, 1),
       useNativeDriver: true,
     }).start();
-  }, [state.index, state.routes.length, width, slide]);
+  }, [state.index, state.routes.length, width, side, slide]);
 
   return (
     <View
@@ -125,7 +136,7 @@ function TabBar({ state, navigation }: { state: any; navigation: any }) {
         />
       ) : null}
 
-      <View style={styles.items}>
+      <View style={[styles.items, { maxWidth: CONTENT_MAX, alignSelf: 'center' }]}>
         {state.routes.map((route: any, i: number) => {
           const focused = state.index === i;
           const color = focused ? c.ac : c.tx3;
@@ -168,7 +179,17 @@ export default function TabsLayout() {
   return (
     <View style={{ flex: 1 }}>
       <BrandBar />
-      <Tabs screenOptions={{ headerShown: false }} tabBar={(props: any) => <TabBar {...props} />}>
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          animation: 'shift',
+          transitionSpec: SWITCH,
+          // 四个 tab 的首次挂载会各自跑一次同步查库。默认 lazy 会把这笔开销压在**第一次切换的那一刻**，
+          // 正好落在转场动画的起始帧上 → 掉帧、卡一下。预挂载换掉这一下卡顿。
+          lazy: false,
+        }}
+        tabBar={(props: any) => <TabBar {...props} />}
+      >
         <Tabs.Screen name="index" options={{ title: '学习' }} />
         <Tabs.Screen name="library" options={{ title: '词库' }} />
         <Tabs.Screen name="stats" options={{ title: '统计' }} />
@@ -183,6 +204,8 @@ const styles = StyleSheet.create({
   // 朱痕：栏顶一道笔触，切换时横向滑动 —— 它不是装饰，是「你在这里」的痕迹。
   rule: { position: 'absolute', top: -1, left: 0, width: RULE_W, height: 4, borderRadius: RADIUS.bar },
   items: { flexDirection: 'row' },
-  item: { flex: 1, height: 62, alignItems: 'center', justifyContent: 'center', gap: 7 },
+  // minHeight 而非 height：系统字号调大时栏会自己长高，而不是把标签裁掉。
+  // paddingVertical 让「图标 + 标签」在栏内居中；默认字号下总高仍是 62（内容只有 45），栏高不变。
+  item: { flex: 1, minHeight: 62, alignItems: 'center', justifyContent: 'center', gap: 7, paddingVertical: SPACE.sm },
   iconBox: { width: 22, height: 22, alignItems: 'center', justifyContent: 'center' },
 });

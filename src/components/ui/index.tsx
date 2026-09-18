@@ -12,26 +12,32 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme/ThemeProvider';
+import { useSideInset } from '../../lib/layout';
 import { RADIUS, SPACE, CONTROL, WEIGHT, SHADOW, serif } from '../../theme/tokens';
 
 /** 天头：朱印 + 品牌名。全局顶栏，四个 tab 共用（对应原型的 .top）。 */
 export function BrandBar() {
   const { colors: c } = useTheme();
   const insets = useSafeAreaInsets();
+  // 宽屏时天头必须与内容列对齐 —— 天头横跨全屏、内容缩在中间，比不对齐还难看。
+  const side = useSideInset();
   return (
     <View
       style={{
         backgroundColor: c.bg,
         paddingTop: insets.top,
-        paddingHorizontal: SPACE.xl,
-        height: 52 + insets.top,
+        paddingHorizontal: SPACE.xl + side,
+        // minHeight 而非 height：系统字号放大时天头自己长高，不会把品牌名裁掉半行。
+        minHeight: 52 + insets.top,
         flexDirection: 'row',
         alignItems: 'center',
         gap: 9,
       }}
     >
       <Seal size={16} />
-      <Text style={{ fontFamily: serif, fontSize: 16.5, letterSpacing: 2, color: c.tx1 }}>背呗</Text>
+      <Text style={{ fontFamily: serif, fontSize: 16.5, letterSpacing: 2, fontWeight: WEIGHT.semibold, color: c.tx1 }}>
+        背呗
+      </Text>
     </View>
   );
 }
@@ -362,7 +368,7 @@ const styles = StyleSheet.create({
   card: { borderRadius: RADIUS.card, borderWidth: 1 },
   label: { fontSize: 10.5, letterSpacing: 2.2, fontWeight: WEIGHT.semibold },
   kicker: { fontSize: 10.5, letterSpacing: 3, textTransform: 'uppercase', fontWeight: WEIGHT.semibold },
-  btn: { height: CONTROL.xl, borderRadius: RADIUS.ctrl, alignItems: 'center', justifyContent: 'center' },
+  btn: { minHeight: CONTROL.xl, borderRadius: RADIUS.ctrl, alignItems: 'center', justifyContent: 'center' },
   btnText: { fontSize: 15, letterSpacing: 1.5, fontWeight: WEIGHT.semibold },
   sealMark: {
     width: 30,
