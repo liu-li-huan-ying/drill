@@ -4,6 +4,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-nati
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '../src/theme/ThemeProvider';
 import { serif, FONT, mono, RADIUS, WEIGHT, SPACE, CONTROL } from '../src/theme/tokens';
+import { PageEnter } from '../src/components/ui';
 import { getTagWords, getTagWordCount, setStudyScope, getStudyScope, type WordRow } from '../src/db/queries';
 import { splitSenses } from '../src/components/Definition';
 import { useSideInset, useTopPad } from '../src/lib/layout';
@@ -50,7 +51,7 @@ export default function WordListScreen() {
     router.push({ pathname: '/word', params: { wordId: String(w.word_id) } });
 
   return (
-    <View style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
+    <PageEnter style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
       <View style={[styles.top, { borderBottomColor: c.bd }]}>
         <TouchableOpacity activeOpacity={0.6} onPress={() => router.back()}>
           <Text style={[styles.back, { color: c.tx2 }]}>‹ 返回</Text>
@@ -103,7 +104,7 @@ export default function WordListScreen() {
           </TouchableOpacity>
         ) : null}
       </ScrollView>
-    </View>
+    </PageEnter>
   );
 }
 

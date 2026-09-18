@@ -2,9 +2,10 @@
 // 朱印「今日已毕」落印（缩放 + 微旋 → 归位），三格数据，然后两条出口。
 // 出口的强弱是刻意的：先给「看看你坚持了多久」（正反馈），再给「回到今日」（安静退出）。
 import React, { useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, Animated, Easing, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Animated, ScrollView, StyleSheet } from 'react-native';
 import { useTheme } from '../../theme/ThemeProvider';
-import { serif, FONT, RADIUS, SPACE, CONTROL, WEIGHT, type Tokens } from '../../theme/tokens';
+import { serif, FONT, MOTION, RADIUS, SPACE, CONTROL, WEIGHT, type Tokens } from '../../theme/tokens';
+import { easeSettle, useReducedMotion } from '../../lib/motion';
 import { useBottomPad } from '../../lib/layout';
 import { Btn } from '../../components/ui';
 
@@ -32,16 +33,24 @@ export function DoneView({
 }) {
   const { colors: c } = useTheme();
   const bottomPad = useBottomPad();
+  const reduce = useReducedMotion();
   const stamp = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    Animated.timing(stamp, {
+    // 「减弱动效」时印章直接就在（不播落印）。
+    if (reduce) {
+      stamp.setValue(1);
+      return;
+    }
+    const anim = Animated.timing(stamp, {
       toValue: 1,
-      duration: 520,
-      easing: Easing.bezier(0.22, 1, 0.36, 1), // 落印：快落、稳住，不回弹
+      duration: MOTION.seal,
+      easing: easeSettle(), // 落印：快落、稳住，不回弹
       useNativeDriver: true,
-    }).start();
-  }, [stamp]);
+    });
+    anim.start();
+    return () => anim.stop();
+  }, [stamp, reduce]);
 
   // 一个字都没评 → 不做庆祝。给一张空成绩单盖「今日已毕」是撒谎。
   if (words === 0) {

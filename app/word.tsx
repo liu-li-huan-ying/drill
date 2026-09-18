@@ -4,6 +4,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput } from 
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '../src/theme/ThemeProvider';
 import { serif, FONT, mono, RADIUS, WEIGHT, SPACE, CONTROL } from '../src/theme/tokens';
+import { PageEnter } from '../src/components/ui';
 import {
   getWordDetail,
   markMastered,
@@ -55,14 +56,14 @@ export default function WordScreen() {
 
   if (!detail) {
     return (
-      <View style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
+      <PageEnter style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
         <View style={[styles.top, { borderBottomColor: c.bd }]}>
           <TouchableOpacity activeOpacity={0.6} onPress={() => router.back()}>
             <Text style={[styles.back, { color: c.tx2 }]}>‹ 返回</Text>
           </TouchableOpacity>
           <Text style={[styles.title, { color: c.tx1 }]}>未找到</Text>
         </View>
-      </View>
+      </PageEnter>
     );
   }
 
@@ -84,7 +85,7 @@ export default function WordScreen() {
     .filter(Boolean);
 
   return (
-    <View style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
+    <PageEnter style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
       <View style={[styles.top, { borderBottomColor: c.bd }]}>
         <TouchableOpacity activeOpacity={0.6} onPress={() => router.back()}>
           <Text style={[styles.back, { color: c.tx2 }]}>‹ 返回</Text>
@@ -213,7 +214,7 @@ export default function WordScreen() {
           </Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </PageEnter>
   );
 }
 

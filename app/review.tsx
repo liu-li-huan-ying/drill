@@ -6,7 +6,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useTheme } from '../src/theme/ThemeProvider';
 import { SPACE, CONTROL, WEIGHT, RADIUS } from '../src/theme/tokens';
-import { Progress } from '../src/components/ui';
+import { PageEnter, Progress } from '../src/components/ui';
 import { ReviewCard } from '../src/features/review/ReviewCard';
 import { DoneView } from '../src/features/review/DoneView';
 import {
@@ -114,7 +114,7 @@ export default function ReviewScreen() {
     const todayTotal = (hist[1]?.new_count ?? 0) + (hist[1]?.review_count ?? 0);
     const ydayTotal = (hist[0]?.new_count ?? 0) + (hist[0]?.review_count ?? 0);
     return (
-      <View style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
+      <PageEnter style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
         <DoneView
           words={summary.words}
           minutes={summary.minutes}
@@ -125,14 +125,14 @@ export default function ReviewScreen() {
           onHome={() => router.dismissAll()}
           onUndo={undo ? doUndo : undefined}
         />
-      </View>
+      </PageEnter>
     );
   }
 
   // ── 学习中 ────────────────────────────────────────────────────────────
   const total = queue.length;
   return (
-    <View style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
+    <PageEnter style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
       <View style={styles.top}>
         <Text style={[styles.ul, { color: c.tx3 }]}>
           复习 {idx + 1} / {total}
@@ -172,7 +172,7 @@ export default function ReviewScreen() {
       >
         <Text style={[styles.endRoundText, { color: c.tx3 }]}>结 束 本 轮</Text>
       </TouchableOpacity>
-    </View>
+    </PageEnter>
   );
 }
 

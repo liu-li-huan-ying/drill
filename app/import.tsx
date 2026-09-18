@@ -4,6 +4,7 @@ import { View, Text, ScrollView, TextInput, TouchableOpacity, StyleSheet } from 
 import { useRouter } from 'expo-router';
 import { useTheme } from '../src/theme/ThemeProvider';
 import { RADIUS, WEIGHT, SPACE, CONTROL } from '../src/theme/tokens';
+import { PageEnter } from '../src/components/ui';
 import { importCustomList } from '../src/db/queries';
 import { useSideInset, useTopPad } from '../src/lib/layout';
 
@@ -22,7 +23,7 @@ export default function ImportScreen() {
   };
 
   return (
-    <View style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
+    <PageEnter style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
       <View style={[styles.top, { borderBottomColor: c.bd }]}>
         <TouchableOpacity activeOpacity={0.6} onPress={() => router.back()}>
           <Text style={[styles.back, { color: c.tx2 }]}>‹ 返回</Text>
@@ -92,7 +93,7 @@ export default function ImportScreen() {
           </View>
         ) : null}
       </ScrollView>
-    </View>
+    </PageEnter>
   );
 }
 

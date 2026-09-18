@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useRef } from 'react';
-import { View, Text, TouchableOpacity, Animated, Easing, ScrollView, StyleSheet, type ViewStyle } from 'react-native';
+import { View, Text, TouchableOpacity, Animated, ScrollView, StyleSheet, type ViewStyle } from 'react-native';
 import { useTheme } from '../../theme/ThemeProvider';
 import { serif, mono, FONT, MOTION, RADIUS, SPACE, WEIGHT, SHADOW } from '../../theme/tokens';
+import { ease, useReducedMotion } from '../../lib/motion';
 import { speak } from '../../lib/speak';
 import { DefinitionView } from '../../components/Definition';
 import { SealMark } from '../../components/ui';
@@ -32,20 +33,28 @@ export function ReviewCard({
   onRate: (rating: number) => void;
 }) {
   const { colors: c, scheme } = useTheme();
+  const reduce = useReducedMotion();
   const spin = useRef(new Animated.Value(0)).current;
   // 背面长释义滚动：记录按下的位置/时间，抬手时判断是否「轻点」（非滚动）以翻转回正面。
   const tapStart = useRef<{ x: number; y: number; t: number } | null>(null);
 
   useEffect(() => {
+    // 「减弱动效」时不做翻转动画：3D 翻转是最容易引起前庭不适的动作，直接切到目标面。
+    if (reduce) {
+      spin.setValue(flipped ? 1 : 0);
+      return;
+    }
     // 注意：rotateY（3D 翻转）在 Android 上不被原生动画驱动支持，
     // 必须用 JS 驱动（useNativeDriver: false），否则卡片在安卓上根本不翻转。
-    Animated.timing(spin, {
+    const anim = Animated.timing(spin, {
       toValue: flipped ? 1 : 0,
       duration: MOTION.flip,
-      easing: Easing.bezier(0.32, 0.72, 0.28, 1), // 纸的物理性：慢而稳，无回弹
+      easing: ease(), // 纸的物理性：慢而稳，无回弹
       useNativeDriver: false,
-    }).start();
-  }, [flipped, spin]);
+    });
+    anim.start();
+    return () => anim.stop();
+  }, [flipped, spin, reduce]);
 
   const frontRotate = spin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '180deg'] });
   const backRotate = spin.interpolate({ inputRange: [0, 1], outputRange: ['180deg', '360deg'] });

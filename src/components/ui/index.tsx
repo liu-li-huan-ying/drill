@@ -1,10 +1,11 @@
 // 共享 UI 原子 —— 把朱批设计语言固化成组件，各屏不再各写各的散值。
 // 规矩：颜色一律走 useTheme().colors；尺寸走 RADIUS / SPACE / CONTROL；字重走 WEIGHT。
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
+  Animated,
   StyleSheet,
   type StyleProp,
   type ViewStyle,
@@ -13,7 +14,49 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme/ThemeProvider';
 import { useSideInset } from '../../lib/layout';
-import { RADIUS, SPACE, CONTROL, WEIGHT, SHADOW, serif } from '../../theme/tokens';
+import { ease, useReducedMotion } from '../../lib/motion';
+import { RADIUS, SPACE, CONTROL, WEIGHT, MOTION, SHADOW, serif } from '../../theme/tokens';
+
+/**
+ * 纵深屏的内容入场（栈屏专用，**不要用在 tab 屏**：tab 的场景自己已有交叉淡入，套两层会发飘）。
+ *
+ * 为什么只做透明度、不做位移：卡片由原生栈横向推进（这份动效是系统给的），
+ * 内容若同时向上浮，合成运动就是**斜向**的 —— 横向来自系统、竖向来自我们，
+ * 两股力方向不同，看起来正是「业余」。让内容在原地「显影落定」，
+ * 只补系统缺的那半拍：卡片到达的同时内容才逐渐清晰，而不是一块硬纸板被推过来。
+ */
+export function PageEnter({
+  children,
+  style,
+}: {
+  children: React.ReactNode;
+  style?: StyleProp<ViewStyle>;
+}) {
+  const reduce = useReducedMotion();
+  const v = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // 「减弱动效」时不播动画，直接到位（不是变慢 —— 变慢对前庭敏感的用户更难受）。
+    if (reduce) {
+      v.setValue(1);
+      return;
+    }
+    const anim = Animated.timing(v, {
+      toValue: 1,
+      duration: MOTION.enter,
+      easing: ease(),
+      useNativeDriver: true,
+    });
+    anim.start();
+    return () => anim.stop();
+  }, [reduce, v]);
+
+  return (
+    <Animated.View testID="page-enter" style={[{ flex: 1 }, style, { opacity: v }]}>
+      {children}
+    </Animated.View>
+  );
+}
 
 /** 天头：朱印 + 品牌名。全局顶栏，四个 tab 共用（对应原型的 .top）。 */
 export function BrandBar() {

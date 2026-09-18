@@ -9,6 +9,7 @@ import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import { useTheme } from '../src/theme/ThemeProvider';
 import { type Tokens, RADIUS, WEIGHT, SPACE } from '../src/theme/tokens';
+import { PageEnter } from '../src/components/ui';
 import { exportBackupData, restoreBackup, type BackupData } from '../src/db/queries';
 import { EXPECTED_DB_VERSION } from '../src/db/Database';
 import { useSideInset, useTopPad } from '../src/lib/layout';
@@ -89,7 +90,7 @@ export default function BackupScreen() {
   };
 
   return (
-    <View style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
+    <PageEnter style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
       <View style={[styles.top, { borderBottomColor: c.bd }]}>
         <TouchableOpacity activeOpacity={0.6} onPress={() => router.back()}>
           <Text style={[styles.back, { color: c.tx2 }]}>‹ 返回</Text>
@@ -114,7 +115,7 @@ export default function BackupScreen() {
           换设备时导入即可接续进度。
         </Text>
       </ScrollView>
-    </View>
+    </PageEnter>
   );
 }
 

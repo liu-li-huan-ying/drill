@@ -100,6 +100,33 @@ check('tab 切换有动效', /animation: 'shift'/.test(tabL) && /transitionSpec:
 check('tab 预挂载（消除首切掉帧）', /lazy: false/.test(tabL), 'lazy:false');
 check('朱痕与内容位移同一时长', (tabL.match(/MOTION\.tab/g) || []).length === 2 && /tab: 300/.test(read('src/theme/tokens.ts')), 'MOTION.tab = 300 × 2');
 
+// ── 5. 转场：不露白 + 曲线唯一来源 ─────────────────────────────────────
+// 白光的根因是「透光」：场景/卡片没有底色，交叉淡入时透过去看到原生窗口的白。
+check(
+  '转场三层底色都钉住（不露白）',
+  /contentStyle: \{ backgroundColor: c\.bg \}/.test(root) && // 原生栈卡片
+    /sceneStyle: \{ backgroundColor: c\.bg \}/.test(tabL) && // tab 场景
+    /flex: 1, backgroundColor: c\.bg/.test(tabL), // tabs 布局根容器
+  'Stack.contentStyle + Tabs.sceneStyle + 根 View'
+);
+check(
+  '同级切换用自定义插值器（不是内置 ±50dp）',
+  /sceneStyleInterpolator/.test(tabL) && /TAB_SLIDE/.test(tabL) && /makeTabScene/.test(tabL),
+  '纸页轻推 14dp + 交叉淡入'
+);
+check(
+  '动效曲线唯一来源（无手写贝塞尔数字）',
+  files.every((f) => !/Easing\.bezier\(\s*\d/.test(code(f))),
+  'EASE / EASE_SETTLE 走 tokens'
+);
+check(
+  '纵深屏内容入场 + 减弱动效',
+  STACK.every((f) => /<PageEnter/.test(code(f))) &&
+    /useReducedMotion/.test(read('src/lib/motion.ts')) &&
+    /reduce/.test(tabL),
+  '8 屏 PageEnter / reduce-motion 分支'
+);
+
 check('完成屏可滚动（短屏不裁）', /<ScrollView/.test(read('src/features/review/DoneView.tsx')), 'DoneView');
 check('长词自适应（不挤出卡外）', /adjustsFontSizeToFit/.test(read('src/features/review/ReviewCard.tsx')), 'numberOfLines=2');
 check('刻度环按视口定尺', /size=\{ringSize\}/.test(read('app/(tabs)/index.tsx')), 'ringSize');

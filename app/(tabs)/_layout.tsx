@@ -1,14 +1,15 @@
 // 底部标签栏：朱批导航 —— 线性图标 + 朱笔横痕指示器。
 // 废掉「每个 tab 挂一个小方块」：方块是「未读」状态指示，不是导航语言，
 // 四格各挂一个等于把导航降格成开关。现在用一根会滑动的朱痕说「你在这里」。
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Tabs } from 'expo-router';
 import { View, Text, TouchableOpacity, Animated, Easing, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../src/theme/ThemeProvider';
 import { BrandBar } from '../../src/components/ui';
 import { useSideInset, CONTENT_MAX } from '../../src/lib/layout';
-import { RADIUS, MOTION, SPACE, WEIGHT } from '../../src/theme/tokens';
+import { useReducedMotion } from '../../src/lib/motion';
+import { RADIUS, EASE, MOTION, SPACE, TAB_SLIDE, WEIGHT } from '../../src/theme/tokens';
 
 const RULE_W = 30; // 朱痕宽度
 const TITLES: Record<string, string> = {
@@ -18,12 +19,42 @@ const TITLES: Record<string, string> = {
   settings: '设置',
 };
 
-// tab 切换：内容不「瞬间替换」，而是**按索引方向平移 50dp + 交叉淡入**，
+// tab 切换：内容不「瞬间替换」，而是**按索引方向平移 + 交叉淡入**，
 // 与朱痕的滑动同一条曲线、同一个时长 —— 两者是同一个动作的两半，时长不一致就会「光标追着内容跑」。
 const SWITCH = {
   animation: 'timing' as const,
-  config: { duration: MOTION.tab, easing: Easing.bezier(0.32, 0.72, 0.28, 1) },
+  config: { duration: MOTION.tab, easing: Easing.bezier(EASE[0], EASE[1], EASE[2], EASE[3]) },
 };
+
+/**
+ * 同级切换 = **纸页轻推**：方向感知 ±14dp + 交叉淡入。
+ *
+ * 为什么不用内置的 `shift` 预设：它的位移是 **±50dp**，那是「整页滑过去」的量 ——
+ * 用在同一层级的两个 tab 之间，语义上不对（同级是换角度，不是走进下一页），
+ * 观感上也就是「生硬」的来源：半屏的横移 + 通用 ease，像把一张硬纸板推来推去。
+ *
+ * 14dp 的位移读起来是「这张纸被轻推了一下」，配合 300ms 的减速曲线，
+ * 眼睛先读到「内容换了」，再读到「有一点点方向」—— 顺序对了才不吵。
+ */
+function makeTabScene(reduce: boolean) {
+  return ({ current }: { current: { progress: any } }) => ({
+    sceneStyle: {
+      opacity: current.progress.interpolate({
+        inputRange: [-1, 0, 1],
+        outputRange: [0, 1, 0],
+      }),
+      transform: [
+        {
+          translateX: current.progress.interpolate({
+            inputRange: [-1, 0, 1],
+            // 「减弱动效」时只留交叉淡入，不做位移。
+            outputRange: reduce ? [0, 0, 0] : [-TAB_SLIDE, 0, TAB_SLIDE],
+          }),
+        },
+      ],
+    },
+  });
+}
 
 /** 四个线性图标（纯 View 绘制，项目无 SVG 依赖）：册页 / 书 / 柱 / 旋钮。 */
 function Icon({ name, color }: { name: string; color: string }) {
@@ -104,6 +135,7 @@ function Icon({ name, color }: { name: string; color: string }) {
 function TabBar({ state, navigation }: { state: any; navigation: any }) {
   const { colors: c } = useTheme();
   const insets = useSafeAreaInsets();
+  const reduce = useReducedMotion();
   // 宽屏时四个 tab 也收进内容列 —— 800dp 宽的栏里塞 4 个 200dp 的格子会散掉，
   // 而且栏与内容不对齐，视觉上像两个无关的东西叠在一起。手机上 side = 0，完全不变。
   const side = useSideInset();
@@ -113,13 +145,19 @@ function TabBar({ state, navigation }: { state: any; navigation: any }) {
   useEffect(() => {
     if (!width) return;
     const cell = (width - 2 * side) / state.routes.length;
+    const to = side + (state.index + 0.5) * cell - RULE_W / 2;
+    // 「减弱动效」：朱痕直接落到新位置，不滑过去。
+    if (reduce) {
+      slide.setValue(to);
+      return;
+    }
     Animated.timing(slide, {
-      toValue: side + (state.index + 0.5) * cell - RULE_W / 2,
+      toValue: to,
       duration: MOTION.tab,
-      easing: Easing.bezier(0.32, 0.72, 0.28, 1),
+      easing: Easing.bezier(EASE[0], EASE[1], EASE[2], EASE[3]),
       useNativeDriver: true,
     }).start();
-  }, [state.index, state.routes.length, width, side, slide]);
+  }, [state.index, state.routes.length, width, side, slide, reduce]);
 
   return (
     <View
@@ -176,14 +214,21 @@ function TabBar({ state, navigation }: { state: any; navigation: any }) {
 }
 
 export default function TabsLayout() {
+  const { colors: c } = useTheme();
+  const reduce = useReducedMotion();
+  const sceneInterpolator = useMemo(() => makeTabScene(reduce), [reduce]);
   return (
-    <View style={{ flex: 1 }}>
+    // 这个 View 必须有底色：场景容器的淡入是**透过去**看到它，没有底色就会看到原生窗口的白。
+    <View style={{ flex: 1, backgroundColor: c.bg }}>
       <BrandBar />
       <Tabs
         screenOptions={{
           headerShown: false,
           animation: 'shift',
           transitionSpec: SWITCH,
+          sceneStyleInterpolator: sceneInterpolator,
+          // 每个场景自己也要有底色：交叉淡入时两个场景叠着，底下那个一透，白色就露出来了。
+          sceneStyle: { backgroundColor: c.bg },
           // 四个 tab 的首次挂载会各自跑一次同步查库。默认 lazy 会把这笔开销压在**第一次切换的那一刻**，
           // 正好落在转场动画的起始帧上 → 掉帧、卡一下。预挂载换掉这一下卡顿。
           lazy: false,

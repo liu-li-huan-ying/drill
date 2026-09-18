@@ -4,6 +4,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput } from 
 import { useRouter } from 'expo-router';
 import { useTheme } from '../src/theme/ThemeProvider';
 import { serif, FONT, mono, RADIUS, SPACE } from '../src/theme/tokens';
+import { PageEnter } from '../src/components/ui';
 import { getNotes, getNoteCount, type NoteRow } from '../src/db/queries';
 import { splitSenses } from '../src/components/Definition';
 import { useSideInset, useTopPad } from '../src/lib/layout';
@@ -26,7 +27,7 @@ export default function NotesScreen() {
     router.push({ pathname: '/word', params: { wordId: String(id) } });
 
   return (
-    <View style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
+    <PageEnter style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
       <View style={[styles.top, { borderBottomColor: c.bd }]}>
         <TouchableOpacity activeOpacity={0.6} onPress={() => router.back()}>
           <Text style={[styles.back, { color: c.tx2 }]}>‹ 返回</Text>
@@ -96,7 +97,7 @@ export default function NotesScreen() {
         )}
         <View style={{ height: 30 }} />
       </ScrollView>
-    </View>
+    </PageEnter>
   );
 }
 

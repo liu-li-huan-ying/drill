@@ -5,6 +5,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../src/theme/ThemeProvider';
 import { serif, mono, FONT, RADIUS, WEIGHT, SPACE, CONTROL } from '../src/theme/tokens';
+import { PageEnter } from '../src/components/ui';
 import { getVocabTestSample, markMastered } from '../src/db/queries';
 import { speak } from '../src/lib/speak';
 import { useSideInset, useTopPad, useBottomPad } from '../src/lib/layout';
@@ -51,7 +52,7 @@ export default function VocabTestScreen() {
 
   if (done) {
     return (
-      <View style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
+      <PageEnter style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
         <View style={styles.doneWrap}>
           <Text style={[styles.doneKicker, { color: c.tx3 }]}>词 汇 量 估 算</Text>
           <Text style={[styles.est, { color: c.ac, fontFamily: serif }]}>{Math.round(estimate).toLocaleString()}</Text>
@@ -66,13 +67,13 @@ export default function VocabTestScreen() {
             <Text style={[styles.doneBtnText, { color: c.acon }]}>完 成</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </PageEnter>
     );
   }
 
   const cur = items[idx];
   return (
-    <View style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
+    <PageEnter style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
       <View style={[styles.top, { borderBottomColor: c.bd }]}>
         <Text style={[styles.progress, { color: c.tx3 }]}>
           {idx + 1} / {items.length}
@@ -121,7 +122,7 @@ export default function VocabTestScreen() {
           <Text style={[styles.btnUnknownText, { color: c.tx1 }]}>不 认 识</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </PageEnter>
   );
 }
 

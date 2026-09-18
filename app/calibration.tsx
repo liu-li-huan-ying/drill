@@ -5,6 +5,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../src/theme/ThemeProvider';
 import { serif, mono, FONT, RADIUS, WEIGHT, SPACE, CONTROL } from '../src/theme/tokens';
+import { PageEnter } from '../src/components/ui';
 import { getCalibrationSample, markMastered, type QueueItem } from '../src/db/queries';
 import { speak } from '../src/lib/speak';
 import { useSideInset, useTopPad, useBottomPad } from '../src/lib/layout';
@@ -35,7 +36,7 @@ export default function CalibrationScreen() {
 
   if (done) {
     return (
-      <View style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
+      <PageEnter style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
         <View style={styles.doneWrap}>
           <Text style={[styles.doneTitle, { color: c.tx1, fontFamily: serif }]}>校准完成</Text>
           <Text style={[styles.doneSub, { color: c.tx2 }]}>
@@ -45,13 +46,13 @@ export default function CalibrationScreen() {
             <Text style={[styles.doneBtnText, { color: c.acon }]}>返 回</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </PageEnter>
     );
   }
 
   const current = sample[idx];
   return (
-    <View style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
+    <PageEnter style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
       <View style={[styles.top, { borderBottomColor: c.bd }]}>
         <Text style={[styles.progress, { color: c.tx3 }]}>
           {idx + 1} / {sample.length}
@@ -102,7 +103,7 @@ export default function CalibrationScreen() {
       <TouchableOpacity activeOpacity={0.6} onPress={advance} style={styles.skip}>
         <Text style={[styles.skipText, { color: c.tx3 }]}>跳过这个词</Text>
       </TouchableOpacity>
-    </View>
+    </PageEnter>
   );
 }
 
