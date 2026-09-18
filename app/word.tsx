@@ -1,10 +1,11 @@
 // 单词详情：释义 / 词性 / 例句 / 词根词缀（运行时拆解） / 手写助记 / 考纲标签 + 标为已掌握。
-import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput, Animated } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '../src/theme/ThemeProvider';
-import { serif, FONT, mono, RADIUS, WEIGHT, SPACE, CONTROL, TRACK } from '../src/theme/tokens';
+import { serif, FONT, mono, RADIUS, WEIGHT, SPACE, CONTROL, TRACK, MOTION } from '../src/theme/tokens';
 import { PageEnter, SoundIcon } from '../src/components/ui';
+import { ease, useReducedMotion } from '../src/lib/motion';
 import {
   getWordDetail,
   markMastered,
@@ -26,6 +27,10 @@ const EXAM_LABELS: Record<string, string> = {
   toefl: 'TOEFL', ielts: 'IELTS', gre: 'GRE', 考研: '考研',
 };
 
+// 朱笔横痕的长度。定长而不是按单词宽度：它是「批注」不是「下划线」——
+// 跟着单词长度走会变成排版的一部分（像 link 的 underline），定长才读得出是人划的一笔。
+const STROKE_W = 168;
+
 export default function WordScreen() {
   const { colors: c } = useTheme();
   const side = useSideInset();
@@ -34,6 +39,8 @@ export default function WordScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const wordId = Number(params.wordId);
+  const reduce = useReducedMotion();
+  const strokeV = useRef(new Animated.Value(0)).current; // 朱笔横痕的「写出」进度
 
   const [detail, setDetail] = useState<ReturnType<typeof getWordDetail>>(null);
   const [mastered, setMastered] = useState(false);
@@ -53,6 +60,31 @@ export default function WordScreen() {
     setMnemonic(un?.mnemonic ?? '');
     setNote(un?.note ?? '');
   }, [wordId]);
+
+  // 朱笔横痕**写**出来：由左向右展开。挂在这里（早于下面的空态 return）是为了不打乱 hooks 顺序。
+  //
+  // 为什么不是淡入：淡入是「显影」（一个既有的东西渐渐可见），而这一笔是**人划的** ——
+  // 朱批语汇里「写」与「盖」是两件事，划线属于写：有过程、有方向、可撤销。
+  // 「留锋」在时间上的表达就是**收笔减速**：走主曲线（快起、长尾），末端慢下来，
+  // 于是这一笔读起来是"被写出来的"，而不是"被铺出来的"。
+  // 起点比页面入场晚 40%：字得先到位，笔才落得下去。
+  useEffect(() => {
+    if (reduce) {
+      strokeV.setValue(1);
+      return;
+    }
+    strokeV.setValue(0);
+    // width 是布局属性，只能走 JS 驱动 —— 这一笔上没有别的 JS 动画，代价可忽略。
+    const a = Animated.timing(strokeV, {
+      toValue: 1,
+      duration: MOTION.stroke,
+      delay: Math.round(MOTION.enter * 0.4),
+      easing: ease(),
+      useNativeDriver: false,
+    });
+    a.start();
+    return () => a.stop();
+  }, [wordId, reduce, strokeV]);
 
   if (!detail) {
     return (
@@ -106,8 +138,14 @@ export default function WordScreen() {
             <SoundIcon color={c.ac} />
           </TouchableOpacity>
         </View>
-        {/* 朱笔横痕：这个词被「批」过一次的痕迹，也是详情页与复习卡共用的识别符。 */}
-        <View style={[styles.stroke, { backgroundColor: c.ac }]} />
+        {/* 朱笔横痕：这个词被「批」过一次的痕迹，也是详情页与复习卡共用的识别符。
+            它是写出来的（由左向右展开），宽度由 strokeV 驱动。 */}
+        <Animated.View
+          style={[
+            styles.stroke,
+            { backgroundColor: c.ac, width: strokeV.interpolate({ inputRange: [0, 1], outputRange: [0, STROKE_W] }) },
+          ]}
+        />
         {/* 音标走 tx2（P1.3）：它是「怎么读」这个信息本身，不是装饰。
             旧值 tx3 在亮色下对纸底只有 2.5:1 —— 一条读不清的音标等于没有音标。 */}
         {detail.phonetic_uk ? (
@@ -244,7 +282,8 @@ const styles = StyleSheet.create({
   body: { paddingHorizontal: SPACE.xl, paddingTop: 28, paddingBottom: 24, flexGrow: 1 },
   wordRow: { flexDirection: 'row', alignItems: 'center' },
   word: { fontFamily: serif, fontSize: FONT.detailWord, letterSpacing: TRACK.tight, flexShrink: 1 },
-  stroke: { width: 168, height: 3, borderRadius: RADIUS.bar, opacity: 0.8, marginTop: 8 },
+  // 宽度由 strokeV 驱动（写出来），这里只定「笔画」的形状：3dp 高、两端圆。
+  stroke: { height: 3, borderRadius: RADIUS.bar, opacity: 0.8, marginTop: 8 },
   // 发音键：48dp 触控目标 + 描边（P0.3）。以前只有一个裸图标，看不出是个按钮；
   // 描一圈 bd2 之后它才读得出「这里可以点」。朱砂留给图标本身（这是这一页唯一的可点动作）。
   sound: {

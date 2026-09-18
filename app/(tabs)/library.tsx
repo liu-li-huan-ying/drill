@@ -1,25 +1,39 @@
 // 词库（标签）列表：搜索 + 按标签浏览。M4：标签行可点进词列表，搜索可直达单词详情。
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, Animated, StyleSheet } from 'react-native';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useTheme } from '../../src/theme/ThemeProvider';
-import { serif, FONT, RADIUS, WEIGHT, SPACE, CONTROL, TRACK } from '../../src/theme/tokens';
+import { serif, FONT, RADIUS, WEIGHT, SPACE, CONTROL, TRACK, MOTION } from '../../src/theme/tokens';
 import { getTags, getWordCount, searchWords, getStudyScope, type WordRow } from '../../src/db/queries';
 import { splitSenses } from '../../src/components/Definition';
 import { Label, Chev, Num } from '../../src/components/ui';
+import { easeSettle, useReducedMotion } from '../../src/lib/motion';
 import { useGutter } from '../../src/lib/layout';
 
 export default function LibraryScreen() {
   const { colors: c } = useTheme();
   const gutter = useGutter();
   const router = useRouter();
-  const tags = getTags();
-  const total = getWordCount();
-  const max = Math.max(1, ...tags.map((t) => t.count));
-  const scopeTagId = getStudyScope().tagId; // 当前学习范围（朱砂只标「人选过的那一个」）
+  // ⚠️ 这三个值曾经在**渲染期**一次性求值（`const tags = getTags()`）。
+  // tab 屏切走不卸载、切回不重挂载 —— 值于是永远停在首次进入时的快照：
+  // 学习范围在词单页改过之后，回到词库看「在背」的朱砂标记**永远不会出现**
+  // （主人反馈：「预览里显示选择辞书会用红色标记，但实际并没有看到这个效果」）。
+  // 凡是「别处可改、这里要显示」的值，都必须走聚焦重读（与 app/(tabs)/index.tsx 同一模式）。
+  const [tags, setTags] = useState(() => getTags());
+  const [total, setTotal] = useState(() => getWordCount());
+  const [scopeTagId, setScopeTagId] = useState<number | null>(() => getStudyScope().tagId);
 
   const [query, setQuery] = useState('');
   const results: WordRow[] = query ? searchWords(query) : [];
+  const max = Math.max(1, ...tags.map((t) => t.count));
+
+  useFocusEffect(
+    useCallback(() => {
+      setTags(getTags());
+      setTotal(getWordCount());
+      setScopeTagId(getStudyScope().tagId);
+    }, [])
+  );
 
   const goWord = (w: WordRow) =>
     router.push({ pathname: '/word', params: { wordId: String(w.word_id) } });
@@ -127,9 +141,7 @@ export default function LibraryScreen() {
                     {/* 选中态的**文字**反馈：只有方印变色时，「是你选的那本」和
                         「这本是自建词表」在余光里长得一样（P1.8）。 */}
                     <View style={styles.rowRight}>
-                      {active ? (
-                        <Text style={[styles.badge, { color: c.ac, borderColor: c.ac }]}>在背</Text>
-                      ) : null}
+                      {active ? <ScopeBadge color={c.ac} /> : null}
                       <Num value={t.count} style={[styles.count, { color: active ? c.ac : c.tx2 }]} />
                     </View>
                   </View>
@@ -147,6 +159,44 @@ export default function LibraryScreen() {
         </View>
       )}
     </ScrollView>
+  );
+}
+
+/**
+ * 「在背」朱文小印 —— 它出现时是**钤**下去的（比例从 1.24 压到 1），不是淡入。
+ *
+ * 淡入是「显影」，钤印是「落下」：前者有过程、可撤销（写），后者瞬时、既成事实（盖）。
+ * 「你正在背这本」是一个既成事实，所以它必须**落**下来。判据只有一句 ——
+ * 这个动效是在「写」还是在「盖」？（见 docs/设计系统.md 的动效语汇一节）
+ * 压下的起始比例比 1 **大**：印落在纸上的一瞬比静止时大，这是压开印泥的方向。
+ */
+function ScopeBadge({ color }: { color: string }) {
+  const reduce = useReducedMotion();
+  const v = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (reduce) {
+      v.setValue(1);
+      return;
+    }
+    const a = Animated.timing(v, {
+      toValue: 1, duration: MOTION.sealTamp, easing: easeSettle(), useNativeDriver: true,
+    });
+    a.start();
+    return () => a.stop();
+  }, [reduce, v]);
+  return (
+    <Animated.Text
+      style={[
+        styles.badge,
+        { color, borderColor: color },
+        {
+          opacity: v.interpolate({ inputRange: [0, 0.35, 1], outputRange: [0, 1, 1] }),
+          transform: [{ scale: v.interpolate({ inputRange: [0, 1], outputRange: [1.24, 1] }) }],
+        },
+      ]}
+    >
+      在背
+    </Animated.Text>
   );
 }
 
@@ -179,6 +229,7 @@ const styles = StyleSheet.create({
   rowTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: SPACE.md },
   rowRight: { flexDirection: 'row', alignItems: 'baseline', gap: SPACE.sm, flexShrink: 0 },
   // 「在背」用朱砂**朱文印**式的小框：与「已掌握」这类批点同一套语汇。
+  // 它由 ScopeBadge 渲染（出现时钤下去），这里只管静态样式。
   badge: {
     fontSize: 9.5, letterSpacing: TRACK.body, fontWeight: WEIGHT.semibold,
     borderWidth: 1, borderRadius: RADIUS.chip, paddingHorizontal: 5, paddingVertical: 1,

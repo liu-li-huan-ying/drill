@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme/ThemeProvider';
 import { useSideInset } from '../../lib/layout';
 import { ease, useReducedMotion } from '../../lib/motion';
-import { RADIUS, SPACE, CONTROL, WEIGHT, MOTION, FONT, TRACK, serif } from '../../theme/tokens';
+import { RADIUS, SPACE, CONTROL, WEIGHT, MOTION, FONT, TRACK, STAMP, serif, type StampInk } from '../../theme/tokens';
 import { fmtNum } from '../../lib/num';
 
 /**
@@ -180,50 +180,48 @@ export function Progress({ ratio, style }: { ratio: number; style?: StyleProp<Vi
   );
 }
 
-/** 朱印：solid = 朱底纸字（白文印）/ text = 朱边朱字（朱文印）。 */
+/**
+ * 朱印：**尺寸恒定，浓度靠墨量**（见 tokens 的 STAMP 注释）。
+ *
+ *   ink 1 细边朱文（只有轮廓）/ 2 粗边朱文 / 3 满墨白文（印面全朱 + 纸色内框，默认）
+ *
+ * 「未打卡」不在这里表达 —— 那由调用方决定**不渲染**。给空槽描一圈虚线等于往日历里
+ * 凭空塞 30 个元素，而空白的克制本身就是「还没盖」最好的说法。
+ *
+ * `paper` 是印下面那张「纸」的颜色。白文印的内框是**纸色实体**，不是描边：
+ * 印压在卡面上就该取卡面色（`c.sf`），取错（比如永远取 `c.bg`）会让内框比周围暗一档，
+ * 于是读成「一个空心框」而不是「白文印」。默认取页面底色。
+ */
 export function Seal({
   size = 16,
-  label,
-  variant = 'solid',
+  ink = 3,
+  paper,
   style,
 }: {
   size?: number;
-  label?: string;
-  variant?: 'solid' | 'text';
+  ink?: StampInk;
+  paper?: string;
   style?: StyleProp<ViewStyle>;
 }) {
   const { colors: c } = useTheme();
-  const solid = variant === 'solid';
-  const inset = Math.round(size * 0.22);
-  return (
-    <View
-      style={[
-        {
-          width: size,
-          height: size,
-          borderRadius: RADIUS.mark + 1,
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: solid ? c.ac : 'transparent',
-          borderWidth: solid ? 0 : 1,
-          borderColor: c.ac,
-        },
-        style,
-      ]}
-    >
-      {label ? (
-        <Text
-          style={{
-            color: solid ? c.bg : c.ac,
-            fontSize: size * 0.42,
-            fontWeight: WEIGHT.semibold,
-            fontFamily: serif,
-            lineHeight: size * 0.5,
-          }}
-        >
-          {label}
-        </Text>
-      ) : solid ? (
+  // 边宽以 9dp 的印面（STAMP.size）为基准单位：换尺寸时整枚印等比缩放，
+  // 「墨量」在任何尺寸下的**相对**视觉重量才不变。
+  const u = size / STAMP.size;
+  const paperColor = paper ?? c.bg;
+  const base: StyleProp<ViewStyle> = {
+    width: size,
+    height: size,
+    borderRadius: RADIUS.mark + 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  };
+
+  if (ink === 3) {
+    // 满墨白文：印面整块朱，内嵌一道纸色细框 —— 这不是「装饰内框」，
+    // 而是白文印真实的结构：朱色是底，「字」是纸。
+    const inset = Math.round(size * 0.22);
+    return (
+      <View style={[base, { backgroundColor: c.ac }, style]}>
         <View
           style={{
             position: 'absolute',
@@ -232,12 +230,26 @@ export function Seal({
             right: inset,
             bottom: inset,
             borderWidth: 1,
-            borderColor: c.bg,
+            borderColor: paperColor,
             borderRadius: RADIUS.mark,
           }}
         />
-      ) : null}
-    </View>
+      </View>
+    );
+  }
+
+  return (
+    <View
+      style={[
+        base,
+        {
+          borderWidth: (ink === 1 ? 1 : 1.9) * u,
+          borderColor: c.ac,
+          backgroundColor: 'transparent',
+        },
+        style,
+      ]}
+    />
   );
 }
 

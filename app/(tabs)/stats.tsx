@@ -6,14 +6,18 @@
 //
 // 一周的锚点是**周一**（P1.6）：日历表头、本周柱状图、本周进度三处必须是同一个约定，
 // 否则同一屏里「周三」在两个地方落在不同的列上。
-import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, ScrollView, Animated, StyleSheet } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { useTheme } from '../../src/theme/ThemeProvider';
-import { serif, FONT, RADIUS, SPACE, WEIGHT, TRACK, STAMP, stampSize, type Tokens } from '../../src/theme/tokens';
+import {
+  serif, FONT, RADIUS, SPACE, WEIGHT, TRACK, STAMP, MOTION, stampInk,
+  type StampInk, type Tokens,
+} from '../../src/theme/tokens';
 import { useGutter } from '../../src/lib/layout';
+import { easeSettle, useReducedMotion } from '../../src/lib/motion';
 import { fmtNum, fmtPct } from '../../src/lib/num';
-import { Num, NumUnit } from '../../src/components/ui';
+import { Num, NumUnit, Seal } from '../../src/components/ui';
 import {
   getStreak,
   getLongestStreak,
@@ -45,11 +49,15 @@ export default function StatsScreen() {
   // 窄屏时 `width: '100%'` 会让它自己收窄（列宽按百分比），手机上无需另算。
   const calW = 7 * SPACE.touch;
   const [s, setS] = useState(compute);
+  const [replay, setReplay] = useState(0);
 
   // 与首页一致：每次聚焦重算（tab 切换不重挂载，故需主动刷新）。
   useFocusEffect(
     React.useCallback(() => {
       setS(compute());
+      // 每次聚焦重播钤印。刷新进度条的功能是「读数据」，重播钤印的功能是「仪式」——
+      // 这一屏值得重复的只有后者（它不消耗注意力，只确认「这个月我盖了这么多天」）。
+      setReplay((n) => n + 1);
     }, [])
   );
 
@@ -66,6 +74,14 @@ export default function StatsScreen() {
     ...Array.from({ length: s.firstWeekday }, () => null),
     ...s.month.map((m) => m.day),
   ];
+
+  // 错峰钤印的拍子：一屏 30 枚印同时「啪」出来是一片闪，一枚一枚盖上才读得出
+  // 「这个月我盖了这么多天」。只给**打了卡的**日子排拍子（空槽不占拍），
+  // 且封顶 12 拍 —— 月底的格子不该排在最后才出现。
+  const cadence = new Map<number, number>();
+  cells
+    .filter((d): d is number => d != null && d <= s.todayDay && s.month[d - 1].total > 0)
+    .forEach((d, i) => cadence.set(d, Math.min(i, 12)));
 
   return (
     <ScrollView
@@ -108,29 +124,27 @@ export default function StatsScreen() {
           <View style={[styles.calRow, { maxWidth: calW }]}>
             {cells.map((d, i) => {
               if (d == null) return <View key={`e${i}`} style={styles.calOuter} />;
-              const total = s.month[d - 1].total;
-              const lv = total === 0 ? 0 : Math.min(4, Math.ceil((total / maxMonth) * 4));
               const future = d > s.todayDay;
+              // 量级 → 墨量档（同尺寸，1 细边朱文 / 2 粗边朱文 / 3 满墨白文；见 tokens 的 STAMP）。
+              const ink = future ? 0 : stampInk(s.month[d - 1].total, maxMonth);
               return (
                 <View key={d} style={styles.calOuter}>
                   <View style={styles.calDay}>
-                    <Text
-                      style={[styles.calDayText, { color: future || lv === 0 ? c.tx3 : c.tx1 }]}
-                    >
+                    <Text style={[styles.calDayText, { color: ink === 0 ? c.tx3 : c.tx1 }]}>
                       {d}
                     </Text>
-                    {/* 印记槽：打卡日落一枚朱印，未打卡留空槽 —— 槽高恒定，行高才不跳。 */}
+                    {/* 印记槽：打卡日落一枚朱印，未打卡留空槽 —— 槽高恒定，行高才不跳。
+                        未打卡**不画印**（不是画一枚空印）：给 30 个空槽描一圈虚线，
+                        等于凭空多塞 30 个元素，而空白的克制本身就是「还没盖」的表达。 */}
                     <View style={styles.stampSlot}>
-                      {lv > 0 && !future ? (
-                        <View
-                          style={{
-                            width: stampSize(lv),
-                            height: stampSize(lv),
-                            borderRadius: RADIUS.mark,
-                            backgroundColor: c.ac,
-                          }}
+                      {ink === 0 ? null : (
+                        <DayStamp
+                          ink={ink}
+                          delay={(cadence.get(d) ?? 0) * 16}
+                          replay={replay}
+                          paper={c.sf}
                         />
-                      ) : null}
+                      )}
                     </View>
                   </View>
                 </View>
@@ -141,20 +155,16 @@ export default function StatsScreen() {
             <Text style={[styles.footText, { color: c.tx3 }]}>
               {s.monthLabel} 月打了 {monthDays} 天卡 · 连着 {fmtNum(s.streak)} 天
             </Text>
-            {/* 图例用与格子**同一种印记**：图例画的是色块，格子画的是印记，
-                读者就得自己做一次映射 —— 图例的意义正是免掉这一步。 */}
+            {/* 图例用与格子**同一种印记、同一条分档规则**：图例画色块、格子画印记，
+                读者就得自己做一次映射 —— 图例的意义正是免掉这一步。
+                三枚样本的**尺寸完全一样**，变的只有墨量（细边 → 粗边 → 满墨）：
+                尺寸一多样，眼睛去比的就是「哪个更大」，而不是「哪天的墨更重」——
+                而相邻两档只差 1.6dp，比大小本身也分不出来（见 tokens 的 STAMP）。 */}
             <View style={styles.lgnd}>
               <Text style={[styles.lgndText, { color: c.tx3 }]}>少</Text>
-              {[1, 2, 3, 4].map((lv) => (
-                <View key={lv} style={styles.lgndSlot}>
-                  <View
-                    style={{
-                      width: stampSize(lv),
-                      height: stampSize(lv),
-                      borderRadius: RADIUS.mark,
-                      backgroundColor: c.ac,
-                    }}
-                  />
+              {([1, 2, 3] as const).map((ink) => (
+                <View key={ink} style={styles.lgndSlot}>
+                  <Seal size={STAMP.size} ink={ink} paper={c.sf} />
                 </View>
               ))}
               <Text style={[styles.lgndText, { color: c.tx3 }]}>多</Text>
@@ -276,6 +286,53 @@ function compute() {
     retention: getRetention(),
     dist: getStateDistribution(),
   };
+}
+
+/**
+ * 日历格里的那枚印。进场时**钤**下去（比例从 1.3 压到 1 + 淡入），不是淡入一个色块。
+ *
+ * 三件事各有各的理由：
+ *   ① 用 `Seal` 原子而不是自己画方块 —— 墨量分档（细边 / 粗边 / 满墨）是印章的语汇，
+ *      必须与图例、与其它地方的朱印同源，否则日历里的印会变成一个孤立的样式。
+ *   ② `delay` 错峰（见 cadence）：一枚一枚盖上，才是「我这个月盖了这么多天」。
+ *   ③ `replay` 每次聚焦 +1：tab 屏不重挂载，没有它这个仪式只在首次进入时演一次。
+ */
+function DayStamp({
+  ink,
+  delay,
+  replay,
+  paper,
+}: {
+  ink: StampInk;
+  delay: number;
+  replay: number;
+  paper: string;
+}) {
+  const reduce = useReducedMotion();
+  const v = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    // 「减弱动效」时印直接就在（不播，不是播得慢一点）。
+    if (reduce) {
+      v.setValue(1);
+      return;
+    }
+    v.setValue(0);
+    const a = Animated.timing(v, {
+      toValue: 1, duration: MOTION.sealTamp, delay, easing: easeSettle(), useNativeDriver: true,
+    });
+    a.start();
+    return () => a.stop();
+  }, [delay, reduce, replay, v]);
+  return (
+    <Animated.View
+      style={{
+        opacity: v.interpolate({ inputRange: [0, 0.35, 1], outputRange: [0, 1, 1] }),
+        transform: [{ scale: v.interpolate({ inputRange: [0, 1], outputRange: [1.3, 1] }) }],
+      }}
+    >
+      <Seal size={STAMP.size} ink={ink} paper={paper} />
+    </Animated.View>
+  );
 }
 
 function Card({ children, colors: c }: { children: React.ReactNode; colors: Tokens }) {

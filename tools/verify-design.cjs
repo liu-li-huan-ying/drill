@@ -316,16 +316,30 @@ check(
 );
 
 // 打卡日历印章化：格子不再是「填色方块」，量级落在**印记**上。
-// 印记必须是满墨朱砂 —— 试过「浅朱→浓朱」的明度梯度，实测浅朱压纸底只有 1.4–2.7:1，
-// 而印面只有几 dp，一个看不见的浅点不构成「这天打过卡」的陈述。
+//
+// 2026-09-18 改写（旧断言保护的正是被主人推翻的做法）：
+// 第一版把浓度编码成**印面大小**（6 → 10.8dp）。主人的反驳一句到位：
+// 「大小绝对是要一样大的，不然大大小小放一起很不好看」。这条异议背后是更硬的编码原则 ——
+// **重复出现、且必须并排比较的元素，不能用尺寸编码差异**：日历里 30 格是一排读数，
+// 尺寸一多样，眼睛比的是「哪个更大」，而不是「哪天的墨更重」；何况相邻两档只差 1.6dp，
+// 比大小本身也不成立。于是改成**同尺寸 + 墨量分档**（细边朱文 / 粗边朱文 / 满墨白文）。
+//
+// 判据因此从「有 stampSize 这个函数」反过来变成「全屏只有一个尺寸取值」。
+// 旧断言会替坏设计站岗 —— 这是这条断言必须改写而不只是补一条的原因。
 const statsCode = code('app/(tabs)/stats.tsx');
+const stampSizeArgs = statsCode.match(/\bsize=\{[^}]*\}/g) || [];
 check(
-  '打卡日历印章化（满墨印记 + 图例同形）',
-  /stampSize\(/.test(statsCode) &&
-    /STAMP/.test(statsCode) &&
-    !/mix\(/.test(statsCode) &&
-    /stampSize\(lv\)/.test(statsCode),
-  '印记走 stampSize / 已移除明度渐变 mix'
+  '打卡印记尺寸唯一（浓度靠墨量，不靠大小）',
+  /stampInk\(/.test(statsCode) &&
+    stampSizeArgs.length > 0 &&
+    stampSizeArgs.every((s) => s === 'size={STAMP.size}') &&
+    /StampInk/.test(uiCode) &&
+    /\(\[1, 2, 3\] as const\)/.test(statsCode) &&
+    // 「按档位算尺寸」这个做法整体删掉：令牌里不许再有 stampSize，
+    // 否则下一个改这屏的人会顺手把它用回来。
+    !/stampSize/.test(statsCode) &&
+    !/stampSize/.test(tokText),
+  `印记 size 参数只有 ${'size={STAMP.size}'} 一种（共 ${stampSizeArgs.length} 处）/ 图例三档与日历同源`
 );
 
 // 一周以**周一**为始，且三处同一套约定（日历表头 / 本周柱状图 / 本周进度）。
@@ -340,14 +354,70 @@ check(
 // 「小数值条看不见」的另一半：只有几个词的档位也必须画出来（最小条宽）。
 check('小数值条有最小宽度', /Math\.max\(2, \(d\.count \/ distMax\)/.test(statsCode), 'min 2%');
 
-// 落印：必须有冲击点与微震 —— 微震不是独立动作，是落印的**后果**。
-// 曲线本身仍不过冲（全项目共享），回弹由插值停点表达。
+// 落印：**三段独立时长**（落 / 压 / 收），不是一条曲线上的多个插值停点。
+//
+// 2026-09-18 改写（旧断言保护的正是被主人推翻的做法）：
+// 旧做法把 `stamp` 0→1 交给一条 EASE_SETTLE 急收曲线跑满 520ms，再用停止点
+// [0, .72, .88, 1] 表达「落 / 触纸 / 回弹 / 定住」，断言也就写了「STOPS 落 72%」。
+// 主人的反馈：「根本和描述完全不符，看起来只是屏幕抖动了一下」。
+// 原因是可测的：cubic-bezier(.22,1,.36,1) 前 20% 的时间走完约 80% 路程，
+// 于是停点 .72 落在约第 15ms（≈1 帧）；更要命的是旧 `sealStyle` 里**根本没有 translateY** ——
+// 「落」从未被表达，屏幕上唯一在动的就是那 1.6dp 的纸面微震。
+//
+// 判据的核心因此只有一句：**「落」这一段有没有位移**。
+// 配套三条：三段各自有自己的 duration；微震从触纸（sealFall 结束）起算；
+// 令牌里不许再有 SEAL_IMPACT（防止有人顺着旧名字把插值停点写回来）。
 const doneCode = code('src/features/review/DoneView.tsx');
 check(
-  '落印有冲击点与纸面微震',
-  /SEAL_IMPACT/.test(doneCode) && /MOTION\.shock/.test(doneCode) && /Animated\.delay/.test(doneCode) &&
-    /SEAL_IMPACT = 0\.72/.test(tokText) && /shock: 220/.test(tokText),
-  'STOPS 落 72% / 微震自冲击点起算'
+  '落印分三段（落/压/收）+ 下落有位移 + 微震自触纸起算',
+  /MOTION\.sealFall/.test(doneCode) &&
+    /MOTION\.sealPress/.test(doneCode) &&
+    /MOTION\.sealSettle/.test(doneCode) &&
+    /translateY: drop\.interpolate/.test(doneCode) &&
+    /scale: drop\.interpolate/.test(doneCode) &&
+    /easeFall\(\)/.test(doneCode) &&
+    /Animated\.delay\(MOTION\.sealFall\)/.test(doneCode) &&
+    !/STOPS/.test(doneCode) &&
+    !/SEAL_IMPACT/.test(tokText) &&
+    /sealFall: 200/.test(tokText) && /sealPress: 90/.test(tokText) && /sealSettle: 170/.test(tokText) &&
+    /shock: 220/.test(tokText),
+  'sealFall/Press/Settle 三段各自 duration + translateY 下落 + 微震 delay = sealFall'
+);
+
+// 动效语汇：**「写」与「盖」是两种动作**，混用会让品牌语言失效（主人：「很多动效可以
+// 结合朱批和盖章这两个行为去延伸拓展」）。判据只有一句 ——
+// **这个动效是在「写」还是在「盖」？**
+//   写 = 人的动作，有过程、有方向、可撤销 → 慢、线性展开、留锋（详情页朱笔横痕 width 0→168）
+//   盖 = 确认，已成事实、不可撤销     → 快、瞬时压印、不留过程（词库「在背」、日历印记 scale 压到 1）
+// 三种时长也各自成对：stroke 260（写）> sealTamp 150（钤）> 落印的三段（盖的高潮）。
+check(
+  '朱批动效语汇：写用展开、盖用钤下（两者不混用）',
+  /outputRange: \[0, STROKE_W\]/.test(code('app/word.tsx')) &&
+    /useNativeDriver: false/.test(code('app/word.tsx')) &&
+    /MOTION\.sealTamp/.test(code('app/(tabs)/library.tsx')) &&
+    /MOTION\.sealTamp/.test(statsCode) &&
+    /sealTamp: 150/.test(tokText) && /stroke: 260/.test(tokText) &&
+    /EASE_FALL/.test(tokText) && /EASE_FALL/.test(read('src/lib/motion.ts')),
+  '详情页 width 展开（写）/ 词库 + 日历 scale 钤下（盖）/ EASE_FALL 落体曲线'
+);
+
+// **渲染期读库 = 过期快照**（这一条是真事逼出来的，也是本仓库复用过的同一个坑）：
+// tab 屏切走不卸载、切回不重挂载 —— 任何在渲染期一次性求值的、「别处可改」的值，
+// 都会永远停在首次挂载那一刻。学习范围在词单页改过之后，回到词库看「在背」的朱砂标记
+// **永远不会出现**（主人：「预览里显示选择辞书会用红色标记，但实际并没有看到这个效果」）。
+// 判据：三个读库的 tab 屏，查询函数只允许出现在 useState 初值或 useFocusEffect 回调里，
+// 不许出现 `const x = getXxx()` 这种渲染期直读。
+const TAB_DATA = ['app/(tabs)/index.tsx', 'app/(tabs)/library.tsx', 'app/(tabs)/stats.tsx'];
+const staleRead = [];
+for (const f of TAB_DATA) {
+  const t = code(f);
+  if (!/useFocusEffect/.test(t)) staleRead.push(`${f}: 无 useFocusEffect`);
+  if (/\bconst \w+ = (?:get|search)[A-Z]\w*\(/.test(t)) staleRead.push(`${f}: 渲染期直读`);
+}
+check(
+  'tab 屏不存过期快照（聚焦重读 + 无渲染期直读）',
+  staleRead.length === 0,
+  staleRead.join(', ') || '3 屏均聚焦重读，零渲染期直读'
 );
 
 // 出口层级：主操作实心、次操作文字链。平级按钮会让「该点哪个」变成一道选择题（P1.7）。
