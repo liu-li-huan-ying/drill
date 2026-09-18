@@ -8,7 +8,7 @@ import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import { useTheme } from '../src/theme/ThemeProvider';
-import { type Tokens, RADIUS, WEIGHT, SPACE } from '../src/theme/tokens';
+import { type Tokens, RADIUS, WEIGHT, SPACE, FONT, TRACK } from '../src/theme/tokens';
 import { PageEnter } from '../src/components/ui';
 import { exportBackupData, restoreBackup, type BackupData } from '../src/db/queries';
 import { EXPECTED_DB_VERSION } from '../src/db/Database';
@@ -152,14 +152,14 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     borderBottomWidth: 1,
   },
-  back: { fontSize: 15, width: 56 },
-  title: { fontSize: 13, letterSpacing: 1.1, textTransform: 'uppercase', fontWeight: WEIGHT.semibold, flex: 1, textAlign: 'center' },
+  back: { fontSize: FONT.body, width: 56 },
+  title: { fontSize: 13, letterSpacing: TRACK.title, textTransform: 'uppercase', fontWeight: WEIGHT.semibold, flex: 1, textAlign: 'center' },
   body: { padding: SPACE.xl, paddingBottom: 40 },
   action: { borderRadius: RADIUS.card, borderWidth: 1, padding: 18, marginBottom: 14 },
-  actionTitle: { fontSize: 16, fontWeight: WEIGHT.semibold },
-  actionSub: { fontSize: 12, marginTop: 6, lineHeight: 17 },
+  actionTitle: { fontSize: 16, fontWeight: WEIGHT.semibold, letterSpacing: TRACK.body },
+  actionSub: { fontSize: 12, marginTop: 6, lineHeight: 17, letterSpacing: TRACK.body },
   spinner: { marginTop: 18 },
   msg: { marginTop: 8, borderRadius: RADIUS.ctrl, borderWidth: 1, padding: 14 },
-  msgText: { fontSize: 13, lineHeight: 18 },
-  note: { fontSize: 12, lineHeight: 18, marginTop: 18, letterSpacing: 0.5 },
+  msgText: { fontSize: 13, lineHeight: 18, letterSpacing: TRACK.body },
+  note: { fontSize: 12, lineHeight: 18, marginTop: 18, letterSpacing: TRACK.body },
 });

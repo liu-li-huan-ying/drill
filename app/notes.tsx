@@ -3,8 +3,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../src/theme/ThemeProvider';
-import { serif, FONT, mono, RADIUS, SPACE } from '../src/theme/tokens';
-import { PageEnter } from '../src/components/ui';
+import { serif, FONT, mono, RADIUS, SPACE, WEIGHT, TRACK } from '../src/theme/tokens';
+import { PageEnter, Num } from '../src/components/ui';
 import { getNotes, getNoteCount, type NoteRow } from '../src/db/queries';
 import { splitSenses } from '../src/components/Definition';
 import { useSideInset, useTopPad } from '../src/lib/layout';
@@ -32,8 +32,12 @@ export default function NotesScreen() {
         <TouchableOpacity activeOpacity={0.6} onPress={() => router.back()}>
           <Text style={[styles.back, { color: c.tx2 }]}>‹ 返回</Text>
         </TouchableOpacity>
-        <Text style={[styles.title, { color: c.tx1, fontFamily: serif }]}>我 的 助 记</Text>
-        <Text style={[styles.total, { color: c.tx3 }]}>{rows.length}/{total}</Text>
+        <Text style={[styles.title, { color: c.tx1, fontFamily: serif }]}>我的助记</Text>
+        <View style={styles.totalRow}>
+          <Num value={rows.length} style={[styles.total, { color: c.tx3 }]} />
+          <Text style={[styles.total, { color: c.tx3 }]}>/</Text>
+          <Num value={total} style={[styles.total, { color: c.tx3 }]} />
+        </View>
       </View>
 
       <View style={styles.searchWrap}>
@@ -75,7 +79,7 @@ export default function NotesScreen() {
                 <View style={styles.head}>
                   <Text style={[styles.word, { color: c.tx1 }]}>{r.word}</Text>
                   {r.phonetic_uk ? (
-                    <Text style={[styles.ipa, { color: c.tx3 }]}>{r.phonetic_uk}</Text>
+                    <Text style={[styles.ipa, { color: c.tx2 }]}>{r.phonetic_uk}</Text>
                   ) : null}
                 </View>
                 {r.definition_zh ? (
@@ -108,8 +112,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACE.xl, paddingBottom: 12, borderBottomWidth: 1,
   },
   back: { fontSize: 15, width: 56 },
-  title: { fontSize: 18, flex: 1, textAlign: 'center' },
-  total: { fontSize: 12, fontVariant: ['tabular-nums'], width: 56, textAlign: 'right' },
+  title: { fontSize: 18, flex: 1, textAlign: 'center', letterSpacing: TRACK.title },
+  totalRow: { flexDirection: 'row', alignItems: 'baseline', gap: 2, width: 56, justifyContent: 'flex-end' },
+  total: { fontSize: 12, fontWeight: WEIGHT.medium },
   searchWrap: { paddingHorizontal: SPACE.xl, paddingTop: 14 },
   search: {
     flexDirection: 'row', alignItems: 'center', minHeight: 42,
@@ -118,7 +123,7 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, fontSize: 14.5, paddingVertical: 0 },
   clear: { fontSize: 15, paddingLeft: 8 },
   list: { paddingHorizontal: SPACE.xl, paddingTop: 14 },
-  empty: { fontSize: 13, fontStyle: 'italic', marginTop: 28, textAlign: 'center', lineHeight: 20 },
+  empty: { fontSize: 13, marginTop: 28, textAlign: 'center', lineHeight: 20, letterSpacing: TRACK.body },
   card: { borderRadius: RADIUS.card, borderWidth: 1, padding: SPACE.lg, marginBottom: SPACE.md },
   head: { flexDirection: 'row', alignItems: 'baseline', gap: 10 },
   word: { fontSize: 18, fontFamily: serif },

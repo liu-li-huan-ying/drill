@@ -442,10 +442,42 @@ function learnedDates(): string[] {
     .map((r) => r.date);
 }
 
-// 'YYYY-MM-DD' → 星期几（0=周日）。与打卡日历表头「日 一 二 三 四 五 六」同一套。
+// 'YYYY-MM-DD' → 星期几（0=周日）。JS 的 getDay 以周日为 0，而**本 App 的一周从周一算起**
+// （P1.6：主人反馈近 7 日柱状图要周一开始）—— 转换只此一处，别在调用点各算各的。
 function weekdayOf(key: string): number {
   const [y, m, d] = key.split('-').map(Number);
   return new Date(y, m - 1, d).getDay();
+}
+
+/** 周一为一周之始时的「周内偏移」：周一 0 … 周日 6。 */
+function mondayOffset(key: string): number {
+  return (weekdayOf(key) + 6) % 7;
+}
+
+/**
+ * 本周（周一 → 周日）的每日学习量，固定 7 条。
+ *
+ * 与 `getDailyHistory` 的区别是**窗口的锚点**：后者是「滚动近 N 天」（结尾永远是今天），
+ * 前者是「本自然周」（结尾永远是周日，未到的日子给 0）。
+ * 柱状图要读的是「这一周走到哪了」，锚点必须是周一 —— 滚动窗口每周会漂一格，
+ * 读者永远不知道第一根柱子是星期几（这正是 P1.6 要修的东西）。
+ */
+export function getWeekHistory(): { date: string; new_count: number; review_count: number }[] {
+  const todayKey = dateKey(Date.now(), getSettings().day_cutoff_hour);
+  const monday = shiftDateKey(todayKey, -mondayOffset(todayKey));
+  const byDate = new Map<string, { new_count: number; review_count: number }>();
+  getDb()
+    .getAllSync<{ date: string; new_count: number; review_count: number }>(
+      'SELECT date, new_count, review_count FROM daily_stats ORDER BY date ASC'
+    )
+    .forEach((r) => byDate.set(r.date, { new_count: r.new_count, review_count: r.review_count }));
+  const out: { date: string; new_count: number; review_count: number }[] = [];
+  for (let i = 0; i < 7; i++) {
+    const k = shiftDateKey(monday, i);
+    const v = byDate.get(k);
+    out.push({ date: k, new_count: v?.new_count ?? 0, review_count: v?.review_count ?? 0 });
+  }
+  return out;
 }
 
 // 历史最长连续打卡天数（不只算当前这段）。
@@ -461,12 +493,12 @@ export function getLongestStreak(): number {
   return best;
 }
 
-// 本周打卡进度（周日为一周之始）。分母固定 7 —— 「本周」是已经过完的那部分吗，不是，
-// 它是一整周，还没到的日子就是没打卡。
+// 本周打卡进度（**周一**为一周之始，与打卡日历表头 / 近 7 日柱状图同一套）。
+// 分母固定 7 —— 「本周」是一整周，还没到的日子就是没打卡。
 export function getWeekProgress(): { done: number; total: number } {
   const todayKey = dateKey(Date.now(), getSettings().day_cutoff_hour);
   const dates = new Set(learnedDates());
-  const start = shiftDateKey(todayKey, -weekdayOf(todayKey));
+  const start = shiftDateKey(todayKey, -mondayOffset(todayKey));
   let done = 0;
   for (let i = 0; i < 7; i++) if (dates.has(shiftDateKey(start, i))) done++;
   return { done, total: 7 };

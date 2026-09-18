@@ -5,8 +5,8 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useTheme } from '../src/theme/ThemeProvider';
-import { SPACE, CONTROL, WEIGHT, RADIUS } from '../src/theme/tokens';
-import { PageEnter, Progress } from '../src/components/ui';
+import { SPACE, CONTROL, WEIGHT, RADIUS, TRACK } from '../src/theme/tokens';
+import { PageEnter, Progress, Num } from '../src/components/ui';
 import { ReviewCard } from '../src/features/review/ReviewCard';
 import { DoneView } from '../src/features/review/DoneView';
 import {
@@ -134,10 +134,16 @@ export default function ReviewScreen() {
   return (
     <PageEnter style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
       <View style={styles.top}>
-        <Text style={[styles.ul, { color: c.tx3 }]}>
-          复习 {idx + 1} / {total}
-        </Text>
-        <Text style={[styles.ul, { color: c.tx3 }]}>剩 {total - idx - 1}</Text>
+        <View style={styles.ulRow}>
+          <Text style={[styles.ul, { color: c.tx3 }]}>复习</Text>
+          <Num value={idx + 1} style={[styles.ul, { color: c.tx3 }]} />
+          <Text style={[styles.ul, { color: c.tx3 }]}>/</Text>
+          <Num value={total} style={[styles.ul, { color: c.tx3 }]} />
+        </View>
+        <View style={styles.ulRow}>
+          <Text style={[styles.ul, { color: c.tx3 }]}>剩</Text>
+          <Num value={total - idx - 1} style={[styles.ul, { color: c.tx3 }]} />
+        </View>
       </View>
       <Progress ratio={total > 0 ? (idx + 1) / total : 0} style={styles.prog} />
 
@@ -158,11 +164,11 @@ export default function ReviewScreen() {
 
       {undo && !flipped ? (
         <View style={[styles.undo, { backgroundColor: c.acsf }]}>
-          <Text style={[styles.undoText, { color: c.tx2 }]}>已记录 · {undo.label}</Text>
-          <TouchableOpacity activeOpacity={0.6} onPress={doUndo} style={styles.undoBtn}>
-            <Text style={[styles.undoBtnText, { color: c.ac }]}>撤销</Text>
-          </TouchableOpacity>
-        </View>
+        <Text style={[styles.undoText, { color: c.tx2 }]}>已记录 · {undo.label}</Text>
+        <TouchableOpacity activeOpacity={0.6} onPress={doUndo} style={styles.undoBtn}>
+          <Text style={[styles.undoBtnText, { color: c.ac }]}>撤销</Text>
+        </TouchableOpacity>
+      </View>
       ) : null}
 
       <TouchableOpacity
@@ -170,7 +176,7 @@ export default function ReviewScreen() {
         onPress={() => (run.current.done > 0 ? finish() : router.back())}
         style={[styles.endRound, { marginBottom: bottomPad }]}
       >
-        <Text style={[styles.endRoundText, { color: c.tx3 }]}>结 束 本 轮</Text>
+        <Text style={[styles.endRoundText, { color: c.tx3 }]}>结束本轮</Text>
       </TouchableOpacity>
     </PageEnter>
   );
@@ -179,7 +185,10 @@ export default function ReviewScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   top: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: SPACE.xl },
-  ul: { fontSize: 10, letterSpacing: 2, fontWeight: WEIGHT.semibold, fontVariant: ['tabular-nums'] },
+  // 数字与文字拆成独立节点：数字走 Num（等宽数位 + 不折 + 千分位），
+  // 整串塞进一个 Text 就没法对数字单独设契约。
+  ulRow: { flexDirection: 'row', alignItems: 'baseline', gap: 3 },
+  ul: { fontSize: 10, letterSpacing: TRACK.label, fontWeight: WEIGHT.semibold },
   prog: { marginTop: SPACE.lg, marginHorizontal: SPACE.xl },
 
   cardArea: { flex: 1, paddingHorizontal: SPACE.lg, paddingTop: SPACE.md, paddingBottom: SPACE.sm },
@@ -195,10 +204,10 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.ctrl,
     paddingLeft: SPACE.lg,
   },
-  undoText: { fontSize: 13, letterSpacing: 0.3, fontWeight: WEIGHT.medium },
+  undoText: { fontSize: 13, letterSpacing: TRACK.body, fontWeight: WEIGHT.medium },
   undoBtn: { minHeight: CONTROL.md, paddingHorizontal: SPACE.md, justifyContent: 'center' },
-  undoBtnText: { fontSize: 13, letterSpacing: 0.5, fontWeight: WEIGHT.semibold },
+  undoBtnText: { fontSize: 13, letterSpacing: TRACK.body, fontWeight: WEIGHT.semibold },
 
   endRound: { minHeight: CONTROL.lg, alignItems: 'center', justifyContent: 'center', marginBottom: SPACE.sm },
-  endRoundText: { fontSize: 13.5, letterSpacing: 1.5, fontWeight: WEIGHT.medium },
+  endRoundText: { fontSize: 13.5, letterSpacing: TRACK.body, fontWeight: WEIGHT.medium },
 });

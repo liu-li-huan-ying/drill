@@ -5,7 +5,10 @@
 // 代码照样跑、tsc 照样过，只有真机上才看得出「怎么又不对了」。
 // 所以把已经踩过的判据写成断言，改坏就红。
 //
-// 断言分四组：令牌纪律 / 尺度纪律 / 弹性布局 / 转场与长内容。
+// 断言分组：1 令牌纪律 / 2 尺度纪律 / 3 弹性布局 / 4 转场与长内容 /
+//           5 转场不露白与曲线唯一来源 / 6 抬升·量度·动作按钮 /
+//           6b 数字的排版契约 / 6c 字距纪律 / 6d 品牌锚点（朱砂 + 印章）/
+//           7 可见性（对比度实算）。
 const fs = require('fs');
 const path = require('path');
 
@@ -152,6 +155,16 @@ check(
   'barFill: ac / tx2'
 );
 
+// 量度条的**轨道**取 pg（机身底）而不是描边色 bd2：轨道是凹槽，凹槽要比纸面暗一档才对，
+// 而 bd2 与填充只差一档明度（实测条/轨 3.7:1），pg 把它抬到约 4.7:1（暗 5.9:1）。
+check(
+  '量度条轨道取 pg（凹槽色）',
+  /barTrack, \{ backgroundColor: c\.pg \}/.test(code('app/(tabs)/library.tsx')) &&
+    !/barTrack, \{ backgroundColor: c\.bd2 \}/.test(code('app/(tabs)/library.tsx')) &&
+    /track, \{ backgroundColor: c\.pg \}/.test(code('app/(tabs)/stats.tsx')),
+  '词库 barTrack + 统计 track 均为 pg'
+);
+
 // 动作按钮不得顶满整行 —— 容器宽度不等于按钮宽度（主人：「左边顶到头右边顶到尾的丑按钮」）。
 const scopeBlock = (code('app/wordlist.tsx').match(/scopeBtn: \{[\s\S]*?\n  \}/) || [''])[0];
 check(
@@ -160,15 +173,13 @@ check(
   'scopeBtn: 居中 + minWidth'
 );
 
-// ── 7. 可见性（对比度）────────────────────────────────────────────────
-// 「代码里写了 `c.tx2`」不等于「看得见」——决定看不看得见的是它对底色的对比度。
-// 这一条是被真事逼出来的：词库条色用过 `bd2`，而轨道是 `pg`，两者对比度只有 **1.25:1**，
-// 于是 8 行「量度」画了等于没画，整屏只剩浅灰（主人：「都是灰的，死气沉沉」）。
-// 下限取 3:1：量度条 / 方印都是图形不是正文，WCAG 对非文本图形的要求就是 3:1。
-const tok = read('src/theme/tokens.ts');
+// ── 色彩工具（对比度 + 色相）─────────────────────────────────────────
+// 分块取 tokens.ts 的 light / dark 两段，后面的断言全部从这里读实际取值 ——
+// 「令牌改了就重新算」，而不是让断言记着一组会过期的旧数字。
+const tokText = read('src/theme/tokens.ts');
 const blocks = {
-  light: tok.slice(tok.indexOf('light: {'), tok.indexOf('dark: {')),
-  dark: tok.slice(tok.indexOf('dark: {')),
+  light: tokText.slice(tokText.indexOf('light: {'), tokText.indexOf('dark: {')),
+  dark: tokText.slice(tokText.indexOf('dark: {')),
 };
 const hexIn = (blk, k) => {
   const m = blk.match(new RegExp(`\\b${k}: '(#[0-9A-Fa-f]{6})'`));
@@ -186,16 +197,234 @@ const cr = (a, b) => {
   const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
   return (x + 0.05) / (y + 0.05);
 };
-// 每对 [名称, 前色, 底色, 下限]。
-// 下限分两档：**前景压背景**（文字 / 描边）取 3:1；**同一条上的两段**（填充 vs 轨道）取 2.5:1 ——
-// 后者不是前景/背景关系，且两段色相相距很远（朱砂 vs 墨/描边），2.5 再加色相差已足够分辨；
-// 暗色下 ac/bd2 实测 2.70（再抬轨道就与页面底色分不开了）。
+const rgbOf = (h) => {
+  const n = parseInt(h.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+};
+// HSL 色相（度）。用来钉住「深色朱砂只提明度、不偏色相」。
+const hueOf = (h) => {
+  const [r, g, b] = rgbOf(h).map((v) => v / 255);
+  const mx = Math.max(r, g, b);
+  const mn = Math.min(r, g, b);
+  const d = mx - mn;
+  if (d === 0) return 0;
+  const x = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return (x * 60 + 360) % 360;
+};
+const lightOf = (h) => {
+  const [r, g, b] = rgbOf(h).map((v) => v / 255);
+  return (Math.max(r, g, b) + Math.min(r, g, b)) / 2;
+};
+
+// ── 6b. 数字的排版契约（P0.1，2026-09-18） ──────────────────────────────
+// 主人反馈「大数字折行」。折行不是「排版挤了一点」—— 它把一个值读成两个
+// （`1000` 断成 10 / 00，`18 词` 断成 18 / 词）。所以数字必须有唯一入口，
+// 而不是每个屏各写各的 `<Text>{n}</Text>`。
+const NUM_SCREENS = [
+  'app/(tabs)/stats.tsx', 'app/(tabs)/library.tsx', 'app/(tabs)/index.tsx', 'app/(tabs)/settings.tsx',
+  'src/features/review/DoneView.tsx', 'app/wordlist.tsx', 'app/notes.tsx',
+  'app/vocabtest.tsx', 'app/calibration.tsx', 'app/import.tsx',
+];
+const uiCode = code('src/components/ui/index.tsx');
+// 按「下一个 export」切片而不是按 `\n}` 匹配：props 的解构参数以 `}) {` 收尾，
+// 那个 `\n}` 会被惰性匹配当成分界（实测截断在参数表上）。
+const between = (s, from, to) => {
+  const a = s.indexOf(from);
+  if (a < 0) return '';
+  const b = to ? s.indexOf(to, a + from.length) : -1;
+  return s.slice(a, b < 0 ? s.length : b);
+};
+const numBlock = between(uiCode, 'export function Num(', 'export function NumUnit(');
+const numUnitBlock = between(uiCode, 'export function NumUnit(', 'export function SoundIcon(');
+
+check(
+  '数字契约三件套齐备（单行 / 自动缩字 / 等宽数位）',
+  /numberOfLines=\{1\}/.test(numBlock) &&
+    /adjustsFontSizeToFit/.test(numBlock) &&
+    /minimumFontScale/.test(numBlock) &&
+    /tabular-nums/.test(uiCode),
+  'numberOfLines={1} + adjustsFontSizeToFit + tabular-nums'
+);
+
+check(
+  '数字有唯一入口（Num / NumUnit）',
+  /export function Num\(/.test(uiCode) && /export function NumUnit\(/.test(uiCode) && NUM_SCREENS.every((f) => files.includes(f)),
+  `${NUM_SCREENS.length} 屏可用`
+);
+
+// 裸渲染 = 一个读数直接当 `<Text>` 的全部子节点（`>{total}<`）。这类写法绕开了三件套，
+// 也正是折行 bug 的现场。词库页的「已装载 30,565 词」就是被这一条抓住的。
+const BARE = />\s*\{\s*(?:s\.\w+|total|value|mastered|d\.count|results\.length|known|items\.length|sample\.length|rows\.length)\s*\}\s*</;
+const bare = NUM_SCREENS.filter((f) => BARE.test(code(f)));
+check('读数不裸渲染（必须走 Num）', bare.length === 0, bare.join(',') || '0 处裸渲染');
+
+// 千分位必须自己算：Hermes 的 Intl 跟随系统区域，同一串数字在部分地区会输出 `30 565`，
+// 而这里的数字是**读数**，分隔符必须恒为逗号。
+check(
+  '千分位自己算（不用区域相关的 toLocaleString）',
+  /export function fmtNum/.test(read('src/lib/num.ts')) &&
+    files.every((f) => !/toLocaleString/.test(code(f))),
+  'fmtNum 手写 / 0 处 toLocaleString'
+);
+
+// 数字与单位：单位贴**基线**（不是底部），且单位永不参与压缩（被挤掉后「1000」与「1000 万」同形）。
+check(
+  '数字与单位基线对齐（单位小一档且不被压缩）',
+  /alignItems: 'baseline'/.test(numUnitBlock) &&
+    /flexShrink: 0/.test(numUnitBlock) &&
+    /fontSize: FONT\.unit/.test(numUnitBlock),
+  'NumUnit: baseline + unit flexShrink 0'
+);
+
+// ── 6c. 字距纪律（P1.1） ───────────────────────────────────────────────
+// 宽字距是**小标签**的排版语汇。旧代码把它用在按钮文案（1.5）与大标题（3）上，
+// 字与字之间空到能塞进另一个字（主人：「收敛字距」）。
+// 报纸法则里 tracking 随字号**反向**变化 —— 字越大，字距越要收。
+const bareTrack = files.filter((f) => f !== 'src/theme/tokens.ts' && /letterSpacing: -?[\d.]+/.test(code(f)));
+check('无裸字距（走 TRACK 档位）', bareTrack.length === 0, bareTrack.join(',') || '0 处裸字距');
+
+check(
+  '字距五档齐备且宽档只给标签',
+  ['tight:', 'body:', 'title:', 'label:', 'caps:'].every((k) => tokText.includes(k)) &&
+    /btnText: \{[^}]*letterSpacing: TRACK\.body/.test(uiCode) &&
+    /label: \{[^}]*letterSpacing: TRACK\.label/.test(uiCode) &&
+    /kicker: \{[^}]*letterSpacing: TRACK\.caps/.test(uiCode),
+  'TRACK 五档 / 按钮走 body / 标签走 label'
+);
+
+// ── 6d. 品牌锚点：朱砂 + 印章（P2，2026-09-18） ────────────────────────
+// 朱砂色相守恒：深色模式的强调色**只许提明度，不许偏色相**。
+// 旧暗色 ac `#D0684F` 的色相是 11.6°，而亮色 `#A8382A` 是 6.67° —— 偏了 5 度落到「橙」一侧，
+// 于是深色模式里所有朱砂都读成了珊瑚橙（主人原话）。这条断言从此钉住色相。
+const acL = hexIn(blocks.light, 'ac');
+const acD = hexIn(blocks.dark, 'ac');
+const dHue = Math.abs(hueOf(acL) - hueOf(acD));
+check(
+  '朱砂色相守恒（深色只提明度不偏色相）',
+  dHue <= 2 && lightOf(acD) > lightOf(acL),
+  `色相差 ${dHue.toFixed(2)}° / 明度 ${lightOf(acL).toFixed(2)}→${lightOf(acD).toFixed(2)}`
+);
+
+// 「墨纸」不是「黑板」：暗色底必须**暖**（R 明显大于 B）且不能是纯黑。
+// 旧值 `#131211` 的 R−B 只有 2、R 只有 19 —— 那就是纯黑，纸没有纯黑的。
+const bgL = hexIn(blocks.dark, 'bg');
+const bgRGB = rgbOf(bgL);
+check(
+  '暗色底是墨纸（暖 + 非纯黑 + 三通道同源）',
+  bgRGB[0] >= 24 && bgRGB[0] - bgRGB[2] >= 4 && Math.max(...bgRGB) - Math.min(...bgRGB) <= 24,
+  `${bgL} R−B=${bgRGB[0] - bgRGB[2]}`
+);
+
+// 打卡日历印章化：格子不再是「填色方块」，量级落在**印记**上。
+// 印记必须是满墨朱砂 —— 试过「浅朱→浓朱」的明度梯度，实测浅朱压纸底只有 1.4–2.7:1，
+// 而印面只有几 dp，一个看不见的浅点不构成「这天打过卡」的陈述。
+const statsCode = code('app/(tabs)/stats.tsx');
+check(
+  '打卡日历印章化（满墨印记 + 图例同形）',
+  /stampSize\(/.test(statsCode) &&
+    /STAMP/.test(statsCode) &&
+    !/mix\(/.test(statsCode) &&
+    /stampSize\(lv\)/.test(statsCode),
+  '印记走 stampSize / 已移除明度渐变 mix'
+);
+
+// 一周以**周一**为始，且三处同一套约定（日历表头 / 本周柱状图 / 本周进度）。
+check(
+  '一周以周一为始（三处一致）',
+  /mondayOffset/.test(read('src/db/queries.ts')) &&
+    /const WEEKDAYS = \['一'/.test(statsCode) &&
+    /export function getWeekHistory/.test(read('src/db/queries.ts')),
+  'mondayOffset + WEEKDAYS[0]=一 + getWeekHistory'
+);
+
+// 「小数值条看不见」的另一半：只有几个词的档位也必须画出来（最小条宽）。
+check('小数值条有最小宽度', /Math\.max\(2, \(d\.count \/ distMax\)/.test(statsCode), 'min 2%');
+
+// 落印：必须有冲击点与微震 —— 微震不是独立动作，是落印的**后果**。
+// 曲线本身仍不过冲（全项目共享），回弹由插值停点表达。
+const doneCode = code('src/features/review/DoneView.tsx');
+check(
+  '落印有冲击点与纸面微震',
+  /SEAL_IMPACT/.test(doneCode) && /MOTION\.shock/.test(doneCode) && /Animated\.delay/.test(doneCode) &&
+    /SEAL_IMPACT = 0\.72/.test(tokText) && /shock: 220/.test(tokText),
+  'STOPS 落 72% / 微震自冲击点起算'
+);
+
+// 出口层级：主操作实心、次操作文字链。平级按钮会让「该点哪个」变成一道选择题（P1.7）。
+check(
+  '完成屏主次出口拉开层级',
+  /<Btn title="看看坚持了多久" onPress=\{onStats\}/.test(doneCode) &&
+    !/variant="outline"/.test(doneCode) &&
+    /styles\.link/.test(doneCode),
+  '主=实心 Btn / 次=文字链'
+);
+
+// 喇叭图标：整 App 只有一个定义（P0.3）。
+// 旧写法是「圆环套实心圆点」，那在图形语言里是「录制 / 状态灯」，没有一个读音叫「播放」——
+// 图标是这个按钮唯一的文案，认错就等于功能不存在。四处复制 = 四处可能改漏。
+const dupSound = files.filter(
+  (f) => f !== 'src/components/ui/index.tsx' && (/function SoundIcon/.test(code(f)) || /soundInner/.test(code(f)))
+);
+check('喇叭图标唯一来源', /export function SoundIcon/.test(uiCode) && dupSound.length === 0, dupSound.join(',') || '1 处定义 / 0 处复制');
+
+// 喇叭图标的几何（P0.3 的复核）：截图实测出来的三条硬约束，任何一条破了图标就认不出来。
+// ① 喇叭口是梯形 —— 上张口「borderLeft 透明 + borderBottom 着色」、下张口镜像；
+//    若两处都靠 borderLeft 着色，画出来是「▶ 播放键」。
+// ② 声波是弧 —— 圆形只留 borderRight 得到 90° 弧；出现 rotate 就说明退回了菱形环老画法。
+// ③ 14px 及以下只留一道弧，两道在这个尺寸会糊成色点。
+const soundBlock = between(uiCode, 'export function SoundIcon(', 'export function RowItem(');
+check(
+  '喇叭图标几何正确（梯形口 / 圆弧 / 小尺寸降级）',
+  /borderBottomColor: color/.test(soundBlock) &&
+    /borderTopColor: color/.test(soundBlock) &&
+    (soundBlock.match(/borderLeftColor: 'transparent'/g) || []).length === 2 &&
+    /borderRightColor: color/.test(soundBlock) &&
+    !/rotate/.test(soundBlock) &&
+    /size < 16/.test(soundBlock),
+  '梯形口 2 处 / 圆弧 / 无旋转方角 / <16px 单弧'
+);
+
+// 斜体只留给例句原文（P1.3）：给释义也套斜体，例句就失去了它唯一的视觉身份。
+// 取 DefinitionView 的整段调用（`raw={...definition_en}` 到 `/>`），断言里面没有 fontStyle。
+const enDefWord = (code('app/word.tsx').match(/<DefinitionView[\s\S]{0,200}?definition_en[\s\S]{0,300}?\/>/) || [''])[0];
+const enDefCard = (code('src/features/review/ReviewCard.tsx').match(/<DefinitionView[\s\S]{0,200}?definition_en[\s\S]{0,300}?\/>/) || [''])[0];
+check(
+  '斜体只留给例句原文',
+  enDefWord !== '' && !/fontStyle/.test(enDefWord) &&
+    enDefCard !== '' && !/fontStyle/.test(enDefCard) &&
+    /exEn: \{[^}]*fontStyle: 'italic'/.test(code('app/word.tsx')) &&
+    /quote: \{[^}]*fontStyle: 'italic'/.test(code('src/features/review/ReviewCard.tsx')) &&
+    !/fontStyle/.test(code('app/notes.tsx')),
+  '释义无斜体 / 例句保留（单词页 + 复习卡）/ 空态不斜体'
+);
+
+// 词性只在词头出现一次（P1.4）：`n.` 是词级属性，不是义项级属性。
+check(
+  '词性只出现一次 + 义项编号列表',
+  /export function parseSense/.test(read('src/components/Definition.tsx')) &&
+    /stripPos/.test(read('src/components/Definition.tsx')) &&
+    /numbered[\s\S]{0,80}stripPos=\{Boolean\(detail\.pos\)\}/.test(code('app/word.tsx')),
+  'parseSense + stripPos + numbered'
+);
+
+// ── 7. 可见性（对比度）────────────────────────────────────────────────
+// 「代码里写了 `c.tx2`」不等于「看得见」——决定看不看得见的是它对底色的对比度。
+// 这一条是被真事逼出来的：词库条色用过 `bd2`，而轨道是 `pg`，两者对比度只有 **1.25:1**，
+// 于是 8 行「量度」画了等于没画，整屏只剩浅灰（主人：「都是灰的，死气沉沉」）。
+//
+// 本轮把下限统一抬到 4.5:1（原为前景 3 / 同条 2.5）：
+//   · P1.3 明确要求音标与英文释义 ≥4.5:1（它们在深色下都落在卡面 sf 上，是最紧的一对）；
+//   · 朱砂在深色模式下同时是**文字色**（「撤销」「加载更多」「在背」），不到 4.5 就不成立；
+//   · 轨道改取 pg 之后，条/轨这对也够得到 4.5 —— 下限有富余时就不该退而求其次。
+// 唯一的例外仍是**非文本图形**可以低到 3:1，但本项目现在已经不需要这个豁免。
 const PAIRS = [
-  ['名称 tx1/bg', 'tx1', 'bg', 3],
-  ['词数 tx2/bg', 'tx2', 'bg', 3],
-  ['方印描边 tx2/bg', 'tx2', 'bg', 3],
-  ['量度条 tx2/bd2', 'tx2', 'bd2', 2.5],
-  ['选中条 ac/bd2', 'ac', 'bd2', 2.5],
+  ['正文 tx1/bg', 'tx1', 'bg', 4.5],
+  ['次要 tx2/bg', 'tx2', 'bg', 4.5],
+  ['音标·释义 tx2/sf', 'tx2', 'sf', 4.5],
+  ['朱砂字 ac/bg', 'ac', 'bg', 4.5],
+  ['朱砂上字 acon/ac', 'acon', 'ac', 4.5],
+  ['量度条 tx2/pg', 'tx2', 'pg', 4.5],
+  ['选中条 ac/pg', 'ac', 'pg', 4.5],
 ];
 const dim = [];
 for (const [scheme, blk] of Object.entries(blocks)) {
@@ -210,7 +439,7 @@ for (const [scheme, blk] of Object.entries(blocks)) {
     if (r < min) dim.push(`${scheme}/${name}=${r.toFixed(2)}:1<${min}`);
   }
 }
-check('对比度达标（前景 3:1 / 同条两段 2.5:1）', dim.length === 0, dim.join(', ') || `${PAIRS.length * 2} 对达标`);
+check('对比度达标（全部 4.5:1）', dim.length === 0, dim.join(', ') || `${PAIRS.length * 2} 对达标`);
 
 // ── 输出 ──────────────────────────────────────────────────────────────
 console.log(results.map(([p, n, d]) => `${p ? '✓' : '✗'} ${n}  —— ${d}`).join('\n'));

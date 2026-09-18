@@ -15,7 +15,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme/ThemeProvider';
 import { useSideInset } from '../../lib/layout';
 import { ease, useReducedMotion } from '../../lib/motion';
-import { RADIUS, SPACE, CONTROL, WEIGHT, MOTION, serif } from '../../theme/tokens';
+import { RADIUS, SPACE, CONTROL, WEIGHT, MOTION, FONT, TRACK, serif } from '../../theme/tokens';
+import { fmtNum } from '../../lib/num';
 
 /**
  * 纵深屏的内容入场（栈屏专用，**不要用在 tab 屏**：tab 的场景自己已有交叉淡入，套两层会发飘）。
@@ -78,7 +79,7 @@ export function BrandBar() {
       }}
     >
       <Seal size={16} />
-      <Text style={{ fontFamily: serif, fontSize: 16.5, letterSpacing: 2, fontWeight: WEIGHT.semibold, color: c.tx1 }}>
+      <Text style={{ fontFamily: serif, fontSize: 16.5, letterSpacing: TRACK.label, fontWeight: WEIGHT.semibold, color: c.tx1 }}>
         背呗
       </Text>
     </View>
@@ -179,27 +180,6 @@ export function Progress({ ratio, style }: { ratio: number; style?: StyleProp<Vi
   );
 }
 
-/** 朱笔横痕：一条带收笔的短横（纯 View 近似原型里带起收笔的笔触）。 */
-export function StrokeBar({
-  width = 180,
-  thickness = 3,
-  style,
-}: {
-  width?: number;
-  thickness?: number;
-  style?: StyleProp<ViewStyle>;
-}) {
-  const { colors: c } = useTheme();
-  return (
-    <View
-      style={[
-        { width, height: thickness, borderRadius: thickness / 2, backgroundColor: c.ac, opacity: 0.8 },
-        style,
-      ]}
-    />
-  );
-}
-
 /** 朱印：solid = 朱底纸字（白文印）/ text = 朱边朱字（朱文印）。 */
 export function Seal({
   size = 16,
@@ -290,41 +270,187 @@ export function SealMark({ text, style }: { text: string; style?: StyleProp<View
   );
 }
 
-/** 数据格：衬线大数字 + 标签（标签用 600，中文小字不靠字距撑）。 */
-export function StatCell({
-  label,
+/**
+ * 数字读数。**任何**会被用户当「一个值」看的数字都走这里，别直接写 `<Text>{n}</Text>`。
+ *
+ * 为什么必须有这个原子（P0.1，主人反馈「大数字折行」）：
+ *   · `numberOfLines={1}` —— `<Text>` 默认换行。数字折行不是「挤了一点」，
+ *     是把一个值读成两个：`1000` 断成 `10` / `00`，`18 词` 断成 `18` / `词`。
+ *   · `flexShrink: 0` —— 数字是最容易被父容器挤扁的元素（长名称有 `numberOfLines`，
+ *     数字没有就会被压到裁字），而裁掉的位别人看不见、也没人报错。
+ *   · `adjustsFontSizeToFit` + `minimumFontScale` —— 窄屏 + 系统大字号下，
+ *     宁可整串等比缩一点，也不折行、不裁字。缩到 0.6 仍比彻底读不出好。
+ *   · `tabular-nums` —— 等宽数位，多位数字才不会左右跳。
+ */
+export function Num({
+  value,
+  style,
+  format = true,
+  minScale = 0.6,
+}: {
+  value: number | string;
+  style?: StyleProp<TextStyle>;
+  format?: boolean; // 传 false 用于「2026」「第 3 天」这类不是读数的数字
+  minScale?: number;
+}) {
+  const text = typeof value === 'number' && format ? fmtNum(value) : String(value);
+  return (
+    <Text
+      numberOfLines={1}
+      adjustsFontSizeToFit
+      minimumFontScale={minScale}
+      style={[styles.num, style]}
+    >
+      {text}
+    </Text>
+  );
+}
+
+/**
+ * 数字 + 单位（「18 词」）。两件事：
+ *   ① `alignItems: 'baseline'` —— 单位贴的是数字的**基线**，不是它的底部。
+ *      靠底对齐时，衬线数字的降部（`9`/`4`）会把单位顶起来，两行卡片的高度就对不上了。
+ *   ② 单位用 `FONT.unit` 且不再放大 —— 一屏里数字是主角，单位是注解。
+ *      旧代码里单位跟着数字一起放大（12→13 各自手写），读起来像两个并列的值。
+ */
+export function NumUnit({
   value,
   unit,
+  color,
+  unitColor,
   accent,
+  valueStyle,
+  unitStyle,
   style,
 }: {
-  label: string;
-  value: React.ReactNode;
+  value: number | string;
   unit?: string;
+  color?: string;
+  unitColor?: string;
   accent?: boolean;
+  valueStyle?: StyleProp<TextStyle>;
+  unitStyle?: StyleProp<TextStyle>;
   style?: StyleProp<ViewStyle>;
 }) {
   const { colors: c } = useTheme();
   return (
-    <View style={[{ alignItems: 'center' }, style]}>
-      <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+    <View style={[{ flexDirection: 'row', alignItems: 'baseline' }, style]}>
+      <Num value={value} style={[{ color: accent ? c.ac : (color ?? c.tx1), fontFamily: serif }, valueStyle]} />
+      {unit ? (
         <Text
-          style={{
-            color: accent ? c.ac : c.tx1,
-            fontFamily: serif,
-            fontSize: 28,
-            lineHeight: 32,
-            fontWeight: WEIGHT.medium,
-            letterSpacing: -0.3,
-          }}
+          numberOfLines={1}
+          style={[
+            // 单位永不参与压缩：位置不够时该缩的是数字（正文值），不是单位 ——
+            // 单位被挤掉之后「1000」和「1000 万」长得一样。
+            { color: unitColor ?? c.tx3, fontSize: FONT.unit, marginLeft: 3, fontWeight: WEIGHT.medium, flexShrink: 0 },
+            unitStyle,
+          ]}
         >
-          {value}
+          {unit}
         </Text>
-        {unit ? (
-          <Text style={{ color: c.tx3, fontSize: 12, marginLeft: 3, fontWeight: WEIGHT.medium }}>{unit}</Text>
-        ) : null}
-      </View>
-      <Text style={{ color: c.tx3, fontSize: 11.5, marginTop: 6, fontWeight: WEIGHT.semibold }}>{label}</Text>
+      ) : null}
+    </View>
+  );
+}
+
+/**
+ * 喇叭（音量）图标 —— 表示「点这里播放发音」。
+ *
+ * 为什么要换（P0.3）：原来音标旁画的是「一个圆环套一个实心圆点」。
+ * 那在图形语言里是「录制 / 电台 / 状态灯」，**没有一个读音叫「播放」** ——
+ * 学生看到一个红点，第一反应不是「点它听发音」。图标是这个按钮唯一的文案，
+ * 它认错就等于这个功能不存在。
+ *
+ * 标准音量图标 = 音箱箱体 + 向右张开的喇叭口 + 两道声波。
+ * 纯 View 绘制（项目无 SVG 依赖，也不装图标库）。两条几何结论是截图实测出来的，
+ * 光看代码推不出来：
+ * ① 喇叭口必须是**梯形**（左沿与箱体等高、右沿向两侧张开）。用「左右同宽的三角」
+ *    会读成「▶ 播放键」；用错误的 border 边还会让口张反，变成「收口喇叭」。
+ * ② 声波必须是**弧**：圆形只留右边框 = 一段 90° 弧。曾用「旋转 45° 的方角边框」，
+ *    在 20px 上下渲染出来是个菱形环，既不像弧也不像声波。
+ */
+export function SoundIcon({ color, size = 18 }: { color: string; size?: number }) {
+  // 几何在 18 单位的方格上定义，k 只做整体缩放。轮廓照 Material「volume_up」重建：
+  // 箱体 + 梯形喇叭口 + 两道 90° 弧。
+  const k = size / 18;
+  const X0 = 2; // 箱体左缘
+  const Y = 9; // 图标中线
+  const BODY_H = 4.5; // 箱体高
+  const HORN_H = 12; // 喇叭口右沿高
+  const HORN_W = 3.75; // 喇叭口宽
+  const BOX_W = 6.75; // 箱体与喇叭口中带等高 → 合成一个矩形，接缝天然不存在
+  const bodyTop = Y - BODY_H / 2;
+  const flare = (HORN_H - BODY_H) / 2; // 上下各张开多少
+  // 14px 及以下只留一道波：两道弧在这个尺寸会糊成一团色点，反而认不出喇叭。
+  const one = size < 16;
+  const edge = (one ? 1.05 : 0.95) * k;
+  const hornLeft = (X0 + BOX_W) * k;
+  const cx = 6; // 弧心 = 喇叭口中点
+  // 弧的右缘对齐 Material 的 13.5 / 21（24 网格折算到 18 网格 = 10.1 / 15.75）
+  const arcs = one ? [19.5] : [8.2, 19.5];
+
+  return (
+    <View style={{ width: size, height: size, overflow: 'visible' }}>
+      {/* 箱体（含中带）：只圆左两角，右缘多伸 0.3 藏到喇叭口底下，接缝不会漏出白线 */}
+      <View
+        style={{
+          position: 'absolute',
+          left: X0 * k,
+          top: bodyTop * k,
+          width: (BOX_W + 0.3) * k,
+          height: BODY_H * k,
+          backgroundColor: color,
+          borderTopLeftRadius: 0.7 * k,
+          borderBottomLeftRadius: 0.7 * k,
+        }}
+      />
+      {/* 上张口：borderLeft 透明撑宽 + borderBottom 着色 → 垂直边在右、斜边由左下升到右上，
+          恰好是喇叭口向外张开的形状。换成 borderLeft 着色会得到「▶ 播放键」，实测过。 */}
+      <View
+        style={{
+          position: 'absolute',
+          left: hornLeft,
+          top: (bodyTop - flare) * k,
+          width: 0,
+          height: 0,
+          borderLeftWidth: HORN_W * k,
+          borderBottomWidth: flare * k,
+          borderLeftColor: 'transparent',
+          borderBottomColor: color,
+        }}
+      />
+      {/* 下张口：与上张口镜像 */}
+      <View
+        style={{
+          position: 'absolute',
+          left: hornLeft,
+          top: (bodyTop + BODY_H) * k,
+          width: 0,
+          height: 0,
+          borderLeftWidth: HORN_W * k,
+          borderTopWidth: flare * k,
+          borderLeftColor: 'transparent',
+          borderTopColor: color,
+        }}
+      />
+      {/* 声波：圆形只留右边框 = 一段 90° 弧。曾用「旋转 45° 的方角边框」，那画出来是个菱形环，
+          在 20px 上下完全不像声波。弧心固定、只放大直径，两道弧自然同心。 */}
+      {arcs.map((d) => (
+        <View
+          key={d}
+          style={{
+            position: 'absolute',
+            left: (cx - d / 2) * k,
+            top: (Y - d / 2) * k,
+            width: d * k,
+            height: d * k,
+            borderRadius: (d / 2) * k,
+            borderWidth: edge,
+            borderColor: 'transparent',
+            borderRightColor: color,
+          }}
+        />
+      ))}
     </View>
   );
 }
@@ -408,10 +534,17 @@ export function Chev({ style }: { style?: StyleProp<ViewStyle> }) {
 
 const styles = StyleSheet.create({
   card: { borderRadius: RADIUS.card, borderWidth: 1 },
-  label: { fontSize: 10.5, letterSpacing: 2.2, fontWeight: WEIGHT.semibold },
-  kicker: { fontSize: 10.5, letterSpacing: 3, textTransform: 'uppercase', fontWeight: WEIGHT.semibold },
+  label: { fontSize: FONT.label, letterSpacing: TRACK.label, fontWeight: WEIGHT.semibold },
+  kicker: { fontSize: FONT.label, letterSpacing: TRACK.caps, textTransform: 'uppercase', fontWeight: WEIGHT.semibold },
   btn: { minHeight: CONTROL.xl, borderRadius: RADIUS.ctrl, alignItems: 'center', justifyContent: 'center' },
-  btnText: { fontSize: 15, letterSpacing: 1.5, fontWeight: WEIGHT.semibold },
+  // 按钮文案走 TRACK.body（P1.1）：这里是「读一句指令」，不是「看一列字」——
+  // 拉到 1.5 之后「开始学习」四个字各自为政，按钮变得像四个独立的标签。
+  // 中文本就全角、字面已有天然间距，再加宽字距等于双重加宽。
+  btnText: { fontSize: FONT.body, letterSpacing: TRACK.body, fontWeight: WEIGHT.semibold },
+  // 数字的排版契约（与 src/lib/num.ts 的说明同源）。
+  // flexShrink 取 1 而不是 0：0 会让数字**溢出**容器（比裁字更糟，会把旁边的单位顶出去），
+  // 1 则是「先缩字、缩到 minimumFontScale 为止」—— 这正是 P0.1 要的「不折行、不被截断」。
+  num: { fontVariant: ['tabular-nums'], flexShrink: 1 },
   sealMark: {
     width: 30,
     borderRadius: RADIUS.xs,

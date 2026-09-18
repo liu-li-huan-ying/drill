@@ -3,11 +3,12 @@ import React, { useCallback, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useTheme } from '../../src/theme/ThemeProvider';
-import { RADIUS, SPACE, CONTROL, WEIGHT, type Tokens } from '../../src/theme/tokens';
+import { RADIUS, SPACE, CONTROL, WEIGHT, FONT, TRACK, type Tokens } from '../../src/theme/tokens';
 import { ScaleRing } from '../../src/features/home/ScaleRing';
-import { Btn, Chev } from '../../src/components/ui';
+import { Btn, Chev, Num, NumUnit } from '../../src/components/ui';
 import { getHomeSummary, getMasteredCount, setStudyScope } from '../../src/db/queries';
 import { useGutter } from '../../src/lib/layout';
+import { fmtNum } from '../../src/lib/num';
 
 // 每题约 30 秒 —— 「预计 N 分钟」是估算值，不是承诺值，所以取整到分钟。
 const SEC_PER_WORD = 30;
@@ -62,12 +63,13 @@ export default function TodayScreen() {
 
       <View style={{ marginTop: SPACE.xxxl }}>
         <Btn
-          title={nothing ? '今 日 已 清 空' : '开 始 学 习'}
+          title={nothing ? '今日已清空' : '开始学习'}
           disabled={nothing}
           onPress={() => router.push('/review')}
         />
+        {/* 文案改口语（P2.4）：这是学生每天要看的一句话，不是一行进度日志。 */}
         <Text style={[styles.sub, { color: c.tx3 }]}>
-          {nothing ? '今天没有待学的词 · 明日再来' : `预计 ${minutes} 分钟 · 今日 ${todayWords} 词`}
+          {nothing ? '今天没有要背的词，明天再来呗' : `大概 ${minutes} 分钟 · 今天 ${fmtNum(todayWords)} 个词`}
         </Text>
       </View>
 
@@ -80,8 +82,10 @@ export default function TodayScreen() {
           }}
           style={[styles.scope, { borderColor: c.bd2 }]}
         >
-          <Text style={[styles.scopeText, { color: c.tx2 }]}>只背 · {s.scopeName}</Text>
-          <Text style={[styles.scopeClear, { color: c.ac }]}>✕ 背全部</Text>
+          <Text style={[styles.scopeText, { color: c.tx2 }]} numberOfLines={1}>
+            只背 · {s.scopeName}
+          </Text>
+          <Text style={[styles.scopeClear, { color: c.ac }]}>全部词库</Text>
         </TouchableOpacity>
       ) : null}
 
@@ -93,7 +97,11 @@ export default function TodayScreen() {
             style={styles.row}
           >
             <Text style={[styles.rowName, { color: c.tx1 }]}>熟词校准</Text>
-            <Text style={[styles.rowValue, { color: c.tx3 }]}>已掌握 {mastered} 词</Text>
+            <View style={styles.rowValRow}>
+              <Text style={[styles.rowValue, { color: c.tx3 }]}>已掌握</Text>
+              <Num value={mastered} style={[styles.rowValue, { color: c.tx3 }]} />
+              <Text style={[styles.rowValue, { color: c.tx3 }]}>个</Text>
+            </View>
             <Chev />
           </TouchableOpacity>
         </View>
@@ -106,10 +114,14 @@ function Stat({ label, value, colors: c }: { label: string; value: number; color
   return (
     <View style={[styles.stat, { backgroundColor: c.sf, borderColor: c.bd }]}>
       <Text style={[styles.statK, { color: c.tx3 }]}>{label}</Text>
-      <View style={styles.statVRow}>
-        <Text style={[styles.statV, { color: c.tx1 }]}>{value}</Text>
-        <Text style={[styles.statU, { color: c.tx3 }]}>词</Text>
-      </View>
+      <NumUnit
+        value={value}
+        unit="词"
+        color={c.tx1}
+        unitColor={c.tx3}
+        style={{ marginTop: SPACE.md }}
+        valueStyle={styles.statV}
+      />
     </View>
   );
 }
@@ -120,28 +132,28 @@ const styles = StyleSheet.create({
 
   grid2: { flexDirection: 'row', gap: SPACE.md, marginTop: SPACE.xxl },
   stat: { flex: 1, borderRadius: RADIUS.card, borderWidth: 1, paddingTop: SPACE.xxxl, paddingHorizontal: SPACE.xl, paddingBottom: SPACE.xl },
-  statK: { fontSize: 10, letterSpacing: 2, fontWeight: WEIGHT.semibold },
-  statVRow: { flexDirection: 'row', alignItems: 'baseline', marginTop: SPACE.md },
-  statV: { fontSize: 31, lineHeight: 36, letterSpacing: -0.3, fontWeight: WEIGHT.semibold, fontVariant: ['tabular-nums'] },
-  statU: { fontSize: 12, marginLeft: 3, fontWeight: WEIGHT.medium },
+  statK: { fontSize: 10, letterSpacing: TRACK.label, fontWeight: WEIGHT.semibold },
+  statV: { fontSize: FONT.stat, lineHeight: 36, letterSpacing: TRACK.tight, fontWeight: WEIGHT.semibold },
 
-  sub: { fontSize: 12.5, letterSpacing: 0.2, textAlign: 'center', marginTop: SPACE.md },
+  sub: { fontSize: 12.5, letterSpacing: TRACK.body, textAlign: 'center', marginTop: SPACE.md },
 
   scope: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: SPACE.md,
     marginTop: SPACE.lg,
     paddingHorizontal: SPACE.lg,
     minHeight: CONTROL.md,
     borderRadius: RADIUS.ctrl,
     borderWidth: 1,
   },
-  scopeText: { fontSize: 13, letterSpacing: 0.5, fontWeight: WEIGHT.medium },
-  scopeClear: { fontSize: 13, letterSpacing: 0.5, fontWeight: WEIGHT.semibold },
+  scopeText: { flex: 1, fontSize: 13, letterSpacing: TRACK.body, fontWeight: WEIGHT.medium },
+  scopeClear: { fontSize: 13, letterSpacing: TRACK.body, fontWeight: WEIGHT.semibold, flexShrink: 0 },
 
   card: { borderRadius: RADIUS.card, borderWidth: 1, paddingHorizontal: SPACE.xl },
   row: { flexDirection: 'row', alignItems: 'center', gap: SPACE.lg, minHeight: SPACE.touch },
-  rowName: { flex: 1, fontSize: 15, fontWeight: WEIGHT.medium },
-  rowValue: { fontSize: 12.5, fontWeight: WEIGHT.medium, fontVariant: ['tabular-nums'] },
+  rowName: { flex: 1, fontSize: FONT.body, fontWeight: WEIGHT.medium },
+  rowValRow: { flexDirection: 'row', alignItems: 'baseline', flexShrink: 0 },
+  rowValue: { fontSize: 12.5, fontWeight: WEIGHT.medium },
 });

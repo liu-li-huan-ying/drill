@@ -3,8 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '../src/theme/ThemeProvider';
-import { serif, FONT, mono, RADIUS, WEIGHT, SPACE, CONTROL } from '../src/theme/tokens';
-import { PageEnter } from '../src/components/ui';
+import { serif, FONT, mono, RADIUS, WEIGHT, SPACE, CONTROL, TRACK } from '../src/theme/tokens';
+import { PageEnter, SoundIcon } from '../src/components/ui';
 import {
   getWordDetail,
   markMastered,
@@ -97,14 +97,21 @@ export default function WordScreen() {
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
         <View style={styles.wordRow}>
           <Text style={[styles.word, { color: c.tx1 }]}>{detail.word}</Text>
-          <TouchableOpacity style={styles.sound} activeOpacity={0.6} onPress={() => speak(detail.word)}>
+          <TouchableOpacity
+            style={[styles.sound, { borderColor: c.bd2, backgroundColor: c.sf }]}
+            activeOpacity={0.6}
+            onPress={() => speak(detail.word)}
+            accessibilityLabel="播放发音"
+          >
             <SoundIcon color={c.ac} />
           </TouchableOpacity>
         </View>
         {/* 朱笔横痕：这个词被「批」过一次的痕迹，也是详情页与复习卡共用的识别符。 */}
         <View style={[styles.stroke, { backgroundColor: c.ac }]} />
+        {/* 音标走 tx2（P1.3）：它是「怎么读」这个信息本身，不是装饰。
+            旧值 tx3 在亮色下对纸底只有 2.5:1 —— 一条读不清的音标等于没有音标。 */}
         {detail.phonetic_uk ? (
-          <Text style={[styles.ipa, { color: c.tx3 }]}>{detail.phonetic_uk}</Text>
+          <Text style={[styles.ipa, { color: c.tx2 }]}>{detail.phonetic_uk}</Text>
         ) : null}
 
         {detail.pos ? (
@@ -113,17 +120,25 @@ export default function WordScreen() {
           </View>
         ) : null}
 
+        {/* 词性已在上面落过一次 → 义项里不再重复；义项改成编号列表，
+            长释义（考研词常有 4–6 条）才数得清有几条、也才看得出读到了第几条。 */}
         <DefinitionView
           raw={detail.definition_zh}
           accent={c.ac}
+          numbered
+          stripPos={Boolean(detail.pos)}
           blockStyle={{ marginTop: 18 }}
           style={{ color: c.tx1, fontSize: FONT.def, lineHeight: 25 }}
         />
+        {/* 英文释义：**不用斜体**（P1.3）。斜体在中文界面里是「例句原文」的专用记号，
+            给释义也套上，例句就失去了它唯一的视觉身份；对比度也从 tx3 提到 tx2。 */}
         <DefinitionView
           raw={detail.definition_en}
           accent={c.ac}
+          numbered
+          stripPos={Boolean(detail.pos)}
           blockStyle={{ marginTop: 10 }}
-          style={{ color: c.tx2, fontSize: 13, fontStyle: 'italic', lineHeight: 19 }}
+          style={{ color: c.tx2, fontSize: 13, lineHeight: 19 }}
         />
 
         {morph ? (
@@ -210,26 +225,11 @@ export default function WordScreen() {
           onPress={toggleMastered}
         >
           <Text style={[styles.masterText, { color: mastered ? c.tx1 : c.acon }]}>
-            {mastered ? '已掌握 · 取消' : '标 为 已 掌 握'}
+            {mastered ? '已掌握 · 取消' : '标为已掌握'}
           </Text>
         </TouchableOpacity>
       </View>
     </PageEnter>
-  );
-}
-
-function SoundIcon({ color }: { color: string }) {
-  return (
-    <View style={{ width: 19, height: 19, alignItems: 'center', justifyContent: 'center' }}>
-      <View
-        style={{
-          width: 19, height: 19, borderRadius: RADIUS.pill,
-          borderWidth: 1.5, borderColor: color, alignItems: 'center', justifyContent: 'center',
-        }}
-      >
-        <View style={{ width: 8, height: 8, borderRadius: RADIUS.pill, backgroundColor: color }} />
-      </View>
-    </View>
   );
 }
 
@@ -239,29 +239,34 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: SPACE.xl, paddingBottom: 12, borderBottomWidth: 1,
   },
-  back: { fontSize: 15, width: 56 },
-  title: { fontSize: 13, letterSpacing: 1.1, textTransform: 'uppercase', fontWeight: WEIGHT.semibold, flex: 1, textAlign: 'center' },
+  back: { fontSize: FONT.body, width: 56 },
+  title: { fontSize: 13, letterSpacing: TRACK.title, textTransform: 'uppercase', fontWeight: WEIGHT.semibold, flex: 1, textAlign: 'center' },
   body: { paddingHorizontal: SPACE.xl, paddingTop: 28, paddingBottom: 24, flexGrow: 1 },
   wordRow: { flexDirection: 'row', alignItems: 'center' },
-  word: { fontFamily: serif, fontSize: FONT.detailWord, letterSpacing: -0.8 },
+  word: { fontFamily: serif, fontSize: FONT.detailWord, letterSpacing: TRACK.tight, flexShrink: 1 },
   stroke: { width: 168, height: 3, borderRadius: RADIUS.bar, opacity: 0.8, marginTop: 8 },
-  sound: { width: 40, height: 40, borderRadius: RADIUS.pill, alignItems: 'center', justifyContent: 'center', marginLeft: 14 },
-  ipa: { fontFamily: mono, fontSize: FONT.ipa, marginTop: 12, letterSpacing: 0.8 },
+  // 发音键：48dp 触控目标 + 描边（P0.3）。以前只有一个裸图标，看不出是个按钮；
+  // 描一圈 bd2 之后它才读得出「这里可以点」。朱砂留给图标本身（这是这一页唯一的可点动作）。
+  sound: {
+    width: 44, height: 44, borderRadius: RADIUS.pill, borderWidth: 1,
+    alignItems: 'center', justifyContent: 'center', marginLeft: 14, flexShrink: 0,
+  },
+  ipa: { fontFamily: mono, fontSize: FONT.ipa, marginTop: 12, letterSpacing: TRACK.body },
   posChip: { alignSelf: 'flex-start', marginTop: 16, paddingHorizontal: 10, paddingVertical: 4, borderRadius: RADIUS.chip },
-  posText: { fontSize: 11, letterSpacing: 1, fontWeight: WEIGHT.semibold, textTransform: 'uppercase' },
+  posText: { fontSize: 11, letterSpacing: TRACK.body, fontWeight: WEIGHT.semibold, textTransform: 'uppercase' },
   mk: { width: 7, height: 7, borderRadius: RADIUS.mark },
   morphBox: { marginTop: 14, padding: 16, borderRadius: RADIUS.ctrl, borderWidth: 1 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 18 },
   chip: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: RADIUS.chip },
-  chipText: { fontSize: 12, letterSpacing: 0.5 },
+  chipText: { fontSize: 12, letterSpacing: TRACK.body },
   exHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 26 },
-  secTitle: { fontSize: 13, letterSpacing: 1.1, fontWeight: WEIGHT.semibold },
+  secTitle: { fontSize: 13, letterSpacing: TRACK.title, fontWeight: WEIGHT.semibold },
   // 例句是语料不是人的批注 —— 用中性界行（1px bd），不用朱砂。朱砂只标人的痕迹。
   exItem: { marginTop: 12, paddingLeft: 12, borderLeftWidth: 1 },
   exEn: { fontFamily: serif, fontStyle: 'italic', fontSize: FONT.quote, lineHeight: 20 },
   exZh: { fontSize: 13, lineHeight: 19, marginTop: 6 },
-  exEmpty: { fontSize: 13, marginTop: 14, fontStyle: 'italic' },
-  savedTag: { fontSize: 12, letterSpacing: 1 },
+  exEmpty: { fontSize: 13, marginTop: 14 },
+  savedTag: { fontSize: 12, letterSpacing: TRACK.body },
   input: {
     marginTop: 12, minHeight: 44, borderRadius: RADIUS.ctrl, borderWidth: 1,
     paddingHorizontal: 14, paddingVertical: 11, fontSize: 14.5, lineHeight: 21,
@@ -269,5 +274,5 @@ const styles = StyleSheet.create({
   inputMulti: { minHeight: 72, textAlignVertical: 'top' },
   footer: { paddingHorizontal: SPACE.xl, paddingBottom: SPACE.xl, paddingTop: SPACE.md, borderTopWidth: 1 },
   masterBtn: { minHeight: CONTROL.lg, borderRadius: RADIUS.ctrl, alignItems: 'center', justifyContent: 'center' },
-  masterText: { fontSize: 15, letterSpacing: 1.5, fontWeight: WEIGHT.semibold },
+  masterText: { fontSize: FONT.body, letterSpacing: TRACK.body, fontWeight: WEIGHT.semibold },
 });

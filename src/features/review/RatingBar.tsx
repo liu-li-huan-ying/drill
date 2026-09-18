@@ -7,7 +7,7 @@
 import React from 'react';
 import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../../theme/ThemeProvider';
-import { RATING_LABELS, RATING_BAR, WEIGHT, RADIUS } from '../../theme/tokens';
+import { RATING_LABELS, RATING_BAR, WEIGHT, RADIUS, TRACK } from '../../theme/tokens';
 import type { IntervalPreview } from '../../srs/fsrs';
 
 export function RatingBar({
@@ -66,6 +66,6 @@ const styles = StyleSheet.create({
     paddingBottom: 11,
   },
   barWrap: { position: 'absolute', left: 0, right: 0, top: 14, alignItems: 'center' },
-  label: { fontSize: 13.5, fontWeight: WEIGHT.semibold, letterSpacing: 0.5 },
+  label: { fontSize: 13.5, fontWeight: WEIGHT.semibold, letterSpacing: TRACK.body },
   interval: { fontSize: 10.5, marginTop: 4, fontVariant: ['tabular-nums'] },
 });

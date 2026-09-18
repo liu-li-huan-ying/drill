@@ -7,7 +7,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../../theme/ThemeProvider';
-import { serif, WEIGHT, FONT, RADIUS } from '../../theme/tokens';
+import { serif, WEIGHT, FONT, RADIUS, TRACK } from '../../theme/tokens';
 
 /** 基准直径：设计稿按 196dp 画，其余尺寸按比例缩放（环心数字、字距、条间距都跟着走）。 */
 const BASE = 196;
@@ -75,7 +75,7 @@ export function ScaleRing({
         <Text
           style={[
             styles.num,
-            { color: c.tx1, fontFamily: serif, fontSize: numSize, lineHeight: numSize, letterSpacing: -1.2 * k, marginBottom: 12 * k },
+            { color: c.tx1, fontFamily: serif, fontSize: numSize, lineHeight: numSize, letterSpacing: TRACK.tight * k, marginBottom: 12 * k },
           ]}
         >
           {centerValue}
@@ -91,5 +91,5 @@ const styles = StyleSheet.create({
     fontWeight: WEIGHT.semibold,
     fontVariant: ['tabular-nums'],
   },
-  cap: { fontSize: 10, letterSpacing: 2.6, fontWeight: WEIGHT.semibold },
+  cap: { fontSize: 10, letterSpacing: TRACK.label, fontWeight: WEIGHT.semibold },
 });

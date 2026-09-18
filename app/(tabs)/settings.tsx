@@ -4,10 +4,11 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../../src/theme/ThemeProvider';
-import { RADIUS, SPACE, CONTROL, WEIGHT } from '../../src/theme/tokens';
-import { Card, Btn, RowItem, Label } from '../../src/components/ui';
+import { RADIUS, SPACE, CONTROL, WEIGHT, FONT, TRACK } from '../../src/theme/tokens';
+import { Card, Btn, RowItem, Label, Num } from '../../src/components/ui';
 import { getSettings, getMasteredCount, saveSettings, resetMastered } from '../../src/db/queries';
 import { useGutter } from '../../src/lib/layout';
+import { fmtNum } from '../../src/lib/num';
 
 const THEME_MODES = ['system', 'light', 'dark'] as const;
 const THEME_LABELS: Record<(typeof THEME_MODES)[number], string> = {
@@ -51,7 +52,7 @@ export default function SettingsScreen() {
           <Stepper label="每日复习上限" value={reviewLimit} onChange={setReviewLimit} min={10} max={1000} last />
         </View>
         <View style={styles.saveWrap}>
-          <Btn title={saved ? '已 保 存' : '保 存 设 置'} onPress={save} />
+          <Btn title={saved ? '已保存' : '保存设置'} onPress={save} />
         </View>
       </Card>
 
@@ -79,7 +80,7 @@ export default function SettingsScreen() {
 
       <Label style={styles.group}>学 习 记 录</Label>
       <Card pad={0} style={styles.tight}>
-        <RowItem label="我的助记" value={`已掌握 ${mastered}`} chev last onPress={() => router.push('/notes')} />
+        <RowItem label="我的助记" value={`已掌握 ${fmtNum(mastered)}`} chev last onPress={() => router.push('/notes')} />
       </Card>
 
       <Label style={styles.group}>工 具</Label>
@@ -91,9 +92,9 @@ export default function SettingsScreen() {
       </Card>
 
       <View style={styles.dangerWrap}>
-        <Btn title={`重 置 已 掌 握（${mastered}）`} variant="outline" onPress={doReset} />
+        <Btn title={`重置已掌握（${fmtNum(mastered)}）`} variant="outline" onPress={doReset} />
         <Text style={[styles.note, { color: c.tx3 }]}>
-          设置即时写入本地库；重置会把所有「已掌握」的词放回学习池。
+          改动立刻生效；重置会把「已掌握」的词重新放回学习池。
         </Text>
       </View>
     </ScrollView>
@@ -127,7 +128,7 @@ function Stepper({
         >
           <Text style={[styles.stepTxt, { color: c.tx1 }]}>−</Text>
         </TouchableOpacity>
-        <Text style={[styles.stepVal, { color: c.tx1 }]}>{value}</Text>
+        <Num value={value} style={[styles.stepVal, { color: c.tx1 }]} />
         <TouchableOpacity
           style={[styles.stepBtn, { borderColor: c.bd2 }]}
           activeOpacity={0.6}
@@ -155,7 +156,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   rowLast: { borderBottomWidth: 0 },
-  rowLabel: { fontSize: 15, fontWeight: WEIGHT.medium },
+  rowLabel: { fontSize: FONT.body, fontWeight: WEIGHT.medium },
   stepper: { flexDirection: 'row', alignItems: 'center' },
   stepBtn: {
     width: 32,
@@ -167,9 +168,8 @@ const styles = StyleSheet.create({
   },
   stepTxt: { fontSize: 18, fontWeight: WEIGHT.semibold },
   stepVal: {
-    fontSize: 15,
+    fontSize: FONT.body,
     fontWeight: WEIGHT.semibold,
-    fontVariant: ['tabular-nums'],
     marginHorizontal: SPACE.md,
     minWidth: 32,
     textAlign: 'center',
@@ -189,8 +189,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  segText: { fontSize: 13, letterSpacing: 1.5, fontWeight: WEIGHT.semibold },
+  segText: { fontSize: 13, letterSpacing: TRACK.body, fontWeight: WEIGHT.semibold },
 
   dangerWrap: { marginTop: SPACE.xxl },
-  note: { fontSize: 12, lineHeight: 18, marginTop: SPACE.md, letterSpacing: 0.5 },
+  note: { fontSize: 12, lineHeight: 18, marginTop: SPACE.md, letterSpacing: TRACK.body },
 });

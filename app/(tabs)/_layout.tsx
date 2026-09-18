@@ -9,7 +9,7 @@ import { useTheme } from '../../src/theme/ThemeProvider';
 import { BrandBar } from '../../src/components/ui';
 import { useSideInset, CONTENT_MAX } from '../../src/lib/layout';
 import { useReducedMotion } from '../../src/lib/motion';
-import { RADIUS, EASE, MOTION, SPACE, TAB_SLIDE, WEIGHT } from '../../src/theme/tokens';
+import { RADIUS, EASE, MOTION, SPACE, TAB_SLIDE, WEIGHT, TRACK } from '../../src/theme/tokens';
 
 const RULE_W = 30; // 朱痕宽度
 const TITLES: Record<string, string> = {
@@ -198,8 +198,9 @@ function TabBar({ state, navigation }: { state: any; navigation: any }) {
                 style={{
                   color: labelColor,
                   fontSize: 11,
-                  // 未选 0.8 / 选中 1.1：中文全角字不吃宽字距，只留一点呼吸
-                  letterSpacing: focused ? 1.1 : 0.8,
+                  // tab 标签是「一个词」不是「一列字」：宽字距留给 10sp 级的小标签，
+                  // 这里只留一点呼吸，选中态靠字重与颜色区分（P1.1）。
+                  letterSpacing: TRACK.body,
                   fontWeight: focused ? WEIGHT.semibold : WEIGHT.medium,
                 }}
               >

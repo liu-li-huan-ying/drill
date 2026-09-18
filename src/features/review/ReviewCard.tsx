@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { View, Text, TouchableOpacity, Animated, ScrollView, StyleSheet, type ViewStyle } from 'react-native';
 import { useTheme } from '../../theme/ThemeProvider';
-import { serif, mono, FONT, MOTION, RADIUS, SPACE, WEIGHT } from '../../theme/tokens';
+import { serif, mono, FONT, MOTION, RADIUS, SPACE, WEIGHT, TRACK } from '../../theme/tokens';
 import { ease, useReducedMotion } from '../../lib/motion';
 import { speak } from '../../lib/speak';
 import { DefinitionView } from '../../components/Definition';
-import { SealMark } from '../../components/ui';
+import { SealMark, SoundIcon } from '../../components/ui';
 import { RatingBar } from './RatingBar';
 import { getExamples, type QueueItem } from '../../db/queries';
 import type { IntervalPreview } from '../../srs/fsrs';
@@ -84,13 +84,14 @@ export function ReviewCard({
             {item.word}
           </Text>
           <View style={[styles.stroke, { backgroundColor: c.ac }]} />
-          {phonetic ? <Text style={[styles.ipa, { color: c.tx3 }]}>{phonetic}</Text> : null}
+          {phonetic ? <Text style={[styles.ipa, { color: c.tx2 }]}>{phonetic}</Text> : null}
           <TouchableOpacity
             activeOpacity={0.6}
             onPress={() => speak(item.word)}
             style={[styles.sound, { borderColor: c.bd2, backgroundColor: c.bg }]}
+            accessibilityLabel="播放发音"
           >
-            <SoundIcon color={c.tx2} />
+            <SoundIcon color={c.tx2} size={19} />
           </TouchableOpacity>
         </View>
         <Text style={[styles.hint, { color: c.tx3 }]}>轻 触 卡 片 · 查 看 释 义</Text>
@@ -111,8 +112,9 @@ export function ReviewCard({
             activeOpacity={0.6}
             onPress={() => speak(item.word)}
             style={[styles.soundSm, { borderColor: c.bd2 }]}
+            accessibilityLabel="播放发音"
           >
-            <SoundIcon color={c.tx2} size={13} />
+            <SoundIcon color={c.tx2} size={14} />
           </TouchableOpacity>
         </View>
 
@@ -140,20 +142,24 @@ export function ReviewCard({
             raw={item.definition_zh}
             accent={c.ac}
             rule={c.bd}
+            numbered
             style={{ color: c.tx1, fontSize: FONT.def, lineHeight: 26 }}
           />
+          {/* 英文释义去斜体（P1.3）：斜体是「例句原文」的专用记号，释义不占这个记号。 */}
           <DefinitionView
             raw={item.definition_en}
             accent={c.ac}
             rule={c.bd}
+            numbered
             blockStyle={{ marginTop: 8 }}
-            style={{ color: c.tx2, fontSize: 13, fontStyle: 'italic', lineHeight: 20 }}
+            style={{ color: c.tx2, fontSize: 13, lineHeight: 20 }}
           />
 
           {example ? (
             <>
               <Hair color={c.bd} />
               <Text style={[styles.secK, { color: c.tx3 }]}>例 句</Text>
+              {/* 例句原文是**唯一**用斜体的地方 —— 语料与释义的区别就靠它。 */}
               <Text style={[styles.quote, { color: c.tx2 }]}>{example.sentence_en}</Text>
               {example.sentence_zh ? (
                 <Text style={[styles.quoteZh, { color: c.tx3 }]}>{example.sentence_zh}</Text>
@@ -188,25 +194,6 @@ function Hair({ color }: { color: string }) {
   return <View style={{ height: 1, backgroundColor: color, marginVertical: SPACE.lg }} />;
 }
 
-function SoundIcon({ color, size = 15 }: { color: string; size?: number }) {
-  const d = size * 1.45;
-  return (
-    <View
-      style={{
-        width: d,
-        height: d,
-        borderRadius: d / 2,
-        borderWidth: 1.4,
-        borderColor: color,
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <View style={{ width: size * 0.62, height: size * 0.62, borderRadius: size * 0.31, backgroundColor: color }} />
-    </View>
-  );
-}
-
 // 纸感抬升靠「面比底亮一档 + 描边」，不用投影 —— 卡片是压在纸上的另一张纸，不是浮着的塑料板。
 const styles = StyleSheet.create({
   // perspective 放在容器上，让 iOS 的 3D 翻转有正确的纵深感（rotateY 在 JS 驱动下生效）。
@@ -216,10 +203,10 @@ const styles = StyleSheet.create({
 
   frontBody: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 26 },
   seal: { position: 'absolute', top: 22, right: 22, zIndex: 2 },
-  word: { fontFamily: serif, fontSize: FONT.cardWord, letterSpacing: -0.6, textAlign: 'center' },
+  word: { fontFamily: serif, fontSize: FONT.cardWord, letterSpacing: TRACK.tight, textAlign: 'center' },
   // 朱笔横痕：不是色块，是批注的那一「批」。纯 View 近似（两端圆头 + 略收窄），不引 SVG。
   stroke: { width: 168, height: 3, borderRadius: RADIUS.bar, opacity: 0.8, marginTop: 6 },
-  ipa: { fontFamily: mono, fontSize: FONT.ipa, letterSpacing: 1.2, marginTop: 16 },
+  ipa: { fontFamily: mono, fontSize: FONT.ipa, letterSpacing: TRACK.body, marginTop: 16 },
   sound: {
     width: 48,
     height: 48,
@@ -229,7 +216,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 26,
   },
-  hint: { fontSize: 12, letterSpacing: 1, textAlign: 'center', paddingBottom: 18, fontWeight: WEIGHT.medium },
+  hint: { fontSize: 12, letterSpacing: TRACK.body, textAlign: 'center', paddingBottom: 18, fontWeight: WEIGHT.medium },
 
   // 透明翻转层：盖住整张卡，承接所有点击。
   tap: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
@@ -242,7 +229,7 @@ const styles = StyleSheet.create({
     paddingTop: 18,
     paddingBottom: 14,
   },
-  wordSm: { flex: 1, fontFamily: serif, fontSize: FONT.wordSm, letterSpacing: -0.2 },
+  wordSm: { flex: 1, fontFamily: serif, fontSize: FONT.wordSm, letterSpacing: TRACK.tight },
   soundSm: {
     width: 34,
     height: 34,
@@ -253,12 +240,12 @@ const styles = StyleSheet.create({
   },
   backScroll: { flex: 1, width: '100%' },
   backContent: { paddingHorizontal: 24, paddingBottom: SPACE.xl },
-  secK: { fontSize: 10, letterSpacing: 1.6, fontWeight: WEIGHT.semibold, marginBottom: SPACE.md },
+  secK: { fontSize: 10, letterSpacing: TRACK.label, fontWeight: WEIGHT.semibold, marginBottom: SPACE.md },
   quote: { fontFamily: serif, fontStyle: 'italic', fontSize: FONT.quote, lineHeight: 24 },
-  quoteZh: { fontSize: 12.5, letterSpacing: 0.3, marginTop: 8, fontWeight: WEIGHT.medium },
+  quoteZh: { fontSize: 12.5, letterSpacing: TRACK.body, marginTop: 8, fontWeight: WEIGHT.medium },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   chip: { paddingHorizontal: 11, paddingVertical: 5, borderRadius: RADIUS.chip },
-  chipText: { fontSize: 10, letterSpacing: 1.4, fontWeight: WEIGHT.semibold },
+  chipText: { fontSize: 10, letterSpacing: TRACK.label, fontWeight: WEIGHT.semibold },
 
   footer: { borderTopWidth: 1, paddingHorizontal: 12, paddingTop: 12, paddingBottom: 12 },
 });

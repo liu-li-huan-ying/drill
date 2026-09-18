@@ -3,8 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '../src/theme/ThemeProvider';
-import { serif, FONT, mono, RADIUS, WEIGHT, SPACE, CONTROL } from '../src/theme/tokens';
-import { PageEnter } from '../src/components/ui';
+import { serif, FONT, mono, RADIUS, WEIGHT, SPACE, CONTROL, TRACK } from '../src/theme/tokens';
+import { PageEnter, Num } from '../src/components/ui';
 import { getTagWords, getTagWordCount, setStudyScope, getStudyScope, type WordRow } from '../src/db/queries';
 import { splitSenses } from '../src/components/Definition';
 import { useSideInset, useTopPad } from '../src/lib/layout';
@@ -59,7 +59,7 @@ export default function WordListScreen() {
         <Text style={[styles.title, { color: c.tx1, fontFamily: serif }]} numberOfLines={1}>
           {name}
         </Text>
-        <Text style={[styles.total, { color: c.tx3 }]}>{total}</Text>
+        <Num value={total} style={[styles.total, { color: c.tx3 }]} />
       </View>
 
       {scoped ? (
@@ -68,7 +68,7 @@ export default function WordListScreen() {
           onPress={() => router.dismissAll()}
           style={[styles.scopeBtn, { backgroundColor: c.acsf, borderColor: c.bd }]}
         >
-          <Text style={[styles.scopeBtnText, { color: c.ac }]}>✓ 在 背 · 去 首 页</Text>
+          <Text style={[styles.scopeBtnText, { color: c.ac }]}>✓ 在背 · 去首页</Text>
         </TouchableOpacity>
       ) : (
         <TouchableOpacity
@@ -79,7 +79,7 @@ export default function WordListScreen() {
           }}
           style={[styles.scopeBtn, { backgroundColor: c.ac, borderColor: c.ac }]}
         >
-          <Text style={[styles.scopeBtnText, { color: c.acon }]}>只 背 这 一 纲</Text>
+          <Text style={[styles.scopeBtnText, { color: c.acon }]}>只背这一纲</Text>
         </TouchableOpacity>
       )}
 
@@ -89,7 +89,7 @@ export default function WordListScreen() {
             <View style={styles.rowMain}>
               <Text style={[styles.word, { color: c.tx1 }]}>{w.word}</Text>
               {w.phonetic_uk ? (
-                <Text style={[styles.ipa, { color: c.tx3 }]}>{w.phonetic_uk}</Text>
+                <Text style={[styles.ipa, { color: c.tx2 }]}>{w.phonetic_uk}</Text>
               ) : null}
             </View>
             <Text style={[styles.def, { color: c.tx2 }]} numberOfLines={1}>
@@ -114,9 +114,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: SPACE.xl, paddingBottom: 12, borderBottomWidth: 1,
   },
-  back: { fontSize: 15 },
-  title: { fontSize: 18, flex: 1, textAlign: 'center', marginHorizontal: 10 },
-  total: { fontSize: 12, fontVariant: ['tabular-nums'] },
+  back: { fontSize: FONT.body },
+  title: { fontSize: 18, flex: 1, textAlign: 'center', marginHorizontal: 10, letterSpacing: TRACK.title },
+  total: { fontSize: 12, fontWeight: WEIGHT.medium },
   list: { paddingHorizontal: SPACE.xl, paddingBottom: 40 },
   row: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -141,10 +141,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  scopeBtnText: { fontSize: 14, letterSpacing: 1.5, fontWeight: WEIGHT.semibold },
+  scopeBtnText: { fontSize: 14, letterSpacing: TRACK.body, fontWeight: WEIGHT.semibold },
   more: {
     marginTop: 18, minHeight: CONTROL.md, borderRadius: RADIUS.ctrl, borderWidth: 1,
     alignItems: 'center', justifyContent: 'center',
   },
-  moreText: { fontSize: 14, letterSpacing: 1 },
+  moreText: { fontSize: 14, letterSpacing: TRACK.body },
 });

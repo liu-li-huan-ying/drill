@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../theme/ThemeProvider';
-import { serif } from '../theme/tokens';
+import { serif, TRACK } from '../theme/tokens';
 import type { Morphology } from '../lib/morphology';
 
 // 词根词缀拆解展示：把 decompose() 的结果渲染成「前缀 + 词干 + 后缀」的横向分段，
@@ -34,7 +34,7 @@ export function MorphologyView({ data }: { data: Morphology }) {
 const styles = StyleSheet.create({
   wrap: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-start', gap: 8 },
   seg: { alignItems: 'center' },
-  segText: { fontFamily: serif, fontSize: 17, letterSpacing: -0.2 },
+  segText: { fontFamily: serif, fontSize: 17, letterSpacing: TRACK.tight },
   segMean: { fontSize: 10.5, marginTop: 3, maxWidth: 96, textAlign: 'center' },
   plus: { fontSize: 13, marginTop: 4 },
 });

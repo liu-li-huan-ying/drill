@@ -4,11 +4,12 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../src/theme/ThemeProvider';
-import { serif, mono, FONT, RADIUS, WEIGHT, SPACE, CONTROL } from '../src/theme/tokens';
-import { PageEnter } from '../src/components/ui';
+import { serif, mono, FONT, RADIUS, WEIGHT, SPACE, CONTROL, TRACK } from '../src/theme/tokens';
+import { PageEnter, Num, SoundIcon } from '../src/components/ui';
 import { getVocabTestSample, markMastered } from '../src/db/queries';
 import { speak } from '../src/lib/speak';
 import { useSideInset, useTopPad, useBottomPad } from '../src/lib/layout';
+import { fmtNum } from '../src/lib/num';
 
 const PER_BAND = 3;
 const BANDS = 12;
@@ -55,16 +56,20 @@ export default function VocabTestScreen() {
       <PageEnter style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
         <View style={styles.doneWrap}>
           <Text style={[styles.doneKicker, { color: c.tx3 }]}>词 汇 量 估 算</Text>
-          <Text style={[styles.est, { color: c.ac, fontFamily: serif }]}>{Math.round(estimate).toLocaleString()}</Text>
-          <Text style={[styles.doneSub, { color: c.tx2 }]}>
-            抽样 {items.length} 词中认识 {known} 个，已知词已标为「已掌握」
-          </Text>
+          <Num value={Math.round(estimate)} style={[styles.est, { color: c.ac, fontFamily: serif }]} />
+          <View style={styles.doneSubRow}>
+            <Text style={[styles.doneSub, { color: c.tx2 }]}>抽样</Text>
+            <Num value={items.length} style={[styles.doneSub, { color: c.tx2 }]} />
+            <Text style={[styles.doneSub, { color: c.tx2 }]}>个词，认识</Text>
+            <Num value={known} style={[styles.doneSub, { color: c.tx2 }]} />
+            <Text style={[styles.doneSub, { color: c.tx2 }]}>个</Text>
+          </View>
           <TouchableOpacity
             activeOpacity={0.85}
             onPress={() => router.back()}
             style={[styles.doneBtn, { backgroundColor: c.ac }]}
           >
-            <Text style={[styles.doneBtnText, { color: c.acon }]}>完 成</Text>
+            <Text style={[styles.doneBtnText, { color: c.acon }]}>完成</Text>
           </TouchableOpacity>
         </View>
       </PageEnter>
@@ -75,9 +80,11 @@ export default function VocabTestScreen() {
   return (
     <PageEnter style={[styles.screen, { backgroundColor: c.bg, paddingHorizontal: side, paddingTop: topPad }]}>
       <View style={[styles.top, { borderBottomColor: c.bd }]}>
-        <Text style={[styles.progress, { color: c.tx3 }]}>
-          {idx + 1} / {items.length}
-        </Text>
+        <View style={styles.progRow}>
+          <Num value={idx + 1} style={[styles.progress, { color: c.tx3 }]} />
+          <Text style={[styles.progress, { color: c.tx3 }]}>/</Text>
+          <Num value={items.length} style={[styles.progress, { color: c.tx3 }]} />
+        </View>
         <TouchableOpacity activeOpacity={0.6} onPress={() => router.back()}>
           <Text style={[styles.end, { color: c.tx2 }]}>退出</Text>
         </TouchableOpacity>
@@ -85,7 +92,7 @@ export default function VocabTestScreen() {
 
       <View style={styles.explain}>
         <Text style={[styles.explainText, { color: c.tx2 }]}>
-          按词频分层抽样，估计你「大概认识多少词」。认识的会标为已掌握。
+          从各级词汇里抽样，估一下你大概认识多少词。认得的不再安排学习。
         </Text>
       </View>
 
@@ -94,7 +101,7 @@ export default function VocabTestScreen() {
           <Text style={[styles.ul, { color: c.tx3 }]}>这 个 词 你 认 识 吗</Text>
           <Text style={[styles.word, { color: c.tx1, fontFamily: serif }]}>{cur?.word}</Text>
           {cur?.phonetic_uk || cur?.phonetic_us ? (
-            <Text style={[styles.ipa, { color: c.tx3, fontFamily: mono }]}>
+            <Text style={[styles.ipa, { color: c.tx2, fontFamily: mono }]}>
               {cur.phonetic_uk || cur.phonetic_us}
             </Text>
           ) : null}
@@ -102,24 +109,23 @@ export default function VocabTestScreen() {
             style={styles.sound}
             activeOpacity={0.6}
             onPress={() => cur && speak(cur.word)}
+            accessibilityLabel="播放发音"
           >
-            <View style={[styles.soundDot, { borderColor: c.tx1 }]}>
-              <View style={[styles.soundInner, { backgroundColor: c.tx1 }]} />
-            </View>
+            <SoundIcon color={c.tx2} size={22} />
           </TouchableOpacity>
         </View>
       </View>
 
       <View style={[styles.actions, { paddingBottom: bottomPad }]}>
         <TouchableOpacity activeOpacity={0.85} onPress={() => decide(true)} style={[styles.btnKnow, { backgroundColor: c.ac }]}>
-          <Text style={[styles.btnKnowText, { color: c.acon }]}>认 识</Text>
+          <Text style={[styles.btnKnowText, { color: c.acon }]}>认识</Text>
         </TouchableOpacity>
         <TouchableOpacity
           activeOpacity={0.85}
           onPress={() => decide(false)}
           style={[styles.btnUnknown, { backgroundColor: c.sf, borderColor: c.bd2 }]}
         >
-          <Text style={[styles.btnUnknownText, { color: c.tx1 }]}>不 认 识</Text>
+          <Text style={[styles.btnUnknownText, { color: c.tx1 }]}>不认识</Text>
         </TouchableOpacity>
       </View>
     </PageEnter>
@@ -129,27 +135,27 @@ export default function VocabTestScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   top: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: SPACE.xl, paddingBottom: 14, borderBottomWidth: 1 },
-  progress: { fontSize: 12, letterSpacing: 1.1, fontVariant: ['tabular-nums'] },
-  end: { fontSize: 14, letterSpacing: 1 },
+  progRow: { flexDirection: 'row', alignItems: 'baseline', gap: 3 },
+  progress: { fontSize: 12, letterSpacing: TRACK.body, fontWeight: WEIGHT.medium },
+  end: { fontSize: 14, letterSpacing: TRACK.body },
   explain: { paddingHorizontal: SPACE.xl, paddingTop: 18 },
-  explainText: { fontSize: 13, lineHeight: 19, letterSpacing: 0.5 },
+  explainText: { fontSize: 13, lineHeight: 19, letterSpacing: TRACK.body },
   cardArea: { flex: 1, paddingHorizontal: SPACE.xl, justifyContent: 'center' },
   card: { borderRadius: RADIUS.card, borderWidth: 1, paddingVertical: 40, alignItems: 'center' },
-  ul: { fontSize: 10.5, letterSpacing: 1.1, textTransform: 'uppercase', fontWeight: WEIGHT.semibold },
-  word: { fontSize: FONT.test, marginTop: 18, letterSpacing: -0.8 },
-  ipa: { fontSize: 13, marginTop: 12, letterSpacing: 0.8 },
+  ul: { fontSize: FONT.label, letterSpacing: TRACK.label, textTransform: 'uppercase', fontWeight: WEIGHT.semibold },
+  word: { fontSize: FONT.test, marginTop: 18, letterSpacing: TRACK.tight },
+  ipa: { fontSize: FONT.ipa, marginTop: 12, letterSpacing: TRACK.body },
   sound: { marginTop: 26 },
-  soundDot: { width: 44, height: 44, borderRadius: RADIUS.pill, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
-  soundInner: { width: 8, height: 8, borderRadius: RADIUS.pill },
   actions: { flexDirection: 'row', gap: SPACE.md, paddingHorizontal: SPACE.xl, paddingBottom: SPACE.xxxl },
   btnKnow: { flex: 1, minHeight: CONTROL.lg, borderRadius: RADIUS.ctrl, alignItems: 'center', justifyContent: 'center' },
-  btnKnowText: { fontSize: 15, letterSpacing: 1.5, fontWeight: WEIGHT.semibold },
+  btnKnowText: { fontSize: FONT.body, letterSpacing: TRACK.body, fontWeight: WEIGHT.semibold },
   btnUnknown: { flex: 1, minHeight: CONTROL.lg, borderRadius: RADIUS.ctrl, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  btnUnknownText: { fontSize: 15, letterSpacing: 1.5 },
+  btnUnknownText: { fontSize: FONT.body, letterSpacing: TRACK.body, fontWeight: WEIGHT.medium },
   doneWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
-  doneKicker: { fontSize: 11, letterSpacing: 1.1, textTransform: 'uppercase', fontWeight: WEIGHT.semibold },
-  est: { fontSize: 56, marginTop: 10, letterSpacing: -1 },
-  doneSub: { fontSize: 13, marginTop: 12, lineHeight: 19, textAlign: 'center', letterSpacing: 0.5 },
+  doneKicker: { fontSize: 11, letterSpacing: TRACK.caps, textTransform: 'uppercase', fontWeight: WEIGHT.semibold },
+  est: { fontSize: 56, marginTop: 10, letterSpacing: TRACK.tight, fontWeight: WEIGHT.semibold },
+  doneSubRow: { flexDirection: 'row', alignItems: 'baseline', gap: 3, marginTop: 12, flexWrap: 'wrap', justifyContent: 'center', paddingHorizontal: SPACE.lg },
+  doneSub: { fontSize: 13, letterSpacing: TRACK.body },
   doneBtn: { marginTop: 32, minHeight: CONTROL.lg, width: 200, borderRadius: RADIUS.ctrl, alignItems: 'center', justifyContent: 'center' },
-  doneBtnText: { fontSize: 15, letterSpacing: 1.5, fontWeight: WEIGHT.semibold },
+  doneBtnText: { fontSize: FONT.body, letterSpacing: TRACK.body, fontWeight: WEIGHT.semibold },
 });

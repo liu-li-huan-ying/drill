@@ -3,10 +3,10 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../../src/theme/ThemeProvider';
-import { serif, FONT, RADIUS, WEIGHT, SPACE, CONTROL } from '../../src/theme/tokens';
+import { serif, FONT, RADIUS, WEIGHT, SPACE, CONTROL, TRACK } from '../../src/theme/tokens';
 import { getTags, getWordCount, searchWords, getStudyScope, type WordRow } from '../../src/db/queries';
 import { splitSenses } from '../../src/components/Definition';
-import { Label, Chev } from '../../src/components/ui';
+import { Label, Chev, Num } from '../../src/components/ui';
 import { useGutter } from '../../src/lib/layout';
 
 export default function LibraryScreen() {
@@ -30,7 +30,14 @@ export default function LibraryScreen() {
       contentContainerStyle={[styles.container, { backgroundColor: c.bg, paddingHorizontal: gutter }]}
     >
       <Label>词 库 · LIBRARY</Label>
-      <Text style={[styles.head, { color: c.tx1 }]}>已装载 {total} 词</Text>
+      {/* 数字与单位分开：`已装载 30565 词` 读不出量级，`已装载 30,565 词` 一眼就有数。 */}
+      <View style={styles.headRow}>
+        <Text style={[styles.head, { color: c.tx1 }]}>已装载</Text>
+        <Num value={total} style={[styles.headNum, { color: c.tx1, fontFamily: serif }]} />
+        <Text style={[styles.headUnit, { color: c.tx3 }]}>词</Text>
+      </View>
+      {/* 勾选态的意思是「你正在背这本」——不说出来，8dp 方印只是一个装饰方点（P1.8）。 */}
+      <Text style={[styles.hint, { color: c.tx3 }]}>点一行，就只背那一本</Text>
 
       {/* 搜索框 */}
       <View style={[styles.search, { backgroundColor: c.pg, borderColor: c.bd }]}>
@@ -54,9 +61,13 @@ export default function LibraryScreen() {
 
       {query ? (
         <View style={{ marginTop: 18 }}>
-          <Label style={styles.subhead}>
-            {results.length > 0 ? `匹配 ${results.length} 词` : '无匹配'}
-          </Label>
+          <View style={styles.subheadRow}>
+            <Label style={styles.subhead}>{results.length > 0 ? '匹配' : ''}</Label>
+            {results.length > 0 ? (
+              <Num value={results.length} style={[styles.subheadNum, { color: c.tx3 }]} />
+            ) : null}
+            <Label style={styles.subhead}>{results.length > 0 ? '词' : '无匹配'}</Label>
+          </View>
           {results.map((w) => (
             <TouchableOpacity key={w.word_id} style={[styles.resRow, { borderBottomColor: c.bd }]} onPress={() => goWord(w)}>
               <Text style={[styles.resWord, { color: c.tx1 }]}>{w.word}</Text>
@@ -113,11 +124,19 @@ export default function LibraryScreen() {
                     >
                       {t.name}
                     </Text>
-                    <Text style={[styles.count, { color: active ? c.ac : c.tx2 }]}>{t.count}</Text>
+                    {/* 选中态的**文字**反馈：只有方印变色时，「是你选的那本」和
+                        「这本是自建词表」在余光里长得一样（P1.8）。 */}
+                    <View style={styles.rowRight}>
+                      {active ? (
+                        <Text style={[styles.badge, { color: c.ac, borderColor: c.ac }]}>在背</Text>
+                      ) : null}
+                      <Num value={t.count} style={[styles.count, { color: active ? c.ac : c.tx2 }]} />
+                    </View>
                   </View>
-                  {/* 轨道取 bd2（原型 .rw .bar 的取值）：轨道是「满额」的容器，
-                      有它才读得出「这一段占了整个词库的多少」——填色取墨阶或朱砂（上面已述）。 */}
-                  <View style={[styles.barTrack, { backgroundColor: c.bd2 }]}>
+                  {/* 轨道取 pg（机身底）而不是描边色：轨道是**凹槽**，凹槽比纸面暗一档才对；
+                      取描边色（bd2）时条与轨的对比度只有 3.7:1，现在约 4.7:1（暗 5.9:1）。
+                      填色取墨阶或朱砂（上面已述）。 */}
+                  <View style={[styles.barTrack, { backgroundColor: c.pg }]}>
                     <View style={[styles.barFill, { width: `${w}%`, backgroundColor: active ? c.ac : c.tx2 }]} />
                   </View>
                 </View>
@@ -133,7 +152,13 @@ export default function LibraryScreen() {
 
 const styles = StyleSheet.create({
   container: { flexGrow: 1, paddingTop: SPACE.sm, paddingHorizontal: SPACE.xl, paddingBottom: SPACE.huge },
-  head: { fontSize: FONT.title, marginTop: 10, fontFamily: serif, fontWeight: WEIGHT.semibold },
+  headRow: { flexDirection: 'row', alignItems: 'baseline', gap: 7, marginTop: 10 },
+  head: { fontSize: FONT.title, fontFamily: serif, fontWeight: WEIGHT.semibold },
+  // 数字走衬线 600 + 等宽数位：它和「已装载」是同一个标题里的两级 ——
+  // 数字是读数（重）、汉字是定语（轻）。
+  headNum: { fontSize: FONT.title, fontWeight: WEIGHT.semibold },
+  headUnit: { fontSize: FONT.body, fontFamily: serif, fontWeight: WEIGHT.medium },
+  hint: { fontSize: 12, letterSpacing: TRACK.body, marginTop: SPACE.sm },
   search: {
     flexDirection: 'row', alignItems: 'center', marginTop: 18,
     minHeight: CONTROL.md, borderRadius: RADIUS.ctrl, borderWidth: 1, paddingHorizontal: SPACE.md,
@@ -141,7 +166,9 @@ const styles = StyleSheet.create({
   searchIcon: { fontSize: 18, marginRight: 8 },
   searchInput: { flex: 1, fontSize: 15, paddingVertical: 0 },
   searchClear: { fontSize: 20, marginLeft: 8, paddingHorizontal: 4 },
-  subhead: { marginBottom: 4 },
+  subheadRow: { flexDirection: 'row', alignItems: 'baseline', gap: 3, marginBottom: 4 },
+  subhead: { marginBottom: 0 },
+  subheadNum: { fontSize: 10.5, fontWeight: WEIGHT.semibold, letterSpacing: TRACK.label },
   resRow: { paddingVertical: 13, borderBottomWidth: 1 },
   resWord: { fontSize: 15, fontFamily: serif },
   resDef: { fontSize: 13, marginTop: 3 },
@@ -150,15 +177,19 @@ const styles = StyleSheet.create({
   mark: { width: 8, height: 8, borderRadius: RADIUS.mark, marginRight: SPACE.md },
   rowMain: { flex: 1 },
   rowTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: SPACE.md },
+  rowRight: { flexDirection: 'row', alignItems: 'baseline', gap: SPACE.sm, flexShrink: 0 },
+  // 「在背」用朱砂**朱文印**式的小框：与「已掌握」这类批点同一套语汇。
+  badge: {
+    fontSize: 9.5, letterSpacing: TRACK.body, fontWeight: WEIGHT.semibold,
+    borderWidth: 1, borderRadius: RADIUS.chip, paddingHorizontal: 5, paddingVertical: 1,
+  },
   // 名称是内容，用 tx1 满墨 + 500（列表项档）；长名截断而不是把词数挤出去。
-  name: { fontSize: 15, fontWeight: WEIGHT.medium, flexShrink: 1 },
+  name: { flexShrink: 1, fontSize: 15, fontWeight: WEIGHT.medium },
   // 词数走衬线 600：数字是这一行的「读数」，靠字重站住，不靠颜色（§3 字重）。
   count: {
     fontSize: 15,
     fontFamily: serif,
     fontWeight: WEIGHT.semibold,
-    fontVariant: ['tabular-nums'],
-    flexShrink: 0,
   },
   barTrack: { height: 4, borderRadius: RADIUS.bar, marginTop: SPACE.sm, overflow: 'hidden' },
   barFill: { height: 4, borderRadius: RADIUS.bar },
