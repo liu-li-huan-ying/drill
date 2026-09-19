@@ -24,6 +24,7 @@ import {
 } from '../src/db/queries';
 import { previewIntervals, type IntervalPreview } from '../src/srs/fsrs';
 import type { Grade } from 'ts-fsrs';
+import { speak } from '../src/lib/speak';
 import { useSideInset, useTopPad, useBottomPad } from '../src/lib/layout';
 
 // 预览尚未取到时的占位（只影响首帧，条长会立刻被真实值替换）。
@@ -196,7 +197,22 @@ export default function ReviewScreen() {
   // 判定没有被跳过，只是延后到它真的有得可判的时候。
   const judgeNew = (knew: boolean) => {
     grade(knew ? 3 : 1);
+    // 判「不认识」= 这一下是学这个词 → 顺手读一遍（墨墨揭示答案时即朗读）。
+    // 只在「不认识」时自动读：判「认识」的人不需要，无差别朗读只会吵。
+    if (!knew) speak(queue[idx]?.word ?? '');
     setFlipped(true); // 判完立刻给答案：这一下是「学」，不是「考」
+  };
+
+  // 判「认识」之后看了答案才发现记错了 —— **单向**改判成「不认识」。
+  // 只能往下改：往上改（不认识 → 认识）就是把答案当提示用，那正是 v3.14 要堵的那条路。
+  // 做法 = 撤销刚才那次 Good + 按 Again 重记一次；计数与待重来池同步回退。
+  const correctJudge = () => {
+    if (!undo) return;
+    undoGrade(undo.snap);
+    run.current.done = Math.max(0, run.current.done - 1);
+    if (undo.rating >= 3) run.current.correct = Math.max(0, run.current.correct - 1);
+    relearn.current = relearn.current.filter((r) => r.item.word_id !== undo.snap.word_id);
+    grade(1);
   };
 
   // 选择题只用于「验证记忆」，不用于「首次见面」：
@@ -293,6 +309,9 @@ export default function ReviewScreen() {
             onRate={rate}
             onJudge={useJudge ? judgeNew : undefined}
             onContinue={advance}
+            onWrongAfterJudge={
+              useJudge && undo?.rating === 3 && undo.snap.wasNew ? correctJudge : undefined
+            }
           />
           )
         ) : null}

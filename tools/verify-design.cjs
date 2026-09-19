@@ -256,6 +256,29 @@ check(
   'mixSession 接线；旧式拼接零残留'
 );
 
+// ── 5e. 判错的词要讲清楚（v3.15，参考不背单词「混淆项辨析」）──────────────
+// 只把错的那一项标红，学习者不知道自己到底把它当成了什么 —— 同样的错下一轮原样再犯。
+const judgeBlock = between(rev, 'const correctJudge', 'const useQuiz');
+check(
+  '混淆项辨析（答错时讲清你选的那个是什么）',
+  /toOption\(/.test(quizCode) && /word: string;/.test(quizCode) && /gloss: string;/.test(quizCode),
+  '选项同时带着词与释义两端'
+);
+check(
+  '选项不露复合词性（vt. & vi. 只剥一层会送答案）',
+  /senses\[0\]\.body\.trim\(\)\.replace\(/.test(quizCode),
+  'parseSenses 之后再剥一层带分隔符的续接词性'
+);
+// 「记错了」= 判后的**单向**修正：只能把「认识」改成「不认识」。
+// 判定时仍没看答案（v3.14 判据未破），是看了答案自己发现想错了 —— 给这个出口判定才闭环。
+check(
+  '判「认识」后有单向反悔出口（只许往下改）',
+  /const correctJudge = \(\) => \{/.test(rev) &&
+    /undo\?\.rating === 3 && undo\.snap\.wasNew \? correctJudge : undefined/.test(rev) &&
+    /grade\(1\)/.test(judgeBlock),
+  '仅在判了「认识」后出现；改判固定落在 Again'
+);
+
 check('完成屏可滚动（短屏不裁）', /<ScrollView/.test(read('src/features/review/DoneView.tsx')), 'DoneView');
 check('长词自适应（不挤出卡外）', /adjustsFontSizeToFit/.test(read('src/features/review/ReviewCard.tsx')), 'numberOfLines=2');
 check('刻度环按视口定尺', /size=\{ringSize\}/.test(read('app/(tabs)/index.tsx')), 'ringSize');

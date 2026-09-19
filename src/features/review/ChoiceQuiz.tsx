@@ -27,7 +27,11 @@ import { RADIUS, SPACE, WEIGHT, TRACK, FONT, CONTROL, serif } from '../../theme/
 function optionText(def: string | null | undefined, max = 14): string {
   const senses = parseSenses(def);
   if (!senses.length) return '';
-  const body = senses[0].body.trim();
+  // 复合词性（`vt. & vi.` / `n. & a. & v.`）：parseSense 只剥头一个，
+  // 剩下那个 `& vi.` 会漏进选项 —— 选项里露词性等于送答案（实测 23 词中招）。
+  // 只剥带分隔符的续接词性，不误伤以括号开头的正常用法注解（那类有 550 词，是有效内容）。
+  const body = senses[0].body.trim().replace(/^(?:\s*[&/、,，]\s*[a-z]{1,8}\.\s*)+/i, '');
+  if (!body) return '';
   if (body.length <= max) return body;
   const seg = body.slice(0, max);
   // 在窗口内找最后一个逗号，从那里收束；找不到（英文短语等）才退化为硬截。
@@ -40,34 +44,38 @@ type Mode = 'meaning' | 'word';
 interface Option {
   key: number;
   label: string;
+  // 选项背后的那个词 + 它的释义。两条都要留着，是为了答错后做**混淆项辨析**：
+  // 只标红不解释，学习者不知道自己到底把它想成了什么，同样的错会再犯一次
+  // （不背单词把这个做成设置项「混淆项辨析」，默认开）。
+  word: string;
+  gloss: string;
   correct: boolean;
 }
 
+function toOption(word: string, defZh: string | null, mode: Mode, correct: boolean, key: number): Option {
+  const gloss = optionText(defZh);
+  return { key, label: mode === 'meaning' ? gloss : word, word, gloss, correct };
+}
+
 function buildOptions(item: QueueItem, mode: Mode): { prompt: string; options: Option[]; answer: string } {
-  const def = optionText(item.definition_zh);
-  const correctLabel = mode === 'meaning' ? def : item.word;
+  const correct = toOption(item.word, item.definition_zh, mode, true, 0);
   const ds: ChoiceOption[] = getDistractors(item, 3);
-  const wrongRaw = ds.map((d) => (mode === 'meaning' ? optionText(d.definition_zh) : d.word));
 
   // 去重：干扰项与正确答案撞车（同形 / 同释义）会让那一项「选了也算对」，判定就废了。
-  const seen = new Set<string>([correctLabel]);
-  const wrong: string[] = [];
-  for (const w of wrongRaw) {
-    if (!w || seen.has(w)) continue;
-    seen.add(w);
-    wrong.push(w);
+  const seen = new Set<string>([correct.label]);
+  const all: Option[] = [correct];
+  for (const d of ds) {
+    const o = toOption(d.word, d.definition_zh, mode, false, all.length);
+    if (!o.label || seen.has(o.label)) continue;
+    seen.add(o.label);
+    all.push(o);
   }
-
-  const all: Option[] = [
-    { key: 0, label: correctLabel, correct: true },
-    ...wrong.map((w, i) => ({ key: i + 1, label: w, correct: false })),
-  ];
   // 洗牌：正确项不能总在同一个位置，否则练的是位置记忆。
   for (let i = all.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [all[i], all[j]] = [all[j], all[i]];
   }
-  return { prompt: mode === 'meaning' ? item.word : def, options: all, answer: correctLabel };
+  return { prompt: mode === 'meaning' ? correct.word : correct.gloss, options: all, answer: correct.label };
 }
 
 export function ChoiceQuiz({
@@ -91,7 +99,8 @@ export function ChoiceQuiz({
   );
   const [picked, setPicked] = useState<number | null>(null);
   const answered = picked !== null;
-  const wasRight = answered && options[picked as number].correct;
+  const pickedOpt = answered ? options[picked as number] : null;
+  const wasRight = !!pickedOpt?.correct;
   const phonetic = item.phonetic_uk || item.phonetic_us || '';
 
   const pick = (i: number) => {
@@ -150,6 +159,16 @@ export function ChoiceQuiz({
           <Text style={[styles.verdict, { color: wasRight ? c.tx2 : c.ac }]}>
             {wasRight ? '对了' : `不对 · 正确答案是「${answer}」`}
           </Text>
+          {/* 混淆项辨析：答错时把**你选的那个**摊开讲清楚。
+              只标红不解释，学习者不知道自己把它当成了什么 —— 同样的错下一轮会原样再犯。
+              正确答案那一行是「该记什么」，这一行是「刚才错在哪」，两行并排才是完整反馈。 */}
+          {!wasRight && pickedOpt ? (
+            <Text style={[styles.confuse, { color: c.tx2 }]}>
+              {mode === 'meaning'
+                ? `你选的那个意思属于「${pickedOpt.word}」`
+                : `「${pickedOpt.word}」的意思是「${pickedOpt.gloss}」`}
+            </Text>
+          ) : null}
           {/* 答完给完整词条：只丢一个 14 字的选项文本就说「判完了」，那这一轮只剩考试、没有学习。 */}
           <View style={styles.entry}>
             <Text style={[styles.entryWord, { color: c.tx1 }]}>{item.word}</Text>
@@ -190,6 +209,7 @@ const styles = StyleSheet.create({
   optText: { fontSize: FONT.def, fontWeight: WEIGHT.regular, lineHeight: 22 },
   after: { marginTop: SPACE.lg, gap: SPACE.md },
   verdict: { fontSize: FONT.body, fontWeight: WEIGHT.semibold },
+  confuse: { fontSize: FONT.quote, lineHeight: 20, marginTop: -2 },
   entry: { gap: 3 },
   entryWord: { fontFamily: serif, fontSize: FONT.def, fontWeight: WEIGHT.semibold },
   ipa: { fontSize: FONT.ipa },

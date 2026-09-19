@@ -32,6 +32,7 @@ export function ReviewCard({
   onRate,
   onJudge,
   onContinue,
+  onWrongAfterJudge,
 }: {
   item: QueueItem;
   flipped: boolean;
@@ -42,6 +43,8 @@ export function ReviewCard({
   onJudge?: (knew: boolean) => void;
   /** 新卡判定后的推进（背面页脚的「继续」）。 */
   onContinue?: () => void;
+  /** 判「认识」之后看了答案才发现记错了 —— 改判成「不认识」。只能往下改。 */
+  onWrongAfterJudge?: () => void;
 }) {
   const { colors: c } = useTheme();
   const reduce = useReducedMotion();
@@ -219,7 +222,21 @@ export function ReviewCard({
         </ScrollView>
 
         <View style={[styles.footer, { borderTopColor: c.bd }]}>
-          {onJudge ? <Btn title="继续" onPress={onContinue} /> : <RatingBar intervals={intervals} onRate={onRate} />}
+          {onJudge ? (
+            <>
+              <Btn title="继续" onPress={onContinue} />
+              {/* 「记错了」是判后的**单向修正**：只能把「认识」改成「不认识」。
+                  判定时没看答案（v3.14 的判据没破），是看了答案才自己发现想错了 ——
+                  给这个出口，判定才真正闭环；不给，高估自己的人只能将错就错。 */}
+              {onWrongAfterJudge ? (
+                <TouchableOpacity activeOpacity={0.6} onPress={onWrongAfterJudge} style={styles.wrongLink}>
+                  <Text style={[styles.wrongLinkText, { color: c.ac }]}>记错了 · 按「不认识」重来</Text>
+                </TouchableOpacity>
+              ) : null}
+            </>
+          ) : (
+            <RatingBar intervals={intervals} onRate={onRate} />
+          )}
         </View>
       </Animated.View>
     </View>
@@ -305,4 +322,8 @@ const styles = StyleSheet.create({
   },
   judgeLabel: { fontSize: FONT.def, fontWeight: WEIGHT.semibold, letterSpacing: TRACK.body },
   judgeHint: { fontSize: 10.5, marginTop: 4, fontVariant: ['tabular-nums'] },
+  // 改判是个**少数的、纠偏的**动作：给朱砂（与「撤销」同一套记号），但不做成第二个按钮 ——
+  // 它不该和「继续」抢主次，抢了就等于在暗示「你八成是判错了」。
+  wrongLink: { alignItems: 'center', paddingTop: 10 },
+  wrongLinkText: { fontSize: 12.5, letterSpacing: TRACK.body, fontWeight: WEIGHT.medium },
 });
