@@ -208,6 +208,40 @@ check(
   '1 正确 + 3 同词性干扰'
 );
 
+// ── 5d. 每日计划不按难易排队（v3.13） ───────────────────────────────────
+// 主人反馈「不要按难易程度去推送，要打乱或者参杂着」。旧的 planSession 里新词是
+// `ORDER BY w.frq ASC LIMIT 预算` —— 当天 20 张全是 frq 1~22 的 the/be/and/of，
+// 一整筐难度完全同质；队列又是 `[...reviews, ...news]`，先啃完复习再一口气灌生词。
+// 判据：① 新词必须分档轮流取（不是按 frq 直排）；② 新旧必须交错成一条队列；
+// ③ 所有随机走**日种子**而不是 RANDOM()（RANDOM() 每次都变 → 同一天刷新就换一份计划，
+//   进度条、重学卡、撤销快照全对不上号）。
+// 锚点必须用**代码里的符号**，不能用注释里的句子 —— code() 会剥掉注释，注释锚点会切空。
+const planBlock = between(code('src/db/queries.ts'), 'export function planSession', 'export function getStudyScope');
+check(
+  '新词不按难易排队（按词频分档轮流取）',
+  /NEW_BANDS = [2-9]/.test(code('src/db/queries.ts')) &&
+    /stratifyByFrequency\(pool/.test(planBlock) &&
+    !/ORDER BY w\.frq ASC/.test(planBlock),
+  '分档轮流；planSession 内零 frq 直排'
+);
+check(
+  '复习按到期日分桶、桶内打乱（排序键是时间不是难度）',
+  /CAST\(c\.due \/ 86400000 AS INTEGER\)/.test(planBlock) && /% 104729/.test(planBlock),
+  '日桶先后 + 桶内种子序'
+);
+check(
+  '计划走日种子（同一天反复打开是同一份）',
+  /daySeed\(\)/.test(code('src/db/queries.ts')) &&
+    /dateKey\(Date\.now\(\), getSettings\(\)\.day_cutoff_hour\)/.test(code('src/db/queries.ts')) &&
+    !/RANDOM\(\)/.test(planBlock),
+  '由日期键派生，planSession 内零 RANDOM()'
+);
+check(
+  '新旧交错成一条队列（不是先复习后新词）',
+  /mixSession\(reviews, news\)/.test(rev) && !/\[\.\.\.reviews, \.\.\.news\]/.test(rev),
+  'mixSession 接线；旧式拼接零残留'
+);
+
 check('完成屏可滚动（短屏不裁）', /<ScrollView/.test(read('src/features/review/DoneView.tsx')), 'DoneView');
 check('长词自适应（不挤出卡外）', /adjustsFontSizeToFit/.test(read('src/features/review/ReviewCard.tsx')), 'numberOfLines=2');
 check('刻度环按视口定尺', /size=\{ringSize\}/.test(read('app/(tabs)/index.tsx')), 'ringSize');

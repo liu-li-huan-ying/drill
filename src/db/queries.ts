@@ -37,6 +37,13 @@ const BASE_SELECT = `
   FROM cards c JOIN words w ON w.id = c.word_id
   WHERE c.mastered = 0 `;
 
+// 新词专用：多取一列 w.frq —— 分层抽样要按词频切档（见 stratifyByFrequency）。
+const NEW_SELECT = `
+  SELECT w.id AS word_id, w.word, w.phonetic_uk, w.phonetic_us,
+         w.definition_zh, w.definition_en, w.pos, w.root_affix, c.state, w.frq
+  FROM cards c JOIN words w ON w.id = c.word_id
+  WHERE c.mastered = 0 `;
+
 function rowToItem(r: any, isNew: boolean): QueueItem {
   return {
     word_id: r.word_id,
@@ -92,28 +99,138 @@ export function getTodayCounts(): { newDone: number; reviewDone: number } {
   return { newDone: row?.new_count ?? 0, reviewDone: row?.review_count ?? 0 };
 }
 
-// 构建今日会话：先到期的复习 + 当日新词预算（受 daily_new_limit 约束）。
+// ── 每日计划的编排 ──────────────────────────────────────────────────────────
+// 两条原则：
+//   1. 不按难易排成一列 —— 一天之内要难易参杂（分层抽新词 + 新旧交错）。
+//   2. 同一天反复打开必须是同一份计划（进度条、重学卡、撤销快照都要对得上）。
+//
+// 因此所有随机都走「日种子」而不是 SQL 的 RANDOM()：RANDOM() 每次调用都是新结果，
+// 刷一次屏就换一份计划，重学卡接回队尾时会对不上号。
+
+// 日种子：日期键 → FNV-1a 哈希。跨过 cutoff 时刻换一天，种子随之改变。
+function daySeed(): number {
+  const key = dateKey(Date.now(), getSettings().day_cutoff_hour);
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < key.length; i++) {
+    h ^= key.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0) % 100003;
+}
+
+// mulberry32：由日种子驱动的一串 [0,1)。同一天 → 同一串数 → 同一份计划。
+function makeRand(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function shuffleSeeded<T>(a: T[], rand: () => number): T[] {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    const t = a[i];
+    a[i] = a[j];
+    a[j] = t;
+  }
+  return a;
+}
+
+// 新词按词频切 5 档，每档轮流出一张。
+// 旧写法 ORDER BY w.frq ASC 会把当天新词全压在最常用那一档：20 张里全是 the/be/and/of，
+// 一整筐难度完全同质。分档轮流后实测 20 张铺在 frq 1.2k~27k，常用与生僻交替出现。
+const NEW_BANDS = 5;
+// 候选池相对预算的倍数：池子要够大，分档后每档才有的可选；再小也要装得下一轮分档。
+const NEW_POOL_FACTOR = 6;
+
+function stratifyByFrequency(rows: any[], budget: number, rand: () => number): any[] {
+  if (rows.length <= budget) return rows;
+  const sorted = rows.slice().sort((a, b) => (a.frq ?? 1e9) - (b.frq ?? 1e9));
+  const buckets: any[][] = Array.from({ length: NEW_BANDS }, () => []);
+  sorted.forEach((r, i) => {
+    const b = Math.min(NEW_BANDS - 1, Math.floor((i * NEW_BANDS) / sorted.length));
+    buckets[b].push(r);
+  });
+  buckets.forEach((b) => shuffleSeeded(b, rand));
+  const out: any[] = [];
+  for (let k = 0; out.length < budget; k++) {
+    let moved = false;
+    for (const b of buckets) {
+      if (out.length >= budget) break;
+      if (k < b.length) {
+        out.push(b[k]);
+        moved = true;
+      }
+    }
+    if (!moved) break; // 所有档都取空了
+  }
+  return out;
+}
+
+// 新旧交错：每 step 张复习卡插 1 张新词，间距带 ±1 抖动（抖动也走日种子）。
+// 旧写法 [...reviews, ...news] 是「先啃完所有复习、再一口气灌 20 个生词」——
+// 后半程一整段全是没见过的词。交错后生词分散在整场里。
+export function mixSession(reviews: QueueItem[], news: QueueItem[]): QueueItem[] {
+  if (!news.length) return reviews;
+  if (!reviews.length) return news;
+  const rand = makeRand(daySeed());
+  const step = Math.max(1, Math.round(reviews.length / news.length));
+  const out: QueueItem[] = [];
+  let r = 0;
+  let n = 0;
+  let left = step; // 先垫一张复习卡当热身，别一上来就是生词
+  while (r < reviews.length || n < news.length) {
+    if (r < reviews.length && (left > 0 || n >= news.length)) {
+      out.push(reviews[r++]);
+      left -= 1;
+    } else if (n < news.length) {
+      out.push(news[n++]);
+      left = step + (rand() < 0.5 ? 0 : 1);
+    } else break;
+  }
+  return out;
+}
+
+// 构建今日会话：到期的复习 + 当日新词预算（受 daily_new_limit 约束）。
 // 若设置了 study_tag，则只在该标签范围内选词（只背某一纲）。
 export function planSession(): { reviews: QueueItem[]; news: QueueItem[] } {
   const s = getSettings();
   const scope = getStudyScope();
   const now = Date.now();
+  const seed = daySeed();
   const { newDone } = getTodayCounts();
   const newBudget = Math.max(0, s.daily_new_limit - newDone);
   const tagFilter = scope.tagId != null ? ' AND w.id IN (SELECT word_id FROM word_tags WHERE tag_id = ?)' : '';
   const tagArgs: number[] = scope.tagId != null ? [scope.tagId] : [];
+  // SQL 里的「日种子打乱」：给每个 id 算一个由种子决定的伪随机序号，用它排序 ——
+  // 全表一个确定的排列，不写状态。id 连续时序号跳得很开（实测前 20 个铺满 1k~29k）。
+  const SEEDED = '((w.id * 2654435761 + ?) % 104729)';
 
+  // 复习：按到期「日」分桶先后（逾期越久越先），同日之内按日种子打乱。
+  // 排序键是时间不是难度 —— 紧急度该尊重，但同一批卡不该天天撞见同一个顺序。
   const revRows = getDb().getAllSync<any>(
-    BASE_SELECT + ` AND c.state <> 'new' AND c.due <= ? ${tagFilter} ORDER BY c.due ASC LIMIT ?`,
-    [now, ...tagArgs, s.daily_review_limit]
+    BASE_SELECT + ` AND c.state <> 'new' AND c.due <= ? ${tagFilter}
+       ORDER BY CAST(c.due / 86400000 AS INTEGER) ASC,
+                ((c.word_id * 2654435761 + ?) % 104729) ASC
+       LIMIT ?`,
+    [now, ...tagArgs, seed, s.daily_review_limit]
   );
-  const newRows = getDb().getAllSync<any>(
-    BASE_SELECT + ` AND c.state = 'new' ${tagFilter} ORDER BY w.frq ASC LIMIT ?`,
-    [...tagArgs, newBudget]
-  );
+  // 新词：先按日种子抽候选池，再分档轮流取（见 stratifyByFrequency）。
+  const poolSize = Math.max(NEW_BANDS * 4, newBudget * NEW_POOL_FACTOR);
+  const pool =
+    newBudget > 0
+      ? getDb().getAllSync<any>(
+          NEW_SELECT + ` AND c.state = 'new' ${tagFilter} ORDER BY ${SEEDED} ASC LIMIT ?`,
+          [...tagArgs, seed, poolSize]
+        )
+      : [];
+
   return {
     reviews: revRows.map((r) => rowToItem(r, false)),
-    news: newRows.map((r) => rowToItem(r, true)),
+    news: stratifyByFrequency(pool, newBudget, makeRand(seed)).map((r) => rowToItem(r, true)),
   };
 }
 
@@ -761,29 +878,60 @@ export function getDistractors(target: QueueItem, n = 3): ChoiceOption[] {
   const tagFilter =
     scope.tagId != null ? ' AND w.id IN (SELECT word_id FROM word_tags WHERE tag_id = ?)' : '';
   const tagArgs: any[] = scope.tagId != null ? [scope.tagId] : [];
+  const prefix = posPrefix(target.definition_zh);
+  const frqRow = getDb().getFirstSync<{ frq: number | null }>('SELECT frq FROM words WHERE id = ?', [
+    target.word_id,
+  ]);
+  const frq = frqRow?.frq ?? null;
+
+  // 形近词排除（part / parts / partial 互为干扰）：选项里出现同根词，考的是拼写不是词义。
+  // 只对 ≥4 字母的目标启用 —— 短词（be / of / a）会把一大批正常词误伤掉。
+  const guard =
+    target.word.length >= 4
+      ? " AND NOT (LOWER(w.word) LIKE LOWER(?) || '%' OR LOWER(?) LIKE LOWER(w.word) || '%')"
+      : '';
+  const guardArgs = target.word.length >= 4 ? [target.word, target.word] : [];
+
   const base = `SELECT w.id AS word_id, w.word, w.definition_zh, w.pos FROM words w
      WHERE w.id <> ? AND w.definition_zh IS NOT NULL AND w.definition_zh <> '' ${tagFilter}`;
 
-  const prefix = posPrefix(target.definition_zh);
-  const same: any[] = prefix
-    ? getDb().getAllSync<any>(base + ' AND w.definition_zh LIKE ? ORDER BY RANDOM() LIMIT ?', [
+  const pick = (usePos: boolean, band: number | null): ChoiceOption[] => {
+    const frqSql = band != null && frq != null ? ' AND COALESCE(w.frq, 999999) BETWEEN ? AND ?' : '';
+    const frqArgs = band != null && frq != null ? [frq - band, frq + band] : [];
+    const posSql = usePos && prefix ? ' AND w.definition_zh LIKE ?' : '';
+    const posArgs = usePos && prefix ? [`${prefix}. %`] : [];
+    return getDb()
+      .getAllSync<any>(base + frqSql + posSql + guard + ' ORDER BY RANDOM() LIMIT ?', [
         target.word_id,
         ...tagArgs,
-        `${prefix}. %`,
+        ...frqArgs,
+        ...posArgs,
+        ...guardArgs,
         n,
       ])
-    : [];
-  // 同词性凑不满三个时（那 0.3% 无前缀的释义）用随机补齐。
-  const need = n - same.length;
-  const rest: any[] = need > 0
-    ? getDb().getAllSync<any>(base + ' ORDER BY RANDOM() LIMIT ?', [target.word_id, ...tagArgs, need])
-    : [];
-  return [...same, ...rest].map((r) => ({
-    word_id: r.word_id,
-    word: r.word,
-    definition_zh: r.definition_zh,
-    pos: r.pos,
-  }));
+      .map((r) => ({ word_id: r.word_id, word: r.word, definition_zh: r.definition_zh, pos: r.pos }));
+  };
+
+  // 由严到宽：**同词性 + 同难度带 → 同词性 → 同难度带 → 随机**。
+  // 难度带这条是实测逼出来的：目标 the（frq=1）配上 frq≈30000 的 escarole / echelon，
+  // 学习者一眼就排除（压根不认识），四选一变成了送分题。
+  const ladder: [boolean, number | null][] = [
+    [true, 1500],
+    [true, 6000],
+    [true, null],
+    [false, 1500],
+    [false, null],
+  ];
+  const out: ChoiceOption[] = [];
+  for (const [usePos, band] of ladder) {
+    if (out.length >= n) break;
+    for (const o of pick(usePos, band)) {
+      if (out.length >= n) break;
+      if (o.word_id === target.word_id || out.some((x) => x.word_id === o.word_id)) continue;
+      out.push(o);
+    }
+  }
+  return out;
 }
 
 // 重置「已掌握」：把所有 mastered=1 的词放回学习池（保留原有 FSRS 状态）。

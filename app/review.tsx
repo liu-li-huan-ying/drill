@@ -1,4 +1,4 @@
-// 复习会话：构建今日队列（先到期的复习 + 当日新词）→ 翻转看释义 → 四档评分 → 写回 → 推进。
+// 复习会话：构建今日队列（到期复习与当日新词交错、新词按词频分档掺着来）→ 翻转看释义 → 评分 → 写回 → 推进。
 // 评分仅在翻转后开放；评分可撤销一次（还原 cards / 删除 review_logs / 回退 daily_stats）。
 // 队列走完（或主动「结束本轮」）→ 完成屏。
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -15,6 +15,7 @@ import {
   getDailyHistory,
   getSettings,
   getStreak,
+  mixSession,
   planSession,
   recordGrade,
   undoGrade,
@@ -33,10 +34,13 @@ const NO_PREVIEW: IntervalPreview[] = [
   { label: '', minutes: 8 },
 ];
 
-// 会话内重学窗口。learning / relearning 的卡还没「毕业」，必须在**本次会话**里再出现一次；
-// 被推到这个窗口之外（几天后）的就不在本次会话里等 —— 那是明天的事。
-// FSRS 默认学习步长为 1 分钟 / 10 分钟，20 分钟足够宽。
-const RELEARN_WINDOW_MS = 20 * 60 * 1000;
+// 会话内重学窗口：learning / relearning 的卡还没「毕业」，必须在**本次会话**里再出现一次。
+//
+// 定 2 分钟而不是 FSRS 的完整步长（1 / 6 / 10 分钟）：让人干等十分钟不是「遗忘曲线」，
+// 是惩罚。窗口只收「重来」那一步（1 分钟）—— 它才是「刚背完立刻再认一次」。
+// 6 / 10 分钟的卡不进本次会话的等待：它们到期后，下一次打开（或重新聚焦）本屏时
+// planSession() 会按 `due <= now` 自然捡回来，没有任何学习损失。
+const RELEARN_WINDOW_MS = 2 * 60 * 1000;
 
 export default function ReviewScreen() {
   const { colors: c } = useTheme();
@@ -63,7 +67,8 @@ export default function ReviewScreen() {
 
   const build = useCallback(() => {
     const { reviews, news } = planSession();
-    const q = [...reviews, ...news];
+    // 新旧交错成一条队列 —— 不是「先啃完所有复习、再一口气灌生词」。
+    const q = mixSession(reviews, news);
     run.current = { startedAt: Date.now(), done: 0, correct: 0 };
     relearn.current = [];
     setWaiting(null);

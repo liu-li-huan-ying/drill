@@ -11,15 +11,28 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTheme } from '../../theme/ThemeProvider';
-import { getDistractors, type ChoiceOption } from '../../db/queries';
+import { getDistractors, getExamples, type ChoiceOption } from '../../db/queries';
 import type { QueueItem } from '../../db/queries';
+import { parseSenses } from '../../components/Definition';
 import { RADIUS, SPACE, WEIGHT, TRACK, FONT, CONTROL, serif } from '../../theme/tokens';
 
-// 释义只取第一条并截断：选项里塞四段完整多义释义，比的是「谁看得完」，不是「谁记得住」。
-// 数据里 14,921 个词的释义带换行分隔，取首段即可。
-function shortDef(s: string): string {
-  const first = (s || '').split(/\n|；|;/)[0].trim();
-  return first.length > 22 ? `${first.slice(0, 22)}…` : first;
+// 选项文本 = **第一条义项的正文**，收束在 14 字以内、且只在逗号处收。
+//
+// 三条都是踩过的坑，别改回去：
+// ① 释义里的换行是**字面量 `\n`**（两个字符），必须走 `parseSenses` 的归一化 ——
+//    自己 split('\n') 切不开，屏幕上就会看到裸奔的 `\n[计] 后端`；
+// ② 词性前缀（`n.` / `vt.`）与领域标签（`[计]`）必须剥掉：选项里露词性等于送答案，
+//    四条里只有一条是 `art.`，那它就是答案，题目当场作废；
+// ③ 不能按字数硬截断：`（使）成离子( ionized…` 会被切在英文括号中间。
+function optionText(def: string | null | undefined, max = 14): string {
+  const senses = parseSenses(def);
+  if (!senses.length) return '';
+  const body = senses[0].body.trim();
+  if (body.length <= max) return body;
+  const seg = body.slice(0, max);
+  // 在窗口内找最后一个逗号，从那里收束；找不到（英文短语等）才退化为硬截。
+  const cut = Math.max(seg.lastIndexOf('，'), seg.lastIndexOf(','));
+  return (cut >= 4 ? seg.slice(0, cut) : seg) + '…';
 }
 
 type Mode = 'meaning' | 'word';
@@ -31,10 +44,10 @@ interface Option {
 }
 
 function buildOptions(item: QueueItem, mode: Mode): { prompt: string; options: Option[]; answer: string } {
-  const def = shortDef(item.definition_zh ?? '');
+  const def = optionText(item.definition_zh);
   const correctLabel = mode === 'meaning' ? def : item.word;
   const ds: ChoiceOption[] = getDistractors(item, 3);
-  const wrongRaw = ds.map((d) => (mode === 'meaning' ? shortDef(d.definition_zh) : d.word));
+  const wrongRaw = ds.map((d) => (mode === 'meaning' ? optionText(d.definition_zh) : d.word));
 
   // 去重：干扰项与正确答案撞车（同形 / 同释义）会让那一项「选了也算对」，判定就废了。
   const seen = new Set<string>([correctLabel]);
@@ -71,9 +84,15 @@ export function ChoiceQuiz({
   // 题型每张卡定一次（useRef 而非 useState：重渲染不该换题型）。
   const mode = useRef<Mode>(Math.random() < 0.5 ? 'meaning' : 'word').current;
   const { prompt, options, answer } = useMemo(() => buildOptions(item, mode), [item, mode]);
+  // 例句等到答完才取：这一屏的使命是判定，判定完才谈得上「顺便学一下」。
+  const example = useMemo(
+    () => (mode === 'meaning' ? getExamples(item.word_id, 1)[0] ?? null : null),
+    [item.word_id, mode]
+  );
   const [picked, setPicked] = useState<number | null>(null);
   const answered = picked !== null;
   const wasRight = answered && options[picked as number].correct;
+  const phonetic = item.phonetic_uk || item.phonetic_us || '';
 
   const pick = (i: number) => {
     if (answered) return;
@@ -87,10 +106,7 @@ export function ChoiceQuiz({
         {mode === 'meaning' ? '这个词是什么意思' : '哪个单词是这个意思'}
       </Text>
       <Text
-        style={[
-          styles.prompt,
-          { color: c.tx1, fontFamily: mode === 'meaning' ? serif : undefined },
-        ]}
+        style={[styles.prompt, { color: c.tx1, fontFamily: mode === 'meaning' ? serif : undefined }]}
         numberOfLines={mode === 'meaning' ? 1 : 3}
         adjustsFontSizeToFit
         minimumFontScale={0.5}
@@ -119,10 +135,7 @@ export function ChoiceQuiz({
               ]}
             >
               <Text
-                style={[
-                  styles.optText,
-                  { color: showRight ? c.bg : showWrong ? c.ac : c.tx1 },
-                ]}
+                style={[styles.optText, { color: showRight ? c.bg : showWrong ? c.ac : c.tx1 }]}
                 numberOfLines={2}
               >
                 {o.label}
@@ -137,6 +150,17 @@ export function ChoiceQuiz({
           <Text style={[styles.verdict, { color: wasRight ? c.tx2 : c.ac }]}>
             {wasRight ? '对了' : `不对 · 正确答案是「${answer}」`}
           </Text>
+          {/* 答完给完整词条：只丢一个 14 字的选项文本就说「判完了」，那这一轮只剩考试、没有学习。 */}
+          <View style={styles.entry}>
+            <Text style={[styles.entryWord, { color: c.tx1 }]}>{item.word}</Text>
+            {phonetic ? <Text style={[styles.ipa, { color: c.tx3 }]}>{phonetic}</Text> : null}
+            <Text style={[styles.entryDef, { color: c.tx2 }]}>{answer}</Text>
+            {example ? (
+              <Text style={[styles.quote, { color: c.tx3 }]} numberOfLines={2}>
+                {example.sentence_en}
+              </Text>
+            ) : null}
+          </View>
           <TouchableOpacity
             activeOpacity={0.7}
             onPress={onContinue}
@@ -165,7 +189,13 @@ const styles = StyleSheet.create({
   },
   optText: { fontSize: FONT.def, fontWeight: WEIGHT.regular, lineHeight: 22 },
   after: { marginTop: SPACE.lg, gap: SPACE.md },
-  verdict: { fontSize: FONT.body },
+  verdict: { fontSize: FONT.body, fontWeight: WEIGHT.semibold },
+  entry: { gap: 3 },
+  entryWord: { fontFamily: serif, fontSize: FONT.def, fontWeight: WEIGHT.semibold },
+  ipa: { fontSize: FONT.ipa },
+  entryDef: { fontSize: FONT.def, lineHeight: 22 },
+  // 例句原文保持斜体（体系规定：斜体只留给例句原文）。
+  quote: { fontSize: FONT.quote, fontStyle: 'italic', lineHeight: 20, marginTop: 2 },
   next: {
     minHeight: CONTROL.md,
     borderRadius: RADIUS.ctrl,
