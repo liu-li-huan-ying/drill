@@ -5,7 +5,7 @@ import { serif, mono, FONT, MOTION, RADIUS, SPACE, WEIGHT, TRACK } from '../../t
 import { ease, useReducedMotion } from '../../lib/motion';
 import { speak } from '../../lib/speak';
 import { DefinitionView } from '../../components/Definition';
-import { SealMark, SoundIcon } from '../../components/ui';
+import { SealMark, SoundIcon, Btn } from '../../components/ui';
 import { RatingBar } from './RatingBar';
 import { getExamples, type QueueItem } from '../../db/queries';
 import type { IntervalPreview } from '../../srs/fsrs';
@@ -19,18 +19,29 @@ import type { IntervalPreview } from '../../srs/fsrs';
 //
 // 评分条是背面的「固定页脚」而不是滚动内容的一部分 —— 释义长时若跟着滚走，
 // 用户就得先滚到底才能评分，评分是这一步唯一动作，必须永远在手边。
+//
+// **新卡 + 选择题模式走另一条路（`onJudge`）**：判定必须在**看到答案之前**完成 ——
+// 翻面之后再问「记不记得」，答案已经摆在眼前，那不是判定，是复述。此时正面铺一条判定栏
+// （不认识 / 认识），并**撤掉整卡翻转层**：不判定就翻不了，手没有别的路可走。
+// 判定完自动翻面看释义，背面页脚换成「继续」。
 export function ReviewCard({
   item,
   flipped,
   onFlip,
   intervals,
   onRate,
+  onJudge,
+  onContinue,
 }: {
   item: QueueItem;
   flipped: boolean;
   onFlip: () => void;
   intervals: IntervalPreview[];
   onRate: (rating: number) => void;
+  /** 新卡（选择题模式）：knew=true 认识 / false 不认识。判完由调用方翻面。 */
+  onJudge?: (knew: boolean) => void;
+  /** 新卡判定后的推进（背面页脚的「继续」）。 */
+  onContinue?: () => void;
 }) {
   const { colors: c } = useTheme();
   const reduce = useReducedMotion();
@@ -68,12 +79,14 @@ export function ReviewCard({
 
   // 卡面抬升只靠「面比底亮一档 + 1px 描边」——不投影（原因见 tokens.ts 里 SHADOW 的删除说明）。
   const faceStyle = [styles.face, { backgroundColor: c.sf, borderColor: c.bd }];
+  // 判定栏压在正面底部 76dp 内 —— 正面底部要让出这块，否则提示语被按钮盖住。
+  const frontStyle = [faceStyle, onJudge ? { paddingBottom: 88 } : null];
 
   return (
     <View style={styles.wrap}>
       {/* 正面（纯展示，不含 touchable） */}
       <Animated.View
-        style={[faceStyle, { transform: [{ rotateY: frontRotate }], backfaceVisibility: 'hidden' }]}
+        style={[frontStyle, { transform: [{ rotateY: frontRotate }], backfaceVisibility: 'hidden' }]}
       >
         {seal ? <SealMark text={seal} style={styles.seal} /> : null}
         <View style={styles.frontBody}>
@@ -94,12 +107,36 @@ export function ReviewCard({
             <SoundIcon color={c.tx2} size={19} />
           </TouchableOpacity>
         </View>
-        <Text style={[styles.hint, { color: c.tx3 }]}>轻 触 卡 片 · 查 看 释 义</Text>
+        <Text style={[styles.hint, { color: c.tx3 }]}>
+          {onJudge ? '先 判 断 · 再 看 答 案' : '轻 触 卡 片 · 查 看 释 义'}
+        </Text>
       </Animated.View>
 
-      {/* 翻转触发层：覆盖整卡，统一接手势。
-          必须渲染在背面之前——翻面后背面（JSX 顺序在后 = 层级更高）才能盖住它、接管滚动。 */}
-      <TouchableOpacity style={styles.tap} activeOpacity={1} onPress={onFlip} />
+      {/* 判定中的卡不给「随便点一下就翻面」这条路 —— 看到答案之后的判定不算判定。 */}
+      {onJudge ? null : <TouchableOpacity style={styles.tap} activeOpacity={1} onPress={onFlip} />}
+
+      {onJudge ? (
+        <View style={styles.judge} pointerEvents={flipped ? 'none' : 'auto'}>
+          {/* 「不认识」用朱砂：与评分条里「重来」同一套语言。二选一里让诚实那一档更响，
+              抵消「反正点认识最省力」的本能 —— 判定权刚从学习者手里拿回来，不能在这里又松掉。 */}
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => onJudge(false)}
+            style={[styles.judgeBtn, { backgroundColor: c.ac }]}
+          >
+            <Text style={[styles.judgeLabel, { color: c.acon }]}>不认识</Text>
+            <Text style={[styles.judgeHint, { color: c.acon }]}>{intervals[0]?.label ?? ''}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => onJudge(true)}
+            style={[styles.judgeBtn, { backgroundColor: c.bg, borderColor: c.bd2 }]}
+          >
+            <Text style={[styles.judgeLabel, { color: c.tx1 }]}>认识</Text>
+            <Text style={[styles.judgeHint, { color: c.tx3 }]}>{intervals[2]?.label ?? ''}</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
 
       {/* 背面：释义可滚动，评分条固定为页脚。 */}
       <Animated.View
@@ -134,7 +171,8 @@ export function ReviewCard({
             const dx = Math.abs(pageX - s.x);
             const dy = Math.abs(pageY - s.y);
             const dt = Date.now() - s.t;
-            if (dx < 10 && dy < 10 && dt < 300) onFlip();
+            // 判定模式下**不许翻回正面**：判定是一次性的，翻回去再点一次就会重复记一次评分。
+            if (dx < 10 && dy < 10 && dt < 300 && !onJudge) onFlip();
           }}
         >
           <Text style={[styles.secK, { color: c.tx3 }]}>释 义</Text>
@@ -181,7 +219,7 @@ export function ReviewCard({
         </ScrollView>
 
         <View style={[styles.footer, { borderTopColor: c.bd }]}>
-          <RatingBar intervals={intervals} onRate={onRate} />
+          {onJudge ? <Btn title="继续" onPress={onContinue} /> : <RatingBar intervals={intervals} onRate={onRate} />}
         </View>
       </Animated.View>
     </View>
@@ -246,4 +284,25 @@ const styles = StyleSheet.create({
   chipText: { fontSize: 10, letterSpacing: TRACK.label, fontWeight: WEIGHT.semibold },
 
   footer: { borderTopWidth: 1, paddingHorizontal: 12, paddingTop: 12, paddingBottom: 12 },
+
+  // 判定栏压在正面底部（与背面页脚同一位置，翻面时它正好被背面盖住）。
+  judge: {
+    position: 'absolute',
+    left: 12,
+    right: 12,
+    bottom: 12,
+    flexDirection: 'row',
+    gap: 7,
+  },
+  judgeBtn: {
+    flex: 1,
+    height: 64,
+    borderRadius: RADIUS.ctrl,
+    borderWidth: 1,
+    borderColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  judgeLabel: { fontSize: FONT.def, fontWeight: WEIGHT.semibold, letterSpacing: TRACK.body },
+  judgeHint: { fontSize: 10.5, marginTop: 4, fontVariant: ['tabular-nums'] },
 });

@@ -189,9 +189,21 @@ export default function ReviewScreen() {
   // 判定权从学习者手里拿回来，才是「怎么选都算学会」的正解。
   const answerQuiz = (correct: boolean) => grade(correct ? 3 : 1);
 
+  // 新卡（选择题模式）：先问认不认识，**判完才翻面看答案**。
+  // 翻面之后再问「记不记得」，答案就摆在眼前 —— 那不是判定，是复述，
+  // 于是每张新卡都被判成「会了」，这正是「怎么选都算学会」剩下的那一半。
+  // 认识=Good(3)：10 分钟后回来，那时它是 learning 身份，走的就是选择题了 ——
+  // 判定没有被跳过，只是延后到它真的有得可判的时候。
+  const judgeNew = (knew: boolean) => {
+    grade(knew ? 3 : 1);
+    setFlipped(true); // 判完立刻给答案：这一下是「学」，不是「考」
+  };
+
   // 选择题只用于「验证记忆」，不用于「首次见面」：
   // 一个从没见过的词，四选一只是瞎猜，那不是测试，是掷骰子。
   const useQuiz = quizMode && !!current && current.state !== 'new';
+  // 新卡（选择题模式）走判定栏：判定必须在**看到答案之前**。
+  const useJudge = quizMode && !!current && current.state === 'new';
 
   const doUndo = () => {
     if (!undo) return;
@@ -205,7 +217,10 @@ export default function ReviewScreen() {
     setUndo(null);
     setSummary(null); // 从完成屏退回时也走这里
     setIdx(back);
-    setFlipped(true); // 回到那张卡的背面，让用户看到自己刚刚改的是哪张
+    // 回到那张卡的背面，让用户看到自己刚刚改的是哪张。
+    // 但**判定过的新卡必须退回正面** —— 背面页脚是「继续」，没有判定按钮，
+    // 退到背面就只能干推进，那张卡等于被白拿走一次判定。
+    setFlipped(!(quizMode && undo.snap.wasNew));
   };
 
   // ── 完成屏 ────────────────────────────────────────────────────────────
@@ -276,6 +291,8 @@ export default function ReviewScreen() {
             }}
             intervals={intervals}
             onRate={rate}
+            onJudge={useJudge ? judgeNew : undefined}
+            onContinue={advance}
           />
           )
         ) : null}

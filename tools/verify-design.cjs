@@ -195,7 +195,21 @@ check(
   /const answerQuiz = \(correct: boolean\) => grade\(correct \? 3 : 1\)/.test(rev) &&
     // 首次见面的新词不测验：一个没见过的词四选一只是瞎猜，那不是测试。
     /quizMode && !!current && current\.state !== 'new'/.test(rev),
-  '答对=Good / 答错=Again；新卡仍走「先看释义」'
+  '答对=Good / 答错=Again；新卡走「先判断再看答案」（见下一条）'
+);
+// v3.14：新卡的判定必须发生在**看到答案之前**。翻面之后再问「记不记得」，
+// 答案就摆在眼前 —— 那是复述不是判定，每张新卡都会被判成「会了」。
+// 这是「怎么选都算学会」的另一半：旧断言只堵住了复习卡，新卡还在走「翻面后自评」。
+const cardCode = code('src/features/review/ReviewCard.tsx');
+check(
+  '新卡判定在看到答案之前（判定层压正面，翻回不许重判）',
+  /onJudge\?: \(knew: boolean\) => void/.test(cardCode) &&
+    /onJudge \? null : <TouchableOpacity style=\{styles\.tap\}/.test(cardCode) && // 判定中撤掉整卡翻转层
+    /&& !onJudge\) onFlip\(\)/.test(cardCode) && // 翻回正面不许重判（否则重复记分）
+    /const judgeNew = \(knew: boolean\) => \{/.test(rev) &&
+    /grade\(knew \? 3 : 1\)/.test(rev) &&
+    /setFlipped\(!\(quizMode && undo\.snap\.wasNew\)\)/.test(rev), // 撤销退回正面，不然没法重判
+  '认识=Good / 不认识=Again；判完翻面给答案'
 );
 const quizCode = code('src/features/review/ChoiceQuiz.tsx');
 const distBlock = between(code('src/db/queries.ts'), 'function posPrefix', 'export function getDistractors');
